@@ -43,7 +43,7 @@ public class SceneChangeMgr : BaseMgr<SceneChangeMgr>
     /// <param name="name">场景名</param>
     /// <param name="resAndNum">加载资源名称和缓存池大小</param>
 
-    public void LoadResToChangeSence(string name,Dictionary<string,int> resAndNum)
+    public void LoadResToChangeSence(string name,Dictionary<string,int> resAndNum=null)
     {
         int task = 0;
 
@@ -55,7 +55,7 @@ public class SceneChangeMgr : BaseMgr<SceneChangeMgr>
 
                 GameObject.Instantiate(tobj);
                 
-                InputControlMgr.Instance.InputOpenOrClose(true);
+                
                 UIMgr.Instance.HideOneUI<LoadingPanel>();
                 EventCenterSystem.Instance.EventTrigger<float>(E_EventEnum.E_LoadScene, 0.1f);
             }
@@ -67,10 +67,13 @@ public class SceneChangeMgr : BaseMgr<SceneChangeMgr>
             //print("场景切换成功");
             //台阶对象预热
 
-
-            foreach(var e in resAndNum)
+            if (resAndNum != null)
             {
-                PoolMgr.Instance.Preload(e.Key, e.Value);
+                foreach (var e in resAndNum)
+                {
+                    PoolMgr.Instance.Preload(e.Key, e.Value);
+                }
+
             }
 
             task += 1;

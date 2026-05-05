@@ -111,6 +111,7 @@ public class TaskSp : MonoBehaviour
             SceneChangeMgr.Instance.LoadSceneAsync("BeginScenes", () =>
             {
                 UIMgr.Instance.HideOneUI<LoadingPanel>();
+                InputControlMgr.Instance.InputOpenOrClose(false);
                 PoolMgr.Instance.ClearPoolObj();
                 //print("返回开始界面1");
             });

@@ -5,8 +5,20 @@ using UnityEngine;
 public class Main : MonoBehaviour
 {
 
+    public static Main Instance;
+
+
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
         DataConfigurationMgr.Instance.Init();
         DataAndInitMgr.Instance.Init();
 
@@ -28,12 +40,12 @@ public class Main : MonoBehaviour
         //UIMgr.Instance.ShowOneUI<BeginPanel>();
         //MusicMgr.Instance.PlayBkMusic("BkMusic");
 
-        GameObject.DontDestroyOnLoad(this.gameObject);
+        //GameObject.DontDestroyOnLoad(this.gameObject);
         //GameObjData data = new GameObjData();
         //print(data.TestInfoDic[2].name);
         //读表功能测试
         //yyydddd yyydddd = new();
         //print(yyydddd.Sheet1Dic[2].name);
-        //print(yyydddd.Sheet1Dic[3].name);
+        //print("asssssssssss");
     }
 }

@@ -30,7 +30,9 @@ public interface IBehavioralState
 
 }
 
-
+/// <summary>
+/// 玩家状态机基类
+/// </summary>
 public class BasePlayerState : IBehavioralState
 {
     protected Player.PlayerData playerData;
@@ -56,17 +58,17 @@ public class BasePlayerState : IBehavioralState
 
     public virtual void Exit()
     {
-        throw new System.NotImplementedException();
+        
     }
 
     public virtual void Update()
     {
-        throw new System.NotImplementedException();
+        
     }
 
     public virtual void FixUpdate()
     {
-        throw new System.NotImplementedException();
+        
     }
 }
 /// <summary>

@@ -13,6 +13,7 @@ public class ChangePanel : BasePanel
         {
             case "t1":
                 SceneChangeMgr.Instance.LoadResToChangeSence("TeskScenes1", new Dictionary<string, int> { { "Taijie", 15 } });
+                InputControlMgr.Instance.InputOpenOrClose(true);
                 UIMgr.Instance.HideOneUI<ChangePanel>();
                 break;
             case "t2":

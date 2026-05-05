@@ -70,6 +70,54 @@
                     "isPartOfComposite": true
                 }
             ]
+        },
+        {
+            "name": "miniGame",
+            "id": "b7260ee9-1158-4e77-a6a1-9cc69d44f6d2",
+            "actions": [
+                {
+                    "name": "Click",
+                    "type": "Button",
+                    "id": "689723ef-13a6-4710-8418-ca4ab69bb77a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Point",
+                    "type": "Value",
+                    "id": "aaa51c85-bef5-4135-bc53-2ce345bbf9e0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "5f38def8-670b-40df-bf53-b007db0f36d2",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e5351090-f0b9-4cc7-972c-86bdfc71e3bc",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Point",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

@@ -29,9 +29,10 @@ public class BaseStartSceneUIFlow : MonoBehaviour
     /// <summary>
     /// 子类重写初始状态
     /// </summary>
-    protected virtual void Start()
+    void Start()
     {
-        nowState = E_UI_Process.BeginPanel;
+        //nowState = E_UI_Process.BeginPanel;
+        //print("111");
         EnterState(nowState, false);
     }
 

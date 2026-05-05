@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using static UnityEngine.UI.Image;
 using UnityEngine.UIElements;
+using System.Drawing;
 
 public class Player : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class Player : MonoBehaviour
         if (groundV == null) return;
 
         // 设置颜色：绿色半透明，便于观察
-        Gizmos.color = new Color(0, 1, 0, 0.5f);
+        Gizmos.color = new UnityEngine.Color(0, 1, 0, 0.5f);
 
         // 绘制检测区域的线框矩形（位置、大小、旋转）
         Gizmos.DrawWireCube(groundV.position, size);
@@ -53,6 +54,8 @@ public class Player : MonoBehaviour
 
     #region 物理相关
     public Rigidbody2D rb; //刚体
+
+    BoxCollider2D boxCollider;
     /// <summary>
     /// 检测中心
     /// </summary>
@@ -60,11 +63,11 @@ public class Player : MonoBehaviour
     private Transform groundV;
 
     /// <summary>
-    /// 碰撞显示范围矩形宽高
+    /// 碰撞检测范围矩形宽高
     /// </summary>
-    private Vector2 size = new Vector2(0.75f, 0.1f);
+    private Vector2 size ;
     /// <summary>
-    /// 检测层级
+    /// 检测地面的层级
     /// </summary>
     [SerializeField]
     private LayerMask groundLayer;
@@ -73,8 +76,6 @@ public class Player : MonoBehaviour
     /// </summary>
     private Taijie nowtaijie;
 
-    //碰撞器缓存
-    RaycastHit2D hit;
     #endregion
 
     /// <summary>
@@ -100,6 +101,8 @@ public class Player : MonoBehaviour
         fsm.InitData(data, inputData, animator);
         //刚体初始化
         rb = gameObject.GetComponent<Rigidbody2D>();
+        boxCollider=GetComponent<BoxCollider2D>();
+        size = new Vector2(boxCollider.size.x, 0.1f);
         //不使用刚体的重力
         rb.gravityScale = 0;
         //物理更新时序为1层
@@ -145,7 +148,7 @@ public class Player : MonoBehaviour
 
         //col = Physics2D.OverlapBox(groundV.position, size, 0, groundLayer);
         //检测是否在地面
-        hit = Physics2D.BoxCast(groundV.position, size, 0, Vector2.down, 0f, groundLayer);
+        RaycastHit2D hit = Physics2D.BoxCast(groundV.position, size, 0, Vector2.down, 0f, groundLayer);
 
         //状态重置，避免缓存影响判断
         data.isGrounded = false;
