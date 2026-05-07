@@ -22,6 +22,8 @@ public class Main : MonoBehaviour
         DataConfigurationMgr.Instance.Init();
         DataAndInitMgr.Instance.Init();
 
+        MonoPublicMgr.Instance.Init();
+
         SceneLogicMgr.Instance.Init();
 
         UIMgr.Instance.Init();

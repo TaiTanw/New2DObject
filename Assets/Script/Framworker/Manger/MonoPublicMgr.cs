@@ -20,6 +20,11 @@ public class MonoPublicMgr : BaseAutoMonoMgr<MonoPublicMgr>
     {
         IsQuitting = true;
     }
+    public void Init()
+    {
+
+    }
+
     public UnityAction[] actionsLen=new UnityAction[5];
     /// <summary>
     /// 添加物理时序更新

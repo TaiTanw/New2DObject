@@ -5,20 +5,19 @@ using UnityEngine;
 public class SO_CPhysics : ScriptableObject
 {
     /// <summary>
-    /// 地面检测中心
-    /// </summary>
-    public Transform groundV;
-
-    /// <summary>
     /// 检测地面的层级
     /// </summary>
     public LayerMask groundLayer;
     /// <summary>
     /// 底盒地面检测高度
     /// </summary>
-    public float boxCastH;
+    public float boxCastH=0.1f;
 
     public float speed = 15;    // 基础水平移速
     public float upSpeed = 15;//基础跳跃速度
     public float gravity = -35f;    //重力速度
+    /// <summary>
+    /// 物理帧更新时序层级
+    /// </summary>
+    public int phyMask = 1;
 }

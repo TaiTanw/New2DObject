@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-public class PlayerInputData
-{
-    public float moveInput;    //水平输入
-    public bool jumpPressed;   // 这一帧是否按下
-}
+
 public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
 {
     #region 玩家相关

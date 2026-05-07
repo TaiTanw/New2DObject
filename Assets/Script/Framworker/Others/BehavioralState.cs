@@ -35,24 +35,29 @@ public interface IBehavioralState
 /// </summary>
 public class BasePlayerState : IBehavioralState
 {
-    protected Player.PlayerData playerData;
-
+    //玩家物理状态/弃用
+    //protected Player.PlayerData playerData;
+    //玩家物理状态/只读
+    protected CharacterPhysics playPhyData;
+    //原始输入/只读
     protected PlayerInputData input;
-
+    //过滤后的动作输出/读写
+    protected ActionData playActionData;
+    //依附的逻辑状态机/调用
     protected PlayerStateMachine stateMachine;
 
-    Animator animator;
-    public void Init(Player.PlayerData playData, PlayerInputData input, PlayerStateMachine stateMachine,Animator animator)
+    public void Init(CharacterPhysics playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,ActionData playActionData)
     {
-        this.playerData = playData;
+        //this.playerData = playData;
+        this.playPhyData = playPhyData;
         this.input = input;
         this.stateMachine = stateMachine;
-        this.animator = animator;
+        this.playActionData = playActionData;
     }
 
     public virtual void Enter()
     {
-
+        
     }
 
 
@@ -93,69 +98,114 @@ public class IsOnGround : BasePlayerState
     {
         if(input.jumpPressed)
         {
-            //可跳跃
-            //playData.rb.velocity=new Vector2(playData.rb.velocity.x,playData.upSpeed);
-            playerData.verticalVelocity = playerData.upSpeed;
+            //可跳跃//重构前直接改物理
+            //playerData.verticalVelocity = playerData.upSpeed;
+            //动作响应
+            playActionData.onJump = true;
             stateMachine.jumpNum -= 1;
             //触发状态复原，此处已经交给状态机
         }
         //若已经不在地面，则改变状态
-        if (!playerData.isGrounded)
+        if (!playPhyData.IsOnGround)
         {
-            //因为此类型状态没有成员变量，所以，直接靠成员变量来传入，避免频繁GC
+            //直接靠成员变量来传入，避免频繁GC
             stateMachine.ChangeState(stateMachine.inAir);
         }
-        //水平速度的持续更新
-        playerData.HorizontalSpeed = input.moveInput * playerData.speed;
-
+        //水平速度的持续更新（重构前
+        //playerData.HorizontalSpeed = input.moveInput * playerData.speed;
+        //移动动作响应
+        playActionData.onMove = input.moveInput;
     }
 }
 
 public class IsInAir : BasePlayerState
 {
     /// <summary>
-    /// 当前时间
+    /// 当前此状态时间
     /// </summary>
     float nowTime;
     /// <summary>
+    /// 土狼时间
+    /// </summary>
+    float coyoteTime=0.1f;
+
+    /// <summary>
     /// 跳跃缓冲时间
     /// </summary>
-    float maxTime=0.1f;
+    float jumpBuffer = 0.2f;
+    /// <summary>
+    /// 跳跃缓冲计时器
+    /// </summary>
+    float jbt;
+    /// <summary>
+    /// 跳跃缓冲计时器开关
+    /// </summary>
+    bool jbtB;
+
     public override void Enter()
     {
         //Debug.Log("空中状态进入");
-        nowTime = maxTime;
     }
 
     public override void Exit( )
     {
-        //Debug.Log("空中状态退出");
+        Debug.Log("空中状态退出");
         nowTime = 0;
+        jbt = 0;
     }
 
 
     public override void Update()
     {
-        if (nowTime > 0&&stateMachine.jumpNum>0)
+        if (jbtB)
+        {
+            jbt += Time.deltaTime;
+
+            if (jbt > jumpBuffer)
+            {
+                jbtB = false; // 超时自动关闭
+            }
+        }
+        if (input.jumpPressed&& stateMachine.jumpNum <= 0)
+        {
+            jbt = 0;
+            jbtB = true;
+            Debug.Log("跳跃缓冲计时触发");
+        }
+ 
+        if (nowTime <=coyoteTime&&stateMachine.jumpNum>0)
         {
             //可跳跃
             if (input.jumpPressed)
             {
-                playerData.verticalVelocity = playerData.upSpeed;
+                //旧版
+                //playerData.verticalVelocity = playerData.upSpeed;
+                playActionData.onJump= true;
                 stateMachine.jumpNum -= 1;
-                nowTime = 0;
             }
-            //此处放在了物理更新中，时间也需修改
-            //后续若有需求，需要分离逻辑更新和物理更新=================================
-            nowTime -= Time.fixedDeltaTime;
-
         }
-        if (playerData.isGrounded)
+       
+
+        //逻辑更新直接使用帧间隔更时间
+        nowTime += Time.deltaTime;
+
+        if (playPhyData.IsOnGround)
         {
-            //因为此类型状态没有成员变量，所以，直接靠成员变量来传入，避免频繁GC
+            if (jbtB && jbt <= jumpBuffer)
+            {
+                playActionData.onJump = true;
+                stateMachine.jumpNum -= 1;
+
+                Debug.Log("消费缓冲");
+                jbtB = false;
+                jbt = 0;
+            }
+            //直接靠成员变量来传入，避免频繁GC
             stateMachine.ChangeState(stateMachine.onGround);
         }
-        //水平速度的持续更新
-        playerData.HorizontalSpeed = input.moveInput * playerData.speed;
+        //水平速度的持续更新（重构前
+        //playerData.HorizontalSpeed = input.moveInput * playerData.speed;
+        //移动动作响应
+        playActionData.onMove= input.moveInput;
     }
 }
