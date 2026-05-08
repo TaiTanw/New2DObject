@@ -42,8 +42,8 @@ public class CharacterPhysics : MonoBehaviour
     private SO_CPhysics cPhysics;
 
     //运行时数据
-    float horizontalSpeed;   //当前水平速度
-    float verticalVelocity;  //当前竖直速度
+    float horizontalSpeed;   //当前自身水平速度
+    float verticalVelocity;  //当前自身竖直速度
     public float VerticalSpeed => verticalVelocity;
     public float HorizontalSpeed => horizontalSpeed;
     /// <summary>
@@ -71,8 +71,6 @@ public class CharacterPhysics : MonoBehaviour
         //地面检测盒范围
         size = new Vector2(boxCollider.size.x, cPhysics.boxCastH);
 
-
-
     }
     private void Start()
     {
@@ -99,8 +97,8 @@ public class CharacterPhysics : MonoBehaviour
         //处理跳跃动作
         if (playActionData.onJump)
         {
-            //当前竖直速度加等于跳跃速度
-            verticalVelocity += cPhysics.upSpeed;
+            //当前竖直速度等于跳跃速度
+            verticalVelocity = cPhysics.upSpeed;
             //跳跃动作已触发，复原动作
             playActionData.onJump = false;
         }

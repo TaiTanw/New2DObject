@@ -68,7 +68,7 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
         player1["Jump"].started += ctx =>
         {
             inputData.jumpPressed = true;
-            print("1111");
+            //print("1111");
         };
             
 

@@ -51,8 +51,7 @@ public class Player : MonoBehaviour
 
     void Awake()
     {
-        //玩家输入信息初始化
-        //inputData =new PlayerInputData();此处会导致数据引用错误，所以初始化交给外部的输入管理系统
+
         //玩家主动拉取输入控制权限，调用方法保证唯一玩家控制权,且便于控制时序，保证先于状态机初始化
         InputControlMgr.Instance.BindPlayer(this);
         //可执行动作数据初始化
@@ -102,10 +101,11 @@ public class PlayerStateMachine
 
     public IsOnGround onGround;
     public IsInAir inAir;
+    #region 配置数据
     /// <summary>
-    /// 可跳跃次数
+    /// 在空中可跳跃跳跃数
     /// </summary>
-    public int jumpNum=1;
+    public int jumpNum=0;
     /// <summary>
     /// 土狼时间
     /// </summary>
@@ -115,18 +115,38 @@ public class PlayerStateMachine
     /// 跳跃缓冲时间
     /// </summary>
     public float jumpBuffer = 0.2f;
+    #endregion
+
+    #region 运行时数据
+    /// <summary>
+    /// 当前空中可跳跃次数
+    /// </summary>
+    public int jumpCount=0;
+    /// <summary>
+    /// 跳跃缓冲计时器开关
+    /// </summary>
+    public bool jbtB;
+    /// <summary>
+    /// 是否可使用地面跳跃
+    /// </summary>
+    public bool groundJump;
+    #endregion
+
     public PlayerStateMachine()
     {
         onGround = new IsOnGround();
         inAir = new IsInAir();
         //当前状态信息初始化
         onState = onGround;
+
+        jumpCount=jumpNum;
     }
 
     public void InitData(CharacterPhysics playData, PlayerInputData input, ActionData actionData )
     {
         onGround.Init(playData, input, this, actionData);
         inAir.Init(playData,input, this, actionData);
+        onState.Enter();
     }
 
     /// <summary>
@@ -151,5 +171,27 @@ public class PlayerStateMachine
         onState.Update();
         //效果已经触发，则关闭，防止持续跳跃
         input.jumpPressed = false;//触发类型按键全部统一由状态机复原
+    }
+    /// <summary>
+    /// 重置可跳次数
+    /// </summary>
+    public void JumpCountToNum()
+    {
+        jumpCount = jumpNum;
+    }
+    /// <summary>
+    /// 执行跳跃并判断是否可跳跃
+    /// </summary>
+    /// <returns></returns>
+    public bool JumpCan()
+    {
+        jumpCount--;
+        if ( jumpCount < 0)
+        {
+            jumpCount = 0;
+            return false;
+        }
+        return true;
+            
     }
 }
