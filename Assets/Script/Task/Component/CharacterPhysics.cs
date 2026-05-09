@@ -23,10 +23,8 @@ public class CharacterPhysics : MonoBehaviour
 #endif
     //必要组件
     Rigidbody2D rb; //刚体
-    /// <summary>
-    /// 地面检测中心（外部拖拽关联
-    /// </summary>
-    public Transform groundV;
+    //玩家状态机引用
+    PlayerStateMachine fsm;
 
     BoxCollider2D boxCollider;
 
@@ -40,6 +38,10 @@ public class CharacterPhysics : MonoBehaviour
     /// </summary>
     [SerializeField]
     private SO_CPhysics cPhysics;
+    /// <summary>
+    /// 地面检测中心（外部拖拽关联
+    /// </summary>
+    public Transform groundV;
 
     //运行时数据
     float horizontalSpeed;   //当前自身水平速度
@@ -84,24 +86,34 @@ public class CharacterPhysics : MonoBehaviour
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(FixFun, cPhysics.phyMask);
     }
 
-    public void Init(ActionData actionData)
+    public void Init(ActionData actionData,PlayerStateMachine fsm)
     {
         playActionData = actionData;
+        this.fsm = fsm;
+        //注册跳跃事件
+        fsm.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
     }
-
+    /// <summary>
+    /// 物理跳跃动作具体实现
+    /// </summary>
+    void Jump()
+    {
+        //当前竖直速度等于跳跃速度
+        verticalVelocity = cPhysics.upSpeed;
+    }
     /// <summary>
     /// 物理更新，传入外部控制时序
     /// </summary>
     void FixFun()
     {
         //处理跳跃动作
-        if (playActionData.onJump)
-        {
-            //当前竖直速度等于跳跃速度
-            verticalVelocity = cPhysics.upSpeed;
-            //跳跃动作已触发，复原动作
-            playActionData.onJump = false;
-        }
+        //if (playActionData.onJump)
+        //{
+        //    //当前竖直速度等于跳跃速度
+        //    verticalVelocity = cPhysics.upSpeed;
+        //    //跳跃动作已触发，复原动作
+        //    playActionData.onJump = false;
+        //}
         //处理移动
         horizontalSpeed = playActionData.onMove * cPhysics.speed;
 

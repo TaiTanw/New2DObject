@@ -7,6 +7,8 @@ using static UnityEngine.UI.Image;
 using UnityEngine.UIElements;
 using System.Drawing;
 using UnityEngine.Playables;
+using UnityEngine.Events;
+using System.Numerics;
 
 /// <summary>
 /// 原始输入
@@ -56,15 +58,15 @@ public class Player : MonoBehaviour
         InputControlMgr.Instance.BindPlayer(this);
         //可执行动作数据初始化
         actionData = new ActionData();
-        //物理状态初始化
-        playPDate = gameObject.GetComponent<CharacterPhysics>();
-        playPDate.Init(actionData);
-        //表现层初始化
-        animatorFSM=gameObject.GetComponent<PresentationLayer>();
-        animatorFSM.Init(playPDate,actionData);
-        //逻辑状态机初始化
+
+        //逻辑状态机/物理状态/表现层初始化（保证存在
         fsm = new PlayerStateMachine();
+        playPDate = gameObject.GetComponent<CharacterPhysics>();
+        animatorFSM = gameObject.GetComponent<PresentationLayer>();
+        //保证可用
         fsm.InitData(playPDate, inputData, actionData);
+        playPDate.Init(actionData, fsm);
+        animatorFSM.Init(playPDate, actionData);
 
     }
     /// <summary>
@@ -94,6 +96,70 @@ public class Player : MonoBehaviour
 /// </summary>
 public class PlayerStateMachine
 {
+    #region 内部事件系统
+
+    public enum E_playEvent
+    {
+        move,
+        jump,
+
+    }
+
+    public abstract class BasePlayerEventData { }
+    public class EventData<T> : BasePlayerEventData
+    {
+        public UnityAction<T> action;
+    }
+    public class EventData : BasePlayerEventData
+    {
+        public UnityAction action;
+    }
+    /// <summary>
+    /// 事件引用
+    /// </summary>
+    Dictionary<E_playEvent, BasePlayerEventData> dicEvent = new Dictionary<E_playEvent, BasePlayerEventData>();
+
+    public void EventTigger(E_playEvent e_Play)
+    {
+        if (dicEvent.ContainsKey(e_Play))
+        {
+            (dicEvent[e_Play] as EventData).action?.Invoke();
+        }
+    }
+    public void EventTigger<T>(E_playEvent e_Play,T value)
+    {
+        if (dicEvent.ContainsKey(e_Play))
+        {
+            (dicEvent[e_Play] as EventData<T>).action?.Invoke(value);
+        }
+    }
+
+    public void AddEventListener(E_playEvent e_Play,UnityAction action)
+    {
+        if (!dicEvent.ContainsKey(e_Play))
+        {
+            dicEvent.Add(e_Play, new EventData());
+        }
+        (dicEvent[e_Play] as EventData).action += action;
+    }
+    public void AddEventListener<T>(E_playEvent e_Play, UnityAction<T> action)
+    {
+        if (!dicEvent.ContainsKey(e_Play))
+        {
+            dicEvent.Add(e_Play, new EventData<T>());
+        }
+        (dicEvent[e_Play] as EventData<T>).action += action;
+    }
+
+    //清空所有事件
+    public void ClearAll()
+    {
+        dicEvent.Clear();
+    }
+    //此处暂时不做事件注销，主要原因是各状态类保证在玩家存在时一定存在且示例不变
+    //后续若有状态引用切换等需求，则开发注销逻辑，并在状态类生命周期结束后调用
+    #endregion
+
     /// <summary>
     /// 当前状态
     /// </summary>
@@ -123,7 +189,7 @@ public class PlayerStateMachine
     /// </summary>
     public int jumpCount=0;
     /// <summary>
-    /// 跳跃缓冲计时器开关
+    /// 跳跃缓冲开关
     /// </summary>
     public bool jbtB;
     /// <summary>

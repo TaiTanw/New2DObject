@@ -96,7 +96,8 @@ public class IsOnGround : BasePlayerState
     {
         if (stateMachine.jbtB && stateMachine.groundJump)
         {
-            playActionData.onJump = true;
+            //playActionData.onJump = true;
+            stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
             Debug.Log("消费缓冲");
             stateMachine.jbtB = false;
             stateMachine.groundJump=false;
@@ -104,7 +105,8 @@ public class IsOnGround : BasePlayerState
         if (input.jumpPressed && stateMachine.groundJump)
         {
             //动作响应
-            playActionData.onJump = true;
+            //playActionData.onJump = true;
+            stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
             //消耗地面跳跃
             stateMachine.groundJump = false;
             //触发状态复原，此处已经交给状态机
@@ -131,15 +133,9 @@ public class IsInAir : BasePlayerState
     /// </summary>
     float jbt;
 
-    /// <summary>
-    /// 土狼时间可跳跃触发
-    /// </summary>
-    bool coyotB;
-
     public override void Enter()
     {
         //Debug.Log("空中状态进入");
-        coyotB=true;
         nowTime = 0;
         jbt = 0;
     }
@@ -164,27 +160,19 @@ public class IsInAir : BasePlayerState
                 stateMachine.jbtB = false; // 超时自动关闭
             }
         }
-        if (coyotB)
-        {
-            if (nowTime > stateMachine.coyoteTime)
-            {
-                coyotB = false;
-            }
-
-        }
 
         //响应跳跃键输入
         if (input.jumpPressed)
         {
-            if(coyotB&&stateMachine.groundJump)
+            if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)
             {
-                playActionData.onJump = true;
+                stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
                 //避免同一窗口重复消费
                 stateMachine.groundJump = false;
             }
             else if (stateMachine.JumpCan())
             {
-                playActionData.onJump = true;
+                stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
             }
             else
             {
