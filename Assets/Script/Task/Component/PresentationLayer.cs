@@ -17,7 +17,7 @@ public class PresentationLayer : MonoBehaviour
     /// <summary>
     /// 物理数据引用
     /// </summary>
-    CharacterPhysics playPhyDate;
+    CharacterPhysics.PlayerPhysicsData playPhyDate;
     /// <summary>
     /// 可执行动作引用
     /// </summary>
@@ -28,7 +28,7 @@ public class PresentationLayer : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Init(CharacterPhysics phy,ActionData actionData)
+    public void Init(CharacterPhysics.PlayerPhysicsData phy,ActionData actionData)
     {
         playPhyDate=phy;
         playActionData = actionData;

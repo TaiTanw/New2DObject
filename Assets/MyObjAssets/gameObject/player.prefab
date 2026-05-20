@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 1698217555403916234}
   - component: {fileID: 3734638197110257880}
   - component: {fileID: 2481104452557541454}
-  - component: {fileID: 4242177418646771737}
   - component: {fileID: 3971303127042905834}
   - component: {fileID: -6047351183477627480}
   - component: {fileID: 577239091719081582}
@@ -149,36 +148,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.12, y: 0.83}
   m_EdgeRadius: 0
---- !u!114 &4242177418646771737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6468672424472279989}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Actions: {fileID: 0}
-  m_NotificationBehavior: 3
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: 
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
 --- !u!50 &3971303127042905834
 Rigidbody2D:
   serializedVersion: 4
@@ -239,8 +208,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d812e70637606044ba7463c199e5864, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundV: {fileID: 4291362845084649304}
   cPhysics: {fileID: 11400000, guid: 48a40a89a1b97e34cb422a1108be237f, type: 2}
+  groundV: {fileID: 4291362845084649304}
 --- !u!114 &2315983817328480980
 MonoBehaviour:
   m_ObjectHideFlags: 0

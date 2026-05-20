@@ -1,12 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
 /// 角色行为状态接口
 /// </summary>
-public interface IBehavioralState 
+public interface IBehavioralState
 {
     /// <summary>
     /// 状态进入
@@ -36,19 +38,22 @@ public interface IBehavioralState
 public class BasePlayerState : IBehavioralState
 {
     //玩家物理状态/只读
-    protected CharacterPhysics playPhyData;
+    protected CharacterPhysics.PlayerPhysicsData playPhyData;
     //原始输入/只读
     protected PlayerInputData input;
     //过滤后的动作输出/读写
     protected ActionData playActionData;
     //依附的逻辑状态机/调用
     protected PlayerStateMachine stateMachine;
+    //此状态机内部的事件系统
+    protected LocalEventSystem<PlayerStateMachine.E_playEvent> localEventSystem;
 
-    public void Init(CharacterPhysics playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,ActionData playActionData)
+    public void Init(CharacterPhysics.PlayerPhysicsData playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,ActionData playActionData)
     {
         this.playPhyData = playPhyData;
         this.input = input;
         this.stateMachine = stateMachine;
+        localEventSystem =this.stateMachine.EventSystem;
         this.playActionData = playActionData;
     }
 
@@ -94,10 +99,11 @@ public class IsOnGround : BasePlayerState
 
     public override void Update()
     {
+        //处理跳跃缓冲
         if (stateMachine.jbtB && stateMachine.groundJump)
         {
             //playActionData.onJump = true;
-            stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
+            localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
             Debug.Log("消费缓冲");
             stateMachine.jbtB = false;
             stateMachine.groundJump=false;
@@ -106,13 +112,13 @@ public class IsOnGround : BasePlayerState
         {
             //动作响应
             //playActionData.onJump = true;
-            stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
+            localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
             //消耗地面跳跃
             stateMachine.groundJump = false;
             //触发状态复原，此处已经交给状态机
         }
         //若已经不在地面，则改变状态
-        if (!playPhyData.IsOnGround)
+        if (!playPhyData.isGrounded)
         {
             //直接靠成员变量来传入，避免频繁GC
             stateMachine.ChangeState(stateMachine.inAir);
@@ -166,13 +172,13 @@ public class IsInAir : BasePlayerState
         {
             if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)
             {
-                stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
+                localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
                 //避免同一窗口重复消费
                 stateMachine.groundJump = false;
             }
             else if (stateMachine.JumpCan())
             {
-                stateMachine.EventTigger(PlayerStateMachine.E_playEvent.jump);
+                localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
             }
             else
             {
@@ -185,7 +191,7 @@ public class IsInAir : BasePlayerState
         //逻辑更新直接使用帧间隔更新时间
         nowTime += Time.deltaTime;
 
-        if (playPhyData.IsOnGround)
+        if (playPhyData.isGrounded)
         {
             //直接靠成员变量来传入，避免频繁GC
             stateMachine.ChangeState(stateMachine.onGround);

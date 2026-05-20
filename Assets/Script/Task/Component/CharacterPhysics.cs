@@ -9,6 +9,19 @@ using static Player;
 /// </summary>
 public class CharacterPhysics : MonoBehaviour
 {
+    /// <summary>
+    /// 实时物理数据
+    /// </summary>
+    public class PlayerPhysicsData
+    {
+        public float horizontalSpeed;   //当前自身水平速度
+        public float verticalVelocity;  //当前自身竖直速度
+        /// <summary>
+        /// 当前玩家所属平台
+        /// </summary>
+        public Taijie nowtaijie;
+        public bool isGrounded;     // 物理检测
+    }
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
@@ -23,8 +36,9 @@ public class CharacterPhysics : MonoBehaviour
 #endif
     //必要组件
     Rigidbody2D rb; //刚体
-    //玩家状态机引用
-    PlayerStateMachine fsm;
+
+    //玩家状态机内部事件系统引用
+    LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem;
 
     BoxCollider2D boxCollider;
 
@@ -32,8 +46,7 @@ public class CharacterPhysics : MonoBehaviour
     /// 碰撞检测范围矩形宽高
     /// </summary>
     private Vector2 size;
-
-    /// <summary>
+    
     /// 物理配置数据
     /// </summary>
     [SerializeField]
@@ -41,23 +54,16 @@ public class CharacterPhysics : MonoBehaviour
     /// <summary>
     /// 地面检测中心（外部拖拽关联
     /// </summary>
-    public Transform groundV;
-
-    //运行时数据
-    float horizontalSpeed;   //当前自身水平速度
-    float verticalVelocity;  //当前自身竖直速度
-    public float VerticalSpeed => verticalVelocity;
-    public float HorizontalSpeed => horizontalSpeed;
-    /// <summary>
-    /// 当前玩家所属平台
-    /// </summary>
-    Taijie nowtaijie;
-    bool isGrounded;     // 物理检测
-    public bool IsOnGround => isGrounded;
+    [SerializeField]
+    private Transform groundV;
     /// <summary>
     /// 玩家可执行动作
     /// </summary>
     ActionData playActionData;
+
+    //实时数据
+    PlayerPhysicsData playerPhysicsData;
+    public PlayerPhysicsData PlayPhysicsData => playerPhysicsData;
 
     private void Awake()
     {
@@ -72,6 +78,7 @@ public class CharacterPhysics : MonoBehaviour
         rb.gravityScale = 0;
         //地面检测盒范围
         size = new Vector2(boxCollider.size.x, cPhysics.boxCastH);
+        playerPhysicsData = new PlayerPhysicsData();
 
     }
     private void Start()
@@ -86,34 +93,31 @@ public class CharacterPhysics : MonoBehaviour
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(FixFun, cPhysics.phyMask);
     }
 
-    public void Init(ActionData actionData,PlayerStateMachine fsm)
+    public void Init(ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
     {
         playActionData = actionData;
-        this.fsm = fsm;
+        this.fsmEventSystem = fsmEventSystem;
         //注册跳跃事件
-        fsm.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
+        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
     }
     /// <summary>
     /// 物理跳跃动作具体实现
     /// </summary>
     void Jump()
     {
+        print("物理跳跃触发");
         //当前竖直速度等于跳跃速度
-        verticalVelocity = cPhysics.upSpeed;
+        playerPhysicsData.verticalVelocity = cPhysics.upSpeed;
     }
     /// <summary>
     /// 物理更新，传入外部控制时序
     /// </summary>
     void FixFun()
     {
-        //处理跳跃动作
-        //if (playActionData.onJump)
-        //{
-        //    //当前竖直速度等于跳跃速度
-        //    verticalVelocity = cPhysics.upSpeed;
-        //    //跳跃动作已触发，复原动作
-        //    playActionData.onJump = false;
-        //}
+        float horizontalSpeed=playerPhysicsData.horizontalSpeed;
+        float verticalVelocity=playerPhysicsData.verticalVelocity;
+        bool isGrounded=playerPhysicsData.isGrounded;
+        Taijie nowtaijie=playerPhysicsData.nowtaijie;
         //处理移动
         horizontalSpeed = playActionData.onMove * cPhysics.speed;
 
@@ -143,7 +147,7 @@ public class CharacterPhysics : MonoBehaviour
             verticalVelocity = 0;
         }
         //计算当前速度向量与移动距离
-        Vector2 velocity = new Vector2(HorizontalSpeed, verticalVelocity);
+        Vector2 velocity = new Vector2(horizontalSpeed, verticalVelocity);
         Vector2 moveDelta = velocity * Time.fixedDeltaTime;
 
         //计算平台补偿位移
@@ -156,11 +160,11 @@ public class CharacterPhysics : MonoBehaviour
             //================
             moveDelta = new Vector2(0, verticalVelocity * Time.fixedDeltaTime);
 
-            float moveAmount = HorizontalSpeed * Time.fixedDeltaTime;
+            float moveAmount = horizontalSpeed * Time.fixedDeltaTime;
 
             Vector2 tangent = new Vector2(hit.normal.y, -hit.normal.x);
             //判断方向是否一致
-            if (Mathf.Sign(tangent.x) != Mathf.Sign(HorizontalSpeed))
+            if (Mathf.Sign(tangent.x) != Mathf.Sign(horizontalSpeed))
                 tangent *= -1;
 
             //Debug.Log(tangent);
@@ -173,6 +177,11 @@ public class CharacterPhysics : MonoBehaviour
 
         //  一次性统一移动
         rb.MovePosition(rb.position + moveDelta + platformDelta);
+        //数据写回
+        playerPhysicsData.horizontalSpeed=horizontalSpeed;
+        playerPhysicsData.verticalVelocity=verticalVelocity;
+        playerPhysicsData.isGrounded=isGrounded;
+        playerPhysicsData.nowtaijie = nowtaijie; 
     }
 
     private void OnDisable()
