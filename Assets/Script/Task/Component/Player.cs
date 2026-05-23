@@ -9,8 +9,9 @@ using UnityEngine;
 /// </summary>
 public class PlayerInputData
 {
-    public float moveInput;    //水平输入
-    public bool jumpPressed;   // 这一帧是否按下
+    public float moveInput;     //水平输入
+    public bool jumpPressed;     // 这一帧是否按下
+    public bool jumpRelease;       //跳跃是否长按中
 }
 /// <summary>
 /// 持续性动作执行数据
@@ -55,8 +56,8 @@ public class Player : MonoBehaviour
 
         //逻辑状态机/物理状态/表现层初始化（保证存在
         fsm = new PlayerStateMachine();
-        playPDate = gameObject.GetComponent<CharacterPhysics>();
-        animatorFSM = gameObject.GetComponent<PresentationLayer>();
+        playPDate = gameObject.GetComponentInChildren<CharacterPhysics>();
+        animatorFSM = gameObject.GetComponentInChildren<PresentationLayer>();
 
     }
     private void Start()

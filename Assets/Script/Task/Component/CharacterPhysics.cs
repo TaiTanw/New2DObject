@@ -15,7 +15,7 @@ public class CharacterPhysics : MonoBehaviour
     public class PlayerPhysicsData
     {
         public float horizontalSpeed;   //当前自身水平速度
-        public float verticalVelocity;  //当前自身竖直速度
+        public float verticalSpeed;  //当前自身竖直速度
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
@@ -97,29 +97,43 @@ public class CharacterPhysics : MonoBehaviour
     {
         playActionData = actionData;
         this.fsmEventSystem = fsmEventSystem;
-        //注册跳跃事件
+        //注册事件
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
+        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease,JumpRelease);
     }
+    #region 瞬时触发事件
     /// <summary>
     /// 物理跳跃动作具体实现
     /// </summary>
     void Jump()
     {
-        print("物理跳跃触发");
+        //print("物理跳跃触发");
         //当前竖直速度等于跳跃速度
-        playerPhysicsData.verticalVelocity = cPhysics.upSpeed;
+        playerPhysicsData.verticalSpeed = cPhysics.upSpeed;
     }
+
+    void JumpRelease()
+    {
+        //print("跳跃斩断1111111111");
+
+        if (playerPhysicsData.verticalSpeed > 0)
+        {
+            playerPhysicsData.verticalSpeed *= 0.7f;
+        }
+    }
+    #endregion
     /// <summary>
     /// 物理更新，传入外部控制时序
     /// </summary>
     void FixFun()
     {
+        //数据读取
         float horizontalSpeed=playerPhysicsData.horizontalSpeed;
-        float verticalVelocity=playerPhysicsData.verticalVelocity;
+        float verticalSpeed=playerPhysicsData.verticalSpeed;
         bool isGrounded=playerPhysicsData.isGrounded;
         Taijie nowtaijie=playerPhysicsData.nowtaijie;
         //处理移动
-        horizontalSpeed = playActionData.onMove * cPhysics.speed;
+        horizontalSpeed = playActionData.onMove * cPhysics.speed;   //横向速度变化(赋值处理
 
         //检测是否在地面
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, size, 0, Vector2.down, 0f, cPhysics.groundLayer);
@@ -140,15 +154,16 @@ public class CharacterPhysics : MonoBehaviour
         // 重力
         if (!isGrounded)
         {
-            verticalVelocity += cPhysics.gravity * Time.fixedDeltaTime;
+            verticalSpeed += cPhysics.gravity * Time.fixedDeltaTime;     //纵向速度改变（增减处理
         }
-        else if (verticalVelocity < 0)
+        else if (verticalSpeed < 0)
         {
-            verticalVelocity = 0;
+            verticalSpeed = 0;
         }
+
         //计算当前速度向量与移动距离
-        Vector2 velocity = new Vector2(horizontalSpeed, verticalVelocity);
-        Vector2 moveDelta = velocity * Time.fixedDeltaTime;
+        Vector2 velocity = new Vector2(horizontalSpeed, verticalSpeed);
+        Vector2 moveDelta = velocity * Time.fixedDeltaTime;             //计算玩家相对位移
 
         //计算平台补偿位移
         Vector2 platformDelta = Vector2.zero;
@@ -158,7 +173,7 @@ public class CharacterPhysics : MonoBehaviour
             platformDelta = nowtaijie.delta;
             //此处加斜率补正
             //================
-            moveDelta = new Vector2(0, verticalVelocity * Time.fixedDeltaTime);
+            moveDelta = new Vector2(0, verticalSpeed * Time.fixedDeltaTime);
 
             float moveAmount = horizontalSpeed * Time.fixedDeltaTime;
 
@@ -174,12 +189,11 @@ public class CharacterPhysics : MonoBehaviour
             moveDelta += slopeMove;
         }
 
-
         //  一次性统一移动
         rb.MovePosition(rb.position + moveDelta + platformDelta);
         //数据写回
         playerPhysicsData.horizontalSpeed=horizontalSpeed;
-        playerPhysicsData.verticalVelocity=verticalVelocity;
+        playerPhysicsData.verticalSpeed=verticalSpeed;
         playerPhysicsData.isGrounded=isGrounded;
         playerPhysicsData.nowtaijie = nowtaijie; 
     }

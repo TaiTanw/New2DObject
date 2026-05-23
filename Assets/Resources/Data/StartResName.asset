@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3eda98d5bb47db4d80c26e38342c25e, type: 3}
   m_Name: StartResName
   m_EditorClassIdentifier: 
-  playerModleName: player
+  playerModleName: player20
   BkDefaultMusicName: BkMusic

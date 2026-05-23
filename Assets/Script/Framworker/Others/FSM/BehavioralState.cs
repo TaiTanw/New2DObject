@@ -138,17 +138,25 @@ public class IsInAir : BasePlayerState
     /// 跳跃缓冲计时器
     /// </summary>
     float jbt;
-
+    /// <summary>
+    /// 起跳窗口时间
+    /// </summary>
+    float jumpWtime;
+    /// <summary>
+    /// 跳跃斩断开关
+    /// </summary>
+    bool canJumpCut;
     public override void Enter()
     {
         //Debug.Log("空中状态进入");
         nowTime = 0;
         jbt = 0;
+        jumpWtime = 0;
     }
 
     public override void Exit( )
     {
-        Debug.Log("空中状态退出");
+        //Debug.Log("空中状态退出");
         nowTime = 0;
         jbt = 0;
     }
@@ -170,27 +178,53 @@ public class IsInAir : BasePlayerState
         //响应跳跃键输入
         if (input.jumpPressed)
         {
-            if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)
+            if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)//是否可使用地面跳
             {
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
+                jumpWtime=nowTime;
+                canJumpCut = false;
                 //避免同一窗口重复消费
                 stateMachine.groundJump = false;
             }
-            else if (stateMachine.JumpCan())
+            else if (stateMachine.JumpCan())//是否可使用空中跳
             {
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
+                jumpWtime = nowTime;
+                canJumpCut=false;
             }
             else
             {
+                //触发跳跃缓冲计时
                 jbt = 0;
                 stateMachine.jbtB = true;
-                Debug.Log("跳跃缓冲计时触发");
+                //Debug.Log("跳跃缓冲计时触发");
             }
         }
+        if (input.jumpRelease)
+        {
+            if (nowTime - jumpWtime >= stateMachine.jumpUpTime)//超时斩断
+            {
+                localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jumpRelease);
+            }
+            else//未达到最小时间，延迟执行
+            {
+                canJumpCut=true;
+            }
+
+        }
+
 
         //逻辑更新直接使用帧间隔更新时间
         nowTime += Time.deltaTime;
 
+        if (canJumpCut)
+        {
+            if (nowTime - jumpWtime >= stateMachine.jumpUpTime)
+            {
+                canJumpCut = false;
+                localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jumpRelease);
+            }
+        }
         if (playPhyData.isGrounded)
         {
             //直接靠成员变量来传入，避免频繁GC

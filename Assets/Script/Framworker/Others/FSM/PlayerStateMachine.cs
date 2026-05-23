@@ -12,7 +12,7 @@ public class PlayerStateMachine
     {
         move,
         jump,
-
+        jumpRelease,//跳跃长按
     }
 
     LocalEventSystem<E_playEvent> eventSystem;
@@ -30,7 +30,7 @@ public class PlayerStateMachine
     /// <summary>
     /// 在空中可跳跃跳跃数
     /// </summary>
-    public int jumpNum = 0;
+    public int jumpNum = 1;
     /// <summary>
     /// 土狼时间
     /// </summary>
@@ -40,6 +40,10 @@ public class PlayerStateMachine
     /// 跳跃缓冲时间
     /// </summary>
     public float jumpBuffer = 0.2f;
+    /// <summary>
+    /// 最小起跳时间
+    /// </summary>
+    public float jumpUpTime = 0.1f;
     #endregion
 
     #region 运行时数据
@@ -97,6 +101,7 @@ public class PlayerStateMachine
         onState.Update();
         //效果已经触发，则关闭，防止持续跳跃
         input.jumpPressed = false;//触发类型按键全部统一由状态机复原
+        input.jumpRelease = false;
     }
     /// <summary>
     /// 重置可跳次数

@@ -20,4 +20,5 @@ public class SO_CPhysics : ScriptableObject
     /// 物理帧更新时序层级
     /// </summary>
     public int phyMask = 1;
+
 }

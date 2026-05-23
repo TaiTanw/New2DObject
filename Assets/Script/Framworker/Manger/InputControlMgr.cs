@@ -21,9 +21,9 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
     /// </summary>
     Player player;
     /// <summary>
-    /// 玩家美术资源所指向路径（名称）此处配置===========================================================
+    /// 玩家美术资源所指向路径（名称）此处已经配置===========================================================
     /// </summary>
-    string playerModle = "player";
+    string playerModle;
     public string PlayerModleName=>playerModle;
 
     #endregion
@@ -70,7 +70,11 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
             inputData.jumpPressed = true;
             //print("1111");
         };
-            
+        player1["Jump"].canceled += ctx =>
+        {
+            inputData.jumpRelease = true;
+        };
+
 
         miniGame["Click"].started += MouseDown;
         miniGame["Click"].canceled += MouseUp;
