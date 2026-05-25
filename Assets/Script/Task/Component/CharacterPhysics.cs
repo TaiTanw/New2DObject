@@ -21,17 +21,22 @@ public class CharacterPhysics : MonoBehaviour
         /// </summary>
         public Taijie nowtaijie;
         public bool isGrounded;     // 物理检测
+        public bool onLeftWall;
+        public bool onRightWall;
     }
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (groundV == null) return;
-
+        if(leftV == null) return ;
+        if(rightV == null) return ;
         // 设置颜色：绿色半透明，便于观察
         Gizmos.color = new UnityEngine.Color(0, 1, 0, 0.5f);
 
         // 绘制检测区域的线框矩形（位置、大小、旋转）
         Gizmos.DrawWireCube(groundV.position, size);
+        Gizmos.DrawWireCube(leftV.position, size1);
+        Gizmos.DrawWireCube(rightV.position, size1);
     }
 #endif
     //必要组件
@@ -46,7 +51,8 @@ public class CharacterPhysics : MonoBehaviour
     /// 碰撞检测范围矩形宽高
     /// </summary>
     private Vector2 size;
-    
+    private Vector2 size1;
+
     /// 物理配置数据
     /// </summary>
     [SerializeField]
@@ -57,6 +63,16 @@ public class CharacterPhysics : MonoBehaviour
     [SerializeField]
     private Transform groundV;
     /// <summary>
+    /// 左墙检测
+    /// </summary>
+    [SerializeField]
+    private Transform leftV;
+    /// <summary>
+    /// 右墙检测
+    /// </summary>
+    [SerializeField]
+    private Transform rightV;
+    /// <summary>
     /// 玩家可执行动作
     /// </summary>
     ActionData playActionData;
@@ -64,6 +80,8 @@ public class CharacterPhysics : MonoBehaviour
     //实时数据
     PlayerPhysicsData playerPhysicsData;
     public PlayerPhysicsData PlayPhysicsData => playerPhysicsData;
+
+    private bool isWallSliding;
 
     private void Awake()
     {
@@ -77,7 +95,8 @@ public class CharacterPhysics : MonoBehaviour
         //不使用刚体的重力
         rb.gravityScale = 0;
         //地面检测盒范围
-        size = new Vector2(boxCollider.size.x, cPhysics.boxCastH);
+        size = cPhysics.boxCastH;
+        size1 = cPhysics.boxCastV;
         playerPhysicsData = new PlayerPhysicsData();
 
     }
@@ -132,11 +151,26 @@ public class CharacterPhysics : MonoBehaviour
         float verticalSpeed=playerPhysicsData.verticalSpeed;
         bool isGrounded=playerPhysicsData.isGrounded;
         Taijie nowtaijie=playerPhysicsData.nowtaijie;
-        //处理移动
-        horizontalSpeed = playActionData.onMove * cPhysics.speed;   //横向速度变化(赋值处理
+
 
         //检测是否在地面
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, size, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        //检测左右靠墙
+        playerPhysicsData.onLeftWall= Physics2D.BoxCast(leftV.position, size1, 0, Vector2.left, 0f, cPhysics.wallLayer);
+        playerPhysicsData.onRightWall= Physics2D.BoxCast(rightV.position, size1, 0, Vector2.right, 0f, cPhysics.wallLayer);
+
+        if(playActionData.onMove<0&& playerPhysicsData.onLeftWall|| playActionData.onMove > 0 && playerPhysicsData.onRightWall)
+        {
+            horizontalSpeed = 0;
+            isWallSliding = true;
+        }
+        else
+        {
+            isWallSliding = false;
+            //处理移动
+            horizontalSpeed = playActionData.onMove * cPhysics.speed;   //横向速度变化(赋值处理
+        }
+
 
         //状态重置，避免缓存影响判断
         isGrounded = false;
@@ -160,9 +194,17 @@ public class CharacterPhysics : MonoBehaviour
         {
             verticalSpeed = 0;
         }
+        if (isWallSliding && verticalSpeed < 0)
+        {
+            verticalSpeed =
+                Mathf.Max(
+                    verticalSpeed,
+                    -cPhysics.wallDownSpeed);
+        }
 
         //计算当前速度向量与移动距离
         Vector2 velocity = new Vector2(horizontalSpeed, verticalSpeed);
+
         Vector2 moveDelta = velocity * Time.fixedDeltaTime;             //计算玩家相对位移
 
         //计算平台补偿位移

@@ -104,7 +104,7 @@ public class IsOnGround : BasePlayerState
         {
             //playActionData.onJump = true;
             localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
-            Debug.Log("消费缓冲");
+            //Debug.Log("消费缓冲");
             stateMachine.jbtB = false;
             stateMachine.groundJump=false;
         }

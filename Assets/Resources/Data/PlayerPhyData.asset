@@ -15,8 +15,13 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  boxCastH: 0.1
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  boxCastH: {x: 0.7, y: 0.1}
+  boxCastV: {x: 0.1, y: 2}
   speed: 15
   upSpeed: 15
   gravity: -35
+  wallDownSpeed: 2
   phyMask: 1
