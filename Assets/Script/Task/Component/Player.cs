@@ -19,7 +19,8 @@ public class PlayerInputData
 public class ActionData 
 {
     public float onMove;
-    public bool onJump;
+    //public bool onJump;
+    public bool isWallSliding;  //是否贴墙下滑
 }
 
 public class Player : MonoBehaviour

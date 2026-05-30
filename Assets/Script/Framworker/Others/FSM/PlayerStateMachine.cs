@@ -12,10 +12,14 @@ public class PlayerStateMachine
     {
         move,
         jump,
-        jumpRelease,//跳跃长按
+        jumpRelease,//跳跃松开（处理长按跳高）
+        wallJump,//墙跳
     }
 
     LocalEventSystem<E_playEvent> eventSystem;
+    /// <summary>
+    /// 内部事件系统，由状态机保持唯一实例
+    /// </summary>
     public LocalEventSystem<E_playEvent> EventSystem=>eventSystem;
 
 
@@ -23,9 +27,10 @@ public class PlayerStateMachine
     /// 当前状态
     /// </summary>
     public IBehavioralState onState;
-
+    //此处公共表示方便状态类直接获取后传入状态机持有的实例
     public IsOnGround onGround;
     public IsInAir inAir;
+    public OnWallSliding onWallSliding;
     #region 配置数据
     /// <summary>
     /// 在空中可跳跃跳跃数
@@ -44,6 +49,7 @@ public class PlayerStateMachine
     /// 最小起跳时间
     /// </summary>
     public float jumpUpTime = 0.1f;
+
     #endregion
 
     #region 运行时数据
@@ -65,7 +71,8 @@ public class PlayerStateMachine
     {
         onGround = new IsOnGround();
         inAir = new IsInAir();
-        eventSystem=new LocalEventSystem<E_playEvent>();
+        onWallSliding = new OnWallSliding();
+        eventSystem = new LocalEventSystem<E_playEvent>();
         //当前状态信息初始化
         onState = onGround;
 
@@ -76,6 +83,7 @@ public class PlayerStateMachine
     {
         onGround.Init(playData, input, this, actionData);
         inAir.Init(playData, input, this, actionData);
+        onWallSliding.Init(playData, input, this, actionData);
         onState.Enter();
     }
 

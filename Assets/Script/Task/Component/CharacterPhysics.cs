@@ -21,8 +21,12 @@ public class CharacterPhysics : MonoBehaviour
         /// </summary>
         public Taijie nowtaijie;
         public bool isGrounded;     // 物理检测
-        public bool onLeftWall;
+        public bool onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall;
+        /// <summary>
+        /// 在贴墙
+        /// </summary>
+        public bool isOnWall=>onLeftWall||onRightWall;
     }
 #if UNITY_EDITOR
     private void OnDrawGizmos()
@@ -81,7 +85,16 @@ public class CharacterPhysics : MonoBehaviour
     PlayerPhysicsData playerPhysicsData;
     public PlayerPhysicsData PlayPhysicsData => playerPhysicsData;
 
-    private bool isWallSliding;
+    #region 控制流数据
+    /// <summary>
+    /// 技能速度叠加(墙跳，冲刺等等
+    /// </summary>
+    float speedStack;
+    /// <summary>
+    /// 响应计时器
+    /// </summary>
+    float responseTimer1;
+    #endregion
 
     private void Awake()
     {
@@ -102,7 +115,7 @@ public class CharacterPhysics : MonoBehaviour
     }
     private void Start()
     {
-        //简单的位置设置，后续优化
+        //简单的位置设置，后续优化=======================================================================================================
         transform.position = new Vector3(-3, -1, -1);
     }
 
@@ -110,15 +123,6 @@ public class CharacterPhysics : MonoBehaviour
     {
         //物理更新时序为1层
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(FixFun, cPhysics.phyMask);
-    }
-
-    public void Init(ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
-    {
-        playActionData = actionData;
-        this.fsmEventSystem = fsmEventSystem;
-        //注册事件
-        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
-        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease,JumpRelease);
     }
     #region 瞬时触发事件
     /// <summary>
@@ -140,7 +144,30 @@ public class CharacterPhysics : MonoBehaviour
             playerPhysicsData.verticalSpeed *= 0.7f;
         }
     }
+    void WallJump()
+    {
+        playerPhysicsData.verticalSpeed = cPhysics.upSpeed;
+        if (playerPhysicsData.onLeftWall)
+        {
+            speedStack +=cPhysics.wallJumpV*cPhysics.speed;
+        }
+        else
+        {
+            speedStack += - cPhysics.wallJumpV * cPhysics.speed;
+        }
+        responseTimer1 =cPhysics.toTime;
+    }
     #endregion
+    public void Init(ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
+    {
+        playActionData = actionData;
+        this.fsmEventSystem = fsmEventSystem;
+        //注册事件
+        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump,Jump);
+        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease,JumpRelease);
+        fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.wallJump,WallJump);
+    }
+  
     /// <summary>
     /// 物理更新，传入外部控制时序
     /// </summary>
@@ -155,36 +182,34 @@ public class CharacterPhysics : MonoBehaviour
 
         //检测是否在地面
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, size, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
+        {
+            // ========判断是否在平台上方
+            isGrounded = true;
+            nowtaijie = hit.collider.GetComponent<Taijie>();
+
+        }
+        else
+        {
+            //状态重置，避免缓存影响判断
+            isGrounded = false;
+            nowtaijie = null;
+        }
         //检测左右靠墙
         playerPhysicsData.onLeftWall= Physics2D.BoxCast(leftV.position, size1, 0, Vector2.left, 0f, cPhysics.wallLayer);
         playerPhysicsData.onRightWall= Physics2D.BoxCast(rightV.position, size1, 0, Vector2.right, 0f, cPhysics.wallLayer);
 
-        if(playActionData.onMove<0&& playerPhysicsData.onLeftWall|| playActionData.onMove > 0 && playerPhysicsData.onRightWall)
-        {
-            horizontalSpeed = 0;
-            isWallSliding = true;
-        }
-        else
-        {
-            isWallSliding = false;
-            //处理移动
-            horizontalSpeed = playActionData.onMove * cPhysics.speed;   //横向速度变化(赋值处理
-        }
+        //处理基础移动
+        horizontalSpeed = playActionData.onMove * cPhysics.speed;
 
+        //处理冲刺
+        horizontalSpeed += speedStack;
+        //计时冲刺速度
+        responseTimer1-=Time.fixedDeltaTime;
+        //当超过响应时间则速度恢复
+        if (responseTimer1 < 0)
+            speedStack = 0f;
 
-        //状态重置，避免缓存影响判断
-        isGrounded = false;
-        nowtaijie = null;
-
-        if (hit.collider != null)
-        {
-            // ========判断是否在平台上方
-            if (Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
-            {
-                isGrounded = true;
-                nowtaijie = hit.collider.GetComponent<Taijie>();
-            }
-        }
         // 重力
         if (!isGrounded)
         {
@@ -194,7 +219,8 @@ public class CharacterPhysics : MonoBehaviour
         {
             verticalSpeed = 0;
         }
-        if (isWallSliding && verticalSpeed < 0)
+        //贴墙下滑
+        if (playActionData.isWallSliding && verticalSpeed < 0)
         {
             verticalSpeed =
                 Mathf.Max(
@@ -231,8 +257,14 @@ public class CharacterPhysics : MonoBehaviour
             moveDelta += slopeMove;
         }
 
+        Vector2 wordDelta = moveDelta + platformDelta;      //计算世界绝对位移
+        //计算世界物理运动受限
+        if (wordDelta.x < 0 && playerPhysicsData.onLeftWall || wordDelta.x > 0 && playerPhysicsData.onRightWall)
+        {
+            wordDelta.x = 0;
+        }
         //  一次性统一移动
-        rb.MovePosition(rb.position + moveDelta + platformDelta);
+        rb.MovePosition(rb.position +wordDelta);
         //数据写回
         playerPhysicsData.horizontalSpeed=horizontalSpeed;
         playerPhysicsData.verticalSpeed=verticalSpeed;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static CharacterPhysics;
 
 /// <summary>
 /// 角色行为状态接口
@@ -182,7 +183,8 @@ public class IsInAir : BasePlayerState
             {
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
                 jumpWtime=nowTime;
-                canJumpCut = false;
+                //只要成功触发跳跃，直接关闭斩断开关
+                canJumpCut = false;                         //此做法表示状态更新的时效性，避免前次延迟的跳跃斩断影响后次跳跃（空中多段跳情况下
                 //避免同一窗口重复消费
                 stateMachine.groundJump = false;
             }
@@ -190,7 +192,8 @@ public class IsInAir : BasePlayerState
             {
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
                 jumpWtime = nowTime;
-                canJumpCut=false;
+                //只要成功触发跳跃，直接关闭斩断开关
+                canJumpCut = false;
             }
             else
             {
@@ -213,25 +216,77 @@ public class IsInAir : BasePlayerState
 
         }
 
-
         //逻辑更新直接使用帧间隔更新时间
         nowTime += Time.deltaTime;
 
         if (canJumpCut)
         {
+            //当时间计时满足条件，开启斩断开关
             if (nowTime - jumpWtime >= stateMachine.jumpUpTime)
             {
                 canJumpCut = false;
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jumpRelease);
             }
         }
-        if (playPhyData.isGrounded)
+        //移动动作响应
+        playActionData.onMove= input.moveInput;
+
+        //所有逻辑执行完成，开始根据信息转换状态，靠前优先度高，满足多种状态的转换条件时，优先度高的表示最终转换后状态
+
+        if (playPhyData.isGrounded)//在地面
         {
             //直接靠成员变量来传入，避免频繁GC
             stateMachine.ChangeState(stateMachine.onGround);
+            return;
+        }
+        else if ((input.moveInput < 0 && playPhyData.onLeftWall) || (input.moveInput > 0 && playPhyData.onRightWall))//在贴墙
+        {
+            stateMachine.ChangeState(stateMachine.onWallSliding);
+            return;
+        }
+    }
+}
+
+
+public class OnWallSliding : BasePlayerState
+{
+    public override void Enter()
+    {
+        base.Enter();
+        Debug.Log("进入贴墙状态");
+        playActionData.isWallSliding = true;
+    }
+    public override void Exit()
+    {
+        base.Exit();
+        Debug.Log("退出贴墙状态");
+        playActionData.isWallSliding = false;
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        //移动动作响应
+        //playActionData.onMove = input.moveInput;
+
+        if (input.jumpPressed)
+        {
+            localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.wallJump);
+            stateMachine.ChangeState(stateMachine.inAir);
         }
 
-        //移动动作响应
-        playActionData.onMove= input.moveInput;
+        if (playPhyData.isGrounded)//在地面
+        {
+            //直接靠成员变量来传入，避免频繁GC
+            stateMachine.ChangeState(stateMachine.onGround);
+            return;
+        }
+        else if ((input.moveInput >= 0 && playPhyData.onLeftWall)||( input.moveInput <= 0 && playPhyData.onRightWall)
+            || (!playPhyData.onLeftWall && !playPhyData.onRightWall))
+        {
+            stateMachine.ChangeState(stateMachine.inAir);
+            return;
+        }
+
     }
 }

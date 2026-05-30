@@ -23,11 +23,24 @@ public class LocalEventSystem<T> where T : Enum
     /// 事件引用
     /// </summary>
     protected Dictionary<T, BaseLocalEventData> dicEvent = new Dictionary<T, BaseLocalEventData>();
-    public void EventTigger(T e_Play)
+    /// <summary>
+    /// 延迟事件触发容器
+    /// </summary>
+    private Dictionary<T,BaseLocalEventData> delayDicEvent= new Dictionary<T,BaseLocalEventData>();
+    public void EventTigger(T e_Play,bool isDelay=false)
     {
         if (dicEvent.TryGetValue(e_Play, out var data))
         {
-            (data as EventData).action?.Invoke();
+
+            if (isDelay)
+            {
+
+            }
+            else
+            {
+                (data as EventData).action?.Invoke();
+            }
+
         }
     }
     public void EventTigger<V>(T e_Play, V value)
@@ -60,6 +73,6 @@ public class LocalEventSystem<T> where T : Enum
     {
         dicEvent.Clear();
     }
-    //此处暂时不做事件注销，主要原因是各状态类保证在玩家存在时一定存在且示例不变
+    //此处暂时不做事件注销，主要原因是各状态类保证在玩家存在时一定存在且实例不变
     //后续若有状态引用切换等需求，则开发注销逻辑，并在状态类生命周期结束后调用
 }
