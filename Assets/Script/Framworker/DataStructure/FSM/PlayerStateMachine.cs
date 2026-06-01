@@ -79,7 +79,7 @@ public class PlayerStateMachine
         jumpCount = jumpNum;
     }
 
-    public void InitData(CharacterPhysics.PlayerPhysicsData playData, PlayerInputData input, ActionData actionData)
+    public void InitData(CharacterPhysics.ReadOnly_PlayerPhysicsData playData, PlayerInputData input, ActionData actionData)
     {
         onGround.Init(playData, input, this, actionData);
         inAir.Init(playData, input, this, actionData);

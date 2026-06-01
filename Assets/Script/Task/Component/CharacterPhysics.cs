@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using Physics.Player;
 
 /// <summary>
 /// 角色物理组件
@@ -24,10 +23,6 @@ public class CharacterPhysics : MonoBehaviour
         public bool onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall;
         /// <summary>
-        /// 在贴墙
-        /// </summary>
-        public bool isOnWall=>onLeftWall||onRightWall;
-        /// <summary>
         /// 响应计时器
         /// </summary>
         public float responseTimer1;
@@ -35,6 +30,36 @@ public class CharacterPhysics : MonoBehaviour
         /// 技能速度叠加(墙跳，冲刺等等
         /// </summary>
         public float speedStack;
+    }
+    /// <summary>
+    /// 物理实时数据只读包装
+    /// </summary>
+    public class ReadOnly_PlayerPhysicsData
+    {
+        private readonly PlayerPhysicsData _data;
+
+        public ReadOnly_PlayerPhysicsData(PlayerPhysicsData data) 
+        {
+            _data = data;
+        }
+
+        public float horizontalSpeed=>_data.horizontalSpeed;   //当前自身水平速度
+        public float verticalSpeed=>_data.verticalSpeed;  //当前自身竖直速度
+        /// <summary>
+        /// 当前玩家所属平台
+        /// </summary>
+        public Taijie nowtaijie=>_data.nowtaijie;
+        public bool isGrounded =>_data.isGrounded;     // 物理检测
+        public bool onLeftWall =>_data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
+        public bool onRightWall =>_data.onRightWall;
+        /// <summary>
+        /// 响应计时器
+        /// </summary>
+        public float responseTimer1 =>_data.responseTimer1;
+        /// <summary>
+        /// 技能速度叠加(墙跳，冲刺等等
+        /// </summary>
+        public float speedStack =>_data.speedStack;
     }
 
     /// <summary>
@@ -93,22 +118,18 @@ public class CharacterPhysics : MonoBehaviour
     /// <summary>
     /// 玩家可执行动作
     /// </summary>
-    ActionData playActionData;
+    ReadOnly_ActionData playActionData;
 
     //实时数据(外部修改时传入（如物理命令
     PlayerPhysicsData playerPhysicsData;
+    //只读数据包装
+    public ReadOnly_PlayerPhysicsData readOnly_playerPhysicsData;
     public PlayerPhysicsData PlayPhysicsData => playerPhysicsData;//外部只读时传入
     #endregion
 
     #region 控制流数据
-    /// <summary>
-    /// 本帧物理事件触发指令队列
-    /// </summary>
-    Queue<IPhysicsCommand> commandQueue = new();
-    /// <summary>
-    /// 命令调度实例
-    /// </summary>
-    CommandScheduling commandScheduling;
+    bool wallJump;
+    bool jump;
     #endregion
 
     private void Awake()
@@ -127,8 +148,7 @@ public class CharacterPhysics : MonoBehaviour
         size1 = cPhysics.boxCastV;
         //实时物理状态信息初始化
         playerPhysicsData = new PlayerPhysicsData();
-        //命令调度器初始化（后于信息类初始化
-        commandScheduling = new(playerPhysicsData, cPhysics);
+        readOnly_playerPhysicsData = new(playerPhysicsData);
 
     }
     private void Start()
@@ -149,8 +169,7 @@ public class CharacterPhysics : MonoBehaviour
     void Jump()
     {
         //print("物理跳跃触发");
-        
-        commandQueue.Enqueue(commandScheduling.CommandToQueue<JumpCommand>());
+        jump = true;
     }
 
     void JumpRelease()
@@ -164,12 +183,10 @@ public class CharacterPhysics : MonoBehaviour
     }
     void WallJump()
     {
-        //触发事件，命令入队
-        commandQueue.Enqueue(commandScheduling.CommandToQueue<WallJumpCommand>());
-        //print("墙跳命令触发");
+        wallJump = true;
     }
     #endregion
-    public void Init(ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
+    public void Init(ReadOnly_ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
     {
         playActionData = actionData;
         this.fsmEventSystem = fsmEventSystem;
@@ -178,7 +195,47 @@ public class CharacterPhysics : MonoBehaviour
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease,JumpRelease);
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.wallJump,WallJump);
     }
-  
+    /// <summary>
+    /// 统一物理事件更新
+    /// </summary>
+    void PhyEventUpdate()
+    {
+        //playActionData.onMove=1;
+        //普通跳跃
+        if (jump)
+        {
+            //当前竖直速度等于跳跃速度
+            playerPhysicsData.verticalSpeed = cPhysics.upSpeed;
+            //数据消费
+            jump = false;
+        }
+        //墙跳
+        if (wallJump)
+        {
+            //计算关键数据
+            float jumpHeight;     //跳高程度
+            float jumpForce;      //墙跳距离
+
+            jumpHeight = cPhysics.upSpeed;
+            jumpForce = cPhysics.wallJumpV * cPhysics.speed;
+
+            playerPhysicsData.verticalSpeed = jumpHeight;
+
+            if (playerPhysicsData.onLeftWall)
+            {
+                // speedStack 在这里应用
+                playerPhysicsData.speedStack += jumpForce;
+            }
+            else
+            {
+                playerPhysicsData.speedStack -= jumpForce;
+            }
+            //开始计时
+            playerPhysicsData.responseTimer1 = cPhysics.toTime;
+            //消费
+            wallJump = false;
+        }
+    }
     /// <summary>
     /// 物理更新，传入外部控制时序
     /// </summary>
@@ -205,13 +262,8 @@ public class CharacterPhysics : MonoBehaviour
 
         //处理基础移动（赋值操作，最先）
         playerPhysicsData.horizontalSpeed = playActionData.onMove * cPhysics.speed;
-
-        //出队操作，触发命令,获取所有动作触发数据（赋值和叠加操作，其次）
-        while (commandQueue.Count > 0)
-        {
-            //按序执行命令
-            commandQueue.Dequeue().Execute();
-        }
+        //统一事件触发（控制时序在物理检测之后
+        PhyEventUpdate();
         //数值合并，避免命令内处理时造成重复叠加
         //处理冲刺
         playerPhysicsData.horizontalSpeed +=playerPhysicsData.speedStack;

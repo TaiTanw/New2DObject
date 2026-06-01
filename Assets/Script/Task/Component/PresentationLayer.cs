@@ -17,18 +17,18 @@ public class PresentationLayer : MonoBehaviour
     /// <summary>
     /// 物理数据引用
     /// </summary>
-    CharacterPhysics.PlayerPhysicsData playPhyDate;
+    CharacterPhysics.ReadOnly_PlayerPhysicsData playPhyDate;
     /// <summary>
-    /// 可执行动作引用
+    /// 只读的可执行动作引用
     /// </summary>
-    ActionData playActionData;
+    ReadOnly_ActionData playActionData;
     private void Awake()
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Init(CharacterPhysics.PlayerPhysicsData phy,ActionData actionData)
+    public void Init(CharacterPhysics.ReadOnly_PlayerPhysicsData phy,ReadOnly_ActionData actionData)
     {
         playPhyDate=phy;
         playActionData = actionData;
@@ -40,7 +40,7 @@ public class PresentationLayer : MonoBehaviour
         if (playActionData.onMove > 0)
         {
             spriteRenderer.flipX = false;
-                
+            
         }
         else if(playActionData.onMove < 0)
         {

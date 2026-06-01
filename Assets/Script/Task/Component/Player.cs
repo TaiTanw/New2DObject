@@ -14,20 +14,35 @@ public class PlayerInputData
     public bool jumpRelease;       //跳跃是否长按中
 }
 /// <summary>
-/// 持续性动作执行数据
+/// 持续性动作执行数据（瞬时动作靠事件触发
 /// </summary>
 public class ActionData 
 {
+    /// <summary>
+    /// 移动方向，-1到1，最终速度由物理组件计算
+    /// </summary>
     public float onMove;
-    //public bool onJump;
-    public bool isWallSliding;  //是否贴墙下滑
+    //是否贴墙下滑
+    public bool isWallSliding;  
+}
+
+/// <summary>
+/// 只读包装类（仅包装需要读的属性）
+/// </summary>
+public class ReadOnly_ActionData
+{
+    private readonly ActionData _data;
+    public ReadOnly_ActionData(ActionData data) => _data = data;
+    //只读属性
+    public float onMove => _data.onMove;
+    public bool isWallSliding =>_data.isWallSliding;
+
 }
 
 public class Player : MonoBehaviour
 {
-
     /// <summary>
-    /// 运行时物理数据
+    /// 物理组件
     /// </summary>
     CharacterPhysics playPDate;
     /// <summary>
@@ -38,6 +53,8 @@ public class Player : MonoBehaviour
     /// 玩家当前所执行动作
     /// </summary>
     ActionData actionData;
+    public ReadOnly_ActionData _ActionData;
+
     /// <summary>
     /// 玩家逻辑状态机对象
     /// </summary>
@@ -54,7 +71,7 @@ public class Player : MonoBehaviour
         InputControlMgr.Instance.BindPlayer(this);
         //可执行动作数据初始化
         actionData = new ActionData();
-
+        _ActionData = new ReadOnly_ActionData(actionData);
         //逻辑状态机/物理状态/表现层初始化（保证存在
         fsm = new PlayerStateMachine();
         playPDate = gameObject.GetComponentInChildren<CharacterPhysics>();
@@ -64,9 +81,9 @@ public class Player : MonoBehaviour
     private void Start()
     {
         //保证可用
-        fsm.InitData(playPDate.PlayPhysicsData, inputData, actionData);
-        playPDate.Init(actionData, fsm.EventSystem);
-        animatorFSM.Init(playPDate.PlayPhysicsData, actionData);
+        fsm.InitData(playPDate.readOnly_playerPhysicsData, inputData, actionData);
+        playPDate.Init(_ActionData, fsm.EventSystem);
+        animatorFSM.Init(playPDate.readOnly_playerPhysicsData, _ActionData);
     }
     /// <summary>
     /// 注入玩家按键数据行为
