@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public class Taijie : MonoBehaviour
+public class Taijie : BaseGround
 {
-
-    public SpriteRenderer spriteRenderer;
+    /// <summary>
+    /// 平台效应器
+    /// </summary>
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
     /// <summary>
     /// 目标点
     /// </summary>
@@ -35,11 +38,6 @@ public class Taijie : MonoBehaviour
     /// 起始点缓存
     /// </summary>
     Vector3 startPos;
-
-    //float lastT;
-
-    public Vector2 delta; // 本帧位移
-
 
     void Start()
     {

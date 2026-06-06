@@ -177,8 +177,30 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 958127543240876501, guid: 8abbb685d21f87e4389580688cb0fd6c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 578001340}
   m_SourcePrefab: {fileID: 100100000, guid: 8abbb685d21f87e4389580688cb0fd6c, type: 3}
+--- !u!1 &578001339 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 958127543240876501, guid: 8abbb685d21f87e4389580688cb0fd6c, type: 3}
+  m_PrefabInstance: {fileID: 578001338}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &578001340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 578001339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 356494c744af6a649a7128a9df30c5af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speedChangeNum: 0
+  jumpHeightNum: 0
 --- !u!1001 &892806127
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -509,6 +531,7 @@ GameObject:
   - component: {fileID: 982005076}
   - component: {fileID: 982005075}
   - component: {fileID: 982005074}
+  - component: {fileID: 982005077}
   m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
@@ -628,6 +651,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &982005077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 982005073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 356494c744af6a649a7128a9df30c5af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speedChangeNum: 0
+  jumpHeightNum: 0
 --- !u!1 &1051432128
 GameObject:
   m_ObjectHideFlags: 0
@@ -958,8 +995,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b87897a2f5960df41adc699cad2c8b10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  speedChangeNum: 0
+  jumpHeightNum: 0
   spriteRenderer: {fileID: 0}
-  delta: {x: 0, y: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
