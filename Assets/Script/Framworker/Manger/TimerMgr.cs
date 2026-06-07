@@ -7,7 +7,7 @@ using UnityEngine.Events;
 /// </summary>
 public class TimerMgr : BaseMgr<TimerMgr>
 {
-    public class TimerItemData : I_InitDataToPool
+    public class TimerItemData : IInitDataToPool
     {
         //DataFormatting 只能在真正回收时调用
         public void DataFormatting()

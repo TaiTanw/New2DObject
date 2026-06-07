@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 /// <summary>
 /// 场景物体基类（非生物
@@ -22,14 +23,21 @@ public class BaseGround : MonoBehaviour
     protected float jumpHeightNum ;
     public float JumpHeightNum=>jumpHeightNum;
     /// <summary>
+    /// 自身状态性质施力
+    /// </summary>
+    [SerializeField]
+    protected Vector2 phySpeed;
+    /// <summary>
     /// 本帧位移，动态物体可用，默认0,运行时数据
     /// </summary>
-    protected Vector2 delta; // 本帧位移
+    protected Vector2 delta;
     public Vector2 Delta=>delta;
     /// <summary>
     /// 受控物理角色容器（表示所有受环境影响的物体站在此平台上）
     /// </summary>
     protected Dictionary<int,IPhysicalconstraint> objPhyDic=new Dictionary<int,IPhysicalconstraint>();
+
+    StringBuilder idid = new ("ground");
 
     public void SetObjToPhyList(int id,IPhysicalconstraint obj)
     {
@@ -37,7 +45,8 @@ public class BaseGround : MonoBehaviour
         //if (!objPhyDic.ContainsKey(id))
         {
             objPhyDic[id] = obj;
-            obj.OnPhyEnter(gameObject.GetInstanceID(), speedChangeNum);
+            obj.OnPhyEnter(idid.Append(gameObject.GetInstanceID()), speedChangeNum);
+            obj.AddForce(idid.Append(gameObject.GetInstanceID()), phySpeed);
         }
        
     }
@@ -46,10 +55,21 @@ public class BaseGround : MonoBehaviour
         print("bbbbbbbb");
         if (objPhyDic.ContainsKey(id))
         {
-            objPhyDic[id].OnPhyExit(gameObject.GetInstanceID());
+            objPhyDic[id].OnPhyExit(idid.Append(gameObject.GetInstanceID()));
+            objPhyDic[id].RemoveForce(idid.Append(gameObject.GetInstanceID()));
             objPhyDic.Remove(id);
         }
 
     }
 
+    private void OnDisable()
+    {
+        foreach(var obj in objPhyDic.Values)
+        {
+            //取消影响
+            obj.OnPhyExit(idid.Append(gameObject.GetInstanceID()));
+            obj.RemoveForce(idid.Append(gameObject.GetInstanceID()));
+        }
+        objPhyDic.Clear();
+    }
 }

@@ -289,6 +289,8 @@ MonoBehaviour:
   groundV: {fileID: 4291362845084649304}
   leftV: {fileID: 5839553184409024121}
   rightV: {fileID: 2014545192126681972}
+  wallDownSpeed: 2
+  wallJumpV: 2
 --- !u!1 &7743792163046834635
 GameObject:
   m_ObjectHideFlags: 0

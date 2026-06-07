@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using PhyData;
 
 /// <summary>
 /// 玩家状态机
@@ -79,7 +80,7 @@ public class PlayerStateMachine
         jumpCount = jumpNum;
     }
 
-    public void InitData(CharacterPhysics.ReadOnly_PlayerPhysicsData playData, PlayerInputData input, ActionData actionData)
+    public void InitData(ReadOnly_PlayerPhysicsData playData, PlayerInputData input, ActionData actionData)
     {
         onGround.Init(playData, input, this, actionData);
         inAir.Init(playData, input, this, actionData);

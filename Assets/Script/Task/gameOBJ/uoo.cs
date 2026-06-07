@@ -1,26 +1,26 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 /// <summary>
-/// ÍÏ×§²âÊÔÎïÌå
+/// æ‹–æ‹½æµ‹è¯•ç‰©ä½“
 /// </summary>
 public class uoo : MonoBehaviour,IobjDrag
 {
     public void DragIn(Vector3 delta)
     {
-        print("¿ªÊ¼ÍÏ×§");
+        print("å¼€å§‹æ‹–æ‹½");
         transform.localScale = Vector3.one*1.5f;
     }
 
     public void DragOut(Vector3 delta)
     {
-        print("ÍÏ×§½áÊø");
+        print("æ‹–æ‹½ç»“æŸ");
         transform.localScale = Vector3.one ;
     }
 
     public void OnDrag(Vector3 delta)
     {
-        print("ÕıÔÚÍÏ×§");
+        print("æ­£åœ¨æ‹–æ‹½");
         transform.position =delta;
     }
 

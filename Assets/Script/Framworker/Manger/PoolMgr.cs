@@ -7,9 +7,13 @@ using UnityEngine.Events;
 
 /// <summary>
 /// 数据行为接口，需要存入缓存池的自定义数需继承此接口
+/// 数据复用行为接口
 /// </summary>
-public interface I_InitDataToPool
+public interface IInitDataToPool
 {
+    /// <summary>
+    /// 数据格式化
+    /// </summary>
     public void DataFormatting();
 }
 
@@ -110,7 +114,7 @@ public class PoolMgr : BaseMgr<PoolMgr>
     }
 
     public abstract class BaseDataN { }
-    public class DataN<T>:BaseDataN where T : class,I_InitDataToPool, new() 
+    public class DataN<T>:BaseDataN where T : class,IInitDataToPool, new() 
     {
         public Queue<T> queue = new Queue<T>();
     }
@@ -197,7 +201,7 @@ public class PoolMgr : BaseMgr<PoolMgr>
     /// <typeparam name="T">类型需继承接口</typeparam>
     /// <param name="nameSpace">命名空间</param>
     /// <returns></returns>
-    public T GetPoolValue<T>(string nameSpace="") where T : class, I_InitDataToPool,new()
+    public T GetPoolValue<T>(string nameSpace="") where T : class, IInitDataToPool,new()
     {
         string nameID=nameSpace+"_"+typeof(T).Name;
         T tObj;
@@ -236,7 +240,7 @@ public class PoolMgr : BaseMgr<PoolMgr>
             return;
         }
     }
-    public void PushInObj<T>(T obj,string nameSpace="") where T :class, I_InitDataToPool,new()
+    public void PushInObj<T>(T obj,string nameSpace="") where T :class, IInitDataToPool,new()
     {
         //如果想要压入null对象 是不被允许的
         if (obj == null)

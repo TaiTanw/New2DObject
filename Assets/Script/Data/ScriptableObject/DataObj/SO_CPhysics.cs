@@ -24,19 +24,14 @@ public class SO_CPhysics : ScriptableObject
     public float speed = 15;    // 基础水平移速
     public float upSpeed = 15;//基础跳跃速度
     public float gravity = -35f;    //重力速度
-    public float aSpeed = 100f;//水平加速度
-    public float toTime = 0.2f;//响应时间
     /// <summary>
-    /// 贴墙下滑最大速度
-    /// </summary>
-    public float wallDownSpeed = 2f;
-    /// <summary>
-    /// 物理帧更新时序层级
+    /// 物理帧更新时序层级(0开始
     /// </summary>
     public int phyMask = 1;
     /// <summary>
-    /// 贴墙反跳速度倍率
+    /// 受到环境影响程度
     /// </summary>
-    public float wallJumpV = 5f;
+    public float envImpact = 1;
+
 
 }

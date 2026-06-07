@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PhyData;
 /// <summary>
 /// 表现层组件
 /// </summary>
@@ -17,7 +18,7 @@ public class PresentationLayer : MonoBehaviour
     /// <summary>
     /// 物理数据引用
     /// </summary>
-    CharacterPhysics.ReadOnly_PlayerPhysicsData playPhyDate;
+    ReadOnly_PlayerPhysicsData playPhyDate;
     /// <summary>
     /// 只读的可执行动作引用
     /// </summary>
@@ -28,7 +29,7 @@ public class PresentationLayer : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Init(CharacterPhysics.ReadOnly_PlayerPhysicsData phy,ReadOnly_ActionData actionData)
+    public void Init(ReadOnly_PlayerPhysicsData phy,ReadOnly_ActionData actionData)
     {
         playPhyDate=phy;
         playActionData = actionData;
