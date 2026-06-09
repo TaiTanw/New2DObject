@@ -23,8 +23,5 @@ MonoBehaviour:
   speed: 15
   upSpeed: 15
   gravity: -35
-  aSpeed: 100
-  toTime: 0.2
-  wallDownSpeed: 2
   phyMask: 1
-  wallJumpV: 2
+  envImpact: 1

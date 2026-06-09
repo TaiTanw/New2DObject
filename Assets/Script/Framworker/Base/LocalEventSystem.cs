@@ -7,10 +7,14 @@ using UnityEngine.Events;
 /// <summary>
 /// 内部事件系统
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">所有可触发的事件枚举</typeparam>
 public class LocalEventSystem<T> where T : Enum
 {
     public abstract class BaseLocalEventData { }
+    /// <summary>
+    /// 有参事件触发
+    /// </summary>
+    /// <typeparam name="V">参数类型</typeparam>
     public class EventData<V> : BaseLocalEventData
     {
         public UnityAction<V> action;
@@ -24,22 +28,14 @@ public class LocalEventSystem<T> where T : Enum
     /// </summary>
     protected Dictionary<T, BaseLocalEventData> dicEvent = new Dictionary<T, BaseLocalEventData>();
     /// <summary>
-    /// 延迟事件触发容器
+    /// 延迟事件触发容器（区分延迟执行，和某组件拿到事件后延迟执行
     /// </summary>
-    private Dictionary<T,BaseLocalEventData> delayDicEvent= new Dictionary<T,BaseLocalEventData>();
-    public void EventTigger(T e_Play,bool isDelay=false)
+    //private Dictionary<T,BaseLocalEventData> delayDicEvent= new Dictionary<T,BaseLocalEventData>();
+    public void EventTigger(T e_Play)
     {
         if (dicEvent.TryGetValue(e_Play, out var data))
         {
-
-            if (isDelay)
-            {
-
-            }
-            else
-            {
-                (data as EventData).action?.Invoke();
-            }
+            (data as EventData).action?.Invoke();
 
         }
     }
@@ -59,6 +55,12 @@ public class LocalEventSystem<T> where T : Enum
         }
         (dicEvent[e_Play] as EventData).action += action;
     }
+    /// <summary>
+    /// 有参事件注册
+    /// </summary>
+    /// <typeparam name="V">参数类型</typeparam>
+    /// <param name="e_Play"></param>
+    /// <param name="action"></param>
     public void AddEventListener<V>(T e_Play, UnityAction<V> action)
     {
         if (!dicEvent.ContainsKey(e_Play))

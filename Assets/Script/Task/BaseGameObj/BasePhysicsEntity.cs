@@ -57,7 +57,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
 
     protected BaseGround lastFrameGroundPlatform = null;  //缓存上一帧的平台
     /// <summary>
-    /// 持续性环境物理受限状态容器（左右移动速度
+    /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
     /// </summary>
     Dictionary<StringBuilder, float> phyStateDic = new Dictionary<StringBuilder, float>();
     /// <summary>
@@ -102,6 +102,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
     {
         // 地面检测（只做检测，不做响应）
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        bool noNullGround=false;
         BaseGround currentGroundPlatform = null;
         bool onGroundNow=false;
         //一定角度内正对碰撞才算着地
@@ -109,7 +110,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         {
             onGroundNow = true;
             //下文需要判空处理，空表示无任何特殊逻辑的地面
-            currentGroundPlatform = hit.collider.GetComponent<BaseGround>();
+            noNullGround = hit.collider.TryGetComponent<BaseGround>(out currentGroundPlatform);
         }
         // 比对状态，只在地面改变时调用
         if (currentGroundPlatform != lastFrameGroundPlatform)
@@ -132,8 +133,21 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         playerPhysicsData.nowtaijie = currentGroundPlatform;
         playerPhysicsData.isGrounded=onGroundNow;
         //检测左右靠墙
-        playerPhysicsData.onLeftWall = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
-        playerPhysicsData.onRightWall = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
+        RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
+        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
+        //检测墙是否有特殊逻辑（无特殊逻辑则表示无法贴墙下滑
+        playerPhysicsData.onLeftWall = false;
+        if (hit1.collider != null)
+        {
+            playerPhysicsData.onLeftWall = true;
+            hit1.collider.TryGetComponent<Wall>(out playerPhysicsData.canLeftWall);
+        }
+        playerPhysicsData.onRightWall = false;
+        if (hit2.collider != null)
+        {
+            playerPhysicsData.onRightWall = true;
+            hit2.collider.TryGetComponent<Wall>(out playerPhysicsData.canRightWall);
+        }
 
         //处理基础移动（赋值操作，最先）
         playerPhysicsData.horizontalSpeed = HorizontalSpeedCalculation() * (1 + PhyStateCalculate());
@@ -163,7 +177,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         //计算平台补偿位移
         Vector2 platformDelta = Vector2.zero;
         //使用于斜率位移修正
-        if (playerPhysicsData.nowtaijie != null && playerPhysicsData.isGrounded)
+        if (noNullGround && playerPhysicsData.isGrounded)
         {
             platformDelta = playerPhysicsData.nowtaijie.Delta;
             //此处斜率补正
@@ -184,10 +198,23 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         }
 
         Vector2 wordDelta = moveDelta + platformDelta;      //计算世界绝对位移
-        //计算世界物理位移受限
-        if (wordDelta.x < 0 && playerPhysicsData.onLeftWall || wordDelta.x > 0 && playerPhysicsData.onRightWall)
+        //计算世界物理位移受限(防止过度挤压出现奇怪问题
+        if (wordDelta.x < 0 && playerPhysicsData.onLeftWall )
+        {
+            //横向速度制0
+            wordDelta.x = 0;
+            playerPhysicsData.nowWall=playerPhysicsData.canLeftWall;
+        }
+        else if (wordDelta.x > 0 && playerPhysicsData.onRightWall)
         {
             wordDelta.x = 0;
+            //设置当前靠墙
+            playerPhysicsData.nowWall = playerPhysicsData.canRightWall;
+        }
+        else
+        {
+            //离开墙面后重置
+            playerPhysicsData.nowWall=null;
         }
         //  一次性统一移动
         rb.MovePosition(rb.position + wordDelta);
@@ -258,7 +285,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
     }
 
     /// <summary>
-    /// 处理特殊行为的垂直变速（例如贴墙下滑，攀岩
+    /// 处理特殊行为的状态性垂直变速（例如贴墙下滑，攀岩
     /// </summary>
     /// <param name="v"></param>
     protected abstract void VerticalTransmission();

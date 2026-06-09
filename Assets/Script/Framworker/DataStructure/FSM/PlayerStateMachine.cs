@@ -9,12 +9,23 @@ using PhyData;
 /// </summary>
 public class PlayerStateMachine
 {
+    /// <summary>
+    /// 触发性动作枚举（用于局部事件系统
+    /// </summary>
     public enum E_playEvent
     {
-        move,
         jump,
         jumpRelease,//跳跃松开（处理长按跳高）
         wallJump,//墙跳
+    }
+    /// <summary>
+    /// 状态机内部状态枚举（显式声明避免新增状态而外部未处理新逻辑分支
+    /// </summary>
+    public enum E_playerState
+    {
+        isOnGround,
+        inAir,
+        onWallSliding
     }
 
     LocalEventSystem<E_playEvent> eventSystem;
@@ -23,15 +34,19 @@ public class PlayerStateMachine
     /// </summary>
     public LocalEventSystem<E_playEvent> EventSystem=>eventSystem;
 
-
     /// <summary>
-    /// 当前状态
+    /// 当前状态实例
     /// </summary>
-    public IBehavioralState onState;
-    //此处公共表示方便状态类直接获取后传入状态机持有的实例
-    public IsOnGround onGround;
-    public IsInAir inAir;
-    public OnWallSliding onWallSliding;
+    private IBehavioralState onState;
+    /// <summary>
+    /// 当前动作
+    /// </summary>
+    MovementData nowMovement;
+
+    //私有状态类实例，外部通过传递枚举转换指定状态
+     IsOnGround onGround;
+     IsInAir inAir;
+     OnWallSliding onWallSliding;
     #region 配置数据
     /// <summary>
     /// 在空中可跳跃跳跃数
@@ -80,8 +95,9 @@ public class PlayerStateMachine
         jumpCount = jumpNum;
     }
 
-    public void InitData(ReadOnly_PlayerPhysicsData playData, PlayerInputData input, ActionData actionData)
+    public void InitData(ReadOnly_PlayerPhysicsData playData, PlayerInputData input, MovementData actionData)
     {
+        nowMovement = actionData;
         onGround.Init(playData, input, this, actionData);
         inAir.Init(playData, input, this, actionData);
         onWallSliding.Init(playData, input, this, actionData);
@@ -91,10 +107,28 @@ public class PlayerStateMachine
     /// <summary>
     /// 状态改变
     /// </summary>
-    public void ChangeState(IBehavioralState state)
+    public void ChangeState(E_playerState state)
     {
+        nowMovement.nowState = state;
+        IBehavioralState nowState;
+        switch (state)
+        {
+            case E_playerState.isOnGround:
+                nowState=onGround;
+                break;
+            case E_playerState.inAir:
+                nowState=inAir;
+                break;
+            case E_playerState.onWallSliding:
+                nowState=onWallSliding;
+                break;
+            default:
+                nowState=null;
+                Debug.LogError("有多余枚举未处理状态的逻辑分支");
+                break;
+        }
         onState.Exit();
-        onState = state;
+        onState = nowState;
         onState.Enter();
     }
 
@@ -108,9 +142,10 @@ public class PlayerStateMachine
     {
         //传入执行，状态类负责实际功能
         onState.Update();
-        //效果已经触发，则关闭，防止持续跳跃
+        //效果已经触发，则关闭，防止持续响应
         input.jumpPressed = false;//触发类型按键全部统一由状态机复原
         input.jumpRelease = false;
+        //Debug.Log(nowMovement.onMove);
     }
     /// <summary>
     /// 重置可跳次数

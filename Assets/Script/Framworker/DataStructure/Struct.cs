@@ -32,9 +32,14 @@ namespace PhyData
         /// </summary>
         public BaseGround nowtaijie;
         public bool isGrounded;     // 物理检测
-        public bool onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
+        public bool onLeftWall; //左右墙布尔，表示受墙的影响因素 
         public bool onRightWall;
-
+        public Wall canLeftWall;
+        public Wall canRightWall;
+        /// <summary>
+        /// 当前倚靠的墙
+        /// </summary>
+        public Wall nowWall;
         /// <summary>
         /// 当前环境物理约束数据,移动速度
         /// </summary>
@@ -70,6 +75,9 @@ namespace PhyData
         public bool isGrounded => _data.isGrounded;     // 物理检测
         public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall => _data.onRightWall;
+
+        public Wall canRightWall=> _data.canRightWall;
+        public Wall canLeftWall=> _data.canLeftWall;
 
     }
 }

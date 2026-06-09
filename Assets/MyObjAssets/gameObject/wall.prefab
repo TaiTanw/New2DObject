@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4864463697751143528}
   - component: {fileID: 1529864810677734859}
   - component: {fileID: 4746620041434088352}
-  - component: {fileID: 1856374389017439024}
+  - component: {fileID: -8592108679609369140}
   m_Layer: 7
   m_Name: wall
   m_TagString: Untagged
@@ -131,7 +131,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &1856374389017439024
+--- !u!114 &-8592108679609369140
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -140,8 +140,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 958127543240876501}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 356494c744af6a649a7128a9df30c5af, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e5a69c10bb792b4591723c2dd52d2e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speedChangeNum: 0
   jumpHeightNum: 0
+  phySpeed: {x: 0, y: 0}
+  canClimb: 0
+  wallJumpDistance: 0
+  wallJumpHeight: 0
+  wallFriction: 1

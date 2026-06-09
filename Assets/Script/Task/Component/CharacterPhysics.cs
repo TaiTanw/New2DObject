@@ -9,6 +9,7 @@ using PhyData;
 /// </summary>
 public class CharacterPhysics : BasePhysicsEntity
 {
+    #region 玩家物理配置数据
     /// <summary>
     /// 贴墙下滑最大速度
     /// </summary>
@@ -17,6 +18,11 @@ public class CharacterPhysics : BasePhysicsEntity
     /// 贴墙反跳速度倍率
     /// </summary>
     private float wallJumpV = 2f;
+    /// <summary>
+    /// 跳跃斩断系数
+    /// </summary>
+    private float jumpRelNum = 0.6f;
+    #endregion
 
 
     #region 控制流数据=================================================================
@@ -54,7 +60,7 @@ public class CharacterPhysics : BasePhysicsEntity
 
         if (playerPhysicsData.verticalSpeed > 0)
         {
-            playerPhysicsData.verticalSpeed *= 0.7f;
+            playerPhysicsData.verticalSpeed *= jumpRelNum;
         }
     }
     void WallJump()
@@ -119,12 +125,16 @@ public class CharacterPhysics : BasePhysicsEntity
             wallJump = false;
         }
     }
-
+    /// <summary>
+    /// 贴墙下滑
+    /// </summary>
     protected override void VerticalTransmission()
     {
-        if (playActionData.isWallSliding && playerPhysicsData.verticalSpeed < 0)
+        //在贴墙以及在下落
+        //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
+        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playerPhysicsData.nowWall)
         {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed);
+            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playerPhysicsData.nowWall.WallFRICTION);
         }
     }
 }

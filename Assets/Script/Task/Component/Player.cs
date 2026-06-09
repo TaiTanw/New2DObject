@@ -16,14 +16,16 @@ public class PlayerInputData
 /// <summary>
 /// 持续性动作执行数据（瞬时动作靠事件触发
 /// </summary>
-public class ActionData 
+public class MovementData 
 {
     /// <summary>
     /// 移动方向，-1到1，最终速度由物理组件计算
     /// </summary>
     public float onMove;
-    //是否贴墙下滑
-    public bool isWallSliding;  
+    /// <summary>
+    /// 当前状态
+    /// </summary>
+    public PlayerStateMachine.E_playerState nowState; 
 }
 
 /// <summary>
@@ -31,11 +33,11 @@ public class ActionData
 /// </summary>
 public class ReadOnly_ActionData
 {
-    private readonly ActionData _data;
-    public ReadOnly_ActionData(ActionData data) => _data = data;
+    private readonly MovementData _data;
+    public ReadOnly_ActionData(MovementData data) => _data = data;
     //只读属性
     public float onMove => _data.onMove;
-    public bool isWallSliding =>_data.isWallSliding;
+    public PlayerStateMachine.E_playerState NowState =>_data.nowState;
 
 }
 
@@ -52,7 +54,7 @@ public class Player : MonoBehaviour
     /// <summary>
     /// 玩家当前所执行动作
     /// </summary>
-    ActionData actionData;
+    MovementData actionData;
     public ReadOnly_ActionData _ActionData;
 
     /// <summary>
@@ -70,7 +72,7 @@ public class Player : MonoBehaviour
         //玩家主动拉取输入控制权限，调用方法保证唯一玩家控制权,且便于控制时序，保证先于状态机初始化
         InputControlMgr.Instance.BindPlayer(this);
         //可执行动作数据初始化
-        actionData = new ActionData();
+        actionData = new MovementData();
         _ActionData = new ReadOnly_ActionData(actionData);
         //逻辑状态机/物理状态/表现层初始化（保证存在
         fsm = new PlayerStateMachine();

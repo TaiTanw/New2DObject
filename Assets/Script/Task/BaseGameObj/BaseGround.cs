@@ -39,7 +39,7 @@ public class BaseGround : MonoBehaviour
 
     StringBuilder idid = new ("ground");
 
-    public void SetObjToPhyList(int id,IPhysicalconstraint obj)
+    public void SetObjToPhyList(int id, IPhysicalconstraint obj)
     {
         print("aaaaa");
         //if (!objPhyDic.ContainsKey(id))
@@ -48,8 +48,35 @@ public class BaseGround : MonoBehaviour
             obj.OnPhyEnter(idid.Append(gameObject.GetInstanceID()), speedChangeNum);
             obj.AddForce(idid.Append(gameObject.GetInstanceID()), phySpeed);
         }
-       
+
     }
+
+    //public void SetObjToPhyList(int id, IPhysicalconstraint obj)
+    //{
+    //    if (objPhyDic.ContainsKey(id))
+    //    {
+    //        // 已存在，先移除旧的
+    //        objPhyDic[id].OnPhyExit(GetPhyID(id));
+    //        objPhyDic[id].RemoveForce(GetPhyID(id));
+    //    }
+
+    //    objPhyDic[id] = obj;
+    //    StringBuilder phyID = GetPhyID(id);
+    //    obj.OnPhyEnter(phyID, speedChangeNum);
+    //    obj.AddForce(phyID, phySpeed);
+    //}
+    //Dictionary<int,StringBuilder> phyIDCache=new Dictionary<int,StringBuilder>();
+    //private StringBuilder GetPhyID(int objId)
+    //{
+    //    // 缓存 StringBuilder，避免重复创建和污染
+    //    if (!phyIDCache.TryGetValue(objId, out var sb))
+    //    {
+    //        sb = new StringBuilder("ground").Append(gameObject.GetInstanceID())
+    //                                       .Append("_").Append(objId);
+    //        phyIDCache[objId] = sb;
+    //    }
+    //    return sb;
+    //}
     public void OutObjPhy(int id)
     {
         print("bbbbbbbb");

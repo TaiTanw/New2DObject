@@ -35,7 +35,7 @@ public interface IBehavioralState
 }
 
 /// <summary>
-/// 玩家状态机基类
+/// 玩家状态类基类
 /// </summary>
 public class BasePlayerState : IBehavioralState
 {
@@ -44,13 +44,13 @@ public class BasePlayerState : IBehavioralState
     //原始输入/只读
     protected PlayerInputData input;
     //过滤后的动作输出/读写
-    protected ActionData playActionData;
+    protected MovementData playActionData;
     //依附的逻辑状态机/调用
     protected PlayerStateMachine stateMachine;
     //此状态机内部的事件系统
     protected LocalEventSystem<PlayerStateMachine.E_playEvent> localEventSystem;
 
-    public void Init(ReadOnly_PlayerPhysicsData playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,ActionData playActionData)
+    public void Init(ReadOnly_PlayerPhysicsData playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,MovementData playActionData)
     {
         this.playPhyData = playPhyData;
         this.input = input;
@@ -119,14 +119,14 @@ public class IsOnGround : BasePlayerState
             stateMachine.groundJump = false;
             //触发状态复原，此处已经交给状态机
         }
+        //移动动作响应
+        playActionData.onMove = input.moveInput;
         //若已经不在地面，则改变状态
         if (!playPhyData.isGrounded)
         {
             //直接靠成员变量来传入，避免频繁GC
-            stateMachine.ChangeState(stateMachine.inAir);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
         }
-        //移动动作响应
-        playActionData.onMove = input.moveInput;
     }
 }
 
@@ -166,7 +166,7 @@ public class IsInAir : BasePlayerState
 
     public override void Update()
     {
-
+        
         if (stateMachine.jbtB)
         {
             jbt += Time.deltaTime;
@@ -237,12 +237,12 @@ public class IsInAir : BasePlayerState
         if (playPhyData.isGrounded)//在地面
         {
             //直接靠成员变量来传入，避免频繁GC
-            stateMachine.ChangeState(stateMachine.onGround);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.isOnGround);
             return;
         }
-        else if ((input.moveInput < 0 && playPhyData.onLeftWall) || (input.moveInput > 0 && playPhyData.onRightWall))//在贴墙
+        else if ((input.moveInput < 0 && playPhyData.canLeftWall) || (input.moveInput > 0 && playPhyData.canRightWall))//在贴墙
         {
-            stateMachine.ChangeState(stateMachine.onWallSliding);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
             return;
         }
     }
@@ -255,13 +255,11 @@ public class OnWallSliding : BasePlayerState
     {
         base.Enter();
         //Debug.Log("进入贴墙状态");
-        playActionData.isWallSliding = true;
     }
     public override void Exit()
     {
         base.Exit();
         //Debug.Log("退出贴墙状态");
-        playActionData.isWallSliding = false;
     }
 
     public override void Update()
@@ -270,24 +268,25 @@ public class OnWallSliding : BasePlayerState
         //移动动作响应
         //playActionData.onMove = input.moveInput;
 
-        if (input.jumpPressed)
-        {
-            localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.wallJump);
-            stateMachine.ChangeState(stateMachine.inAir);
-        }
+
 
         if (playPhyData.isGrounded)//在地面
         {
             //直接靠成员变量来传入，避免频繁GC
-            stateMachine.ChangeState(stateMachine.onGround);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.isOnGround);
             return;
         }
         else if ((input.moveInput >= 0 && playPhyData.onLeftWall)||( input.moveInput <= 0 && playPhyData.onRightWall)
             || (!playPhyData.onLeftWall && !playPhyData.onRightWall))
         {
-            stateMachine.ChangeState(stateMachine.inAir);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
             return;
         }
 
+        if (input.jumpPressed)
+        {
+            localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.wallJump);
+            stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
+        }
     }
 }
