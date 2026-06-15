@@ -79,5 +79,7 @@ namespace PhyData
         public Wall canRightWall=> _data.canRightWall;
         public Wall canLeftWall=> _data.canLeftWall;
 
+        public Wall nowKWall => _data.nowWall;
+
     }
 }

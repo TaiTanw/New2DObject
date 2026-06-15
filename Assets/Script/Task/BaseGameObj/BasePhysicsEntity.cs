@@ -53,13 +53,14 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
     //实时数据(外部修改时传入（如物理命令
     protected PlayerPhysicsData playerPhysicsData;
     //只读数据包装
-    public ReadOnly_PlayerPhysicsData readOnly_playerPhysicsData;
+    ReadOnly_PlayerPhysicsData readOnly_playerPhysicsData;
+    public ReadOnly_PlayerPhysicsData ReadOnly_PlayerPhyData => readOnly_playerPhysicsData;
 
     protected BaseGround lastFrameGroundPlatform = null;  //缓存上一帧的平台
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
     /// </summary>
-    Dictionary<StringBuilder, float> phyStateDic = new Dictionary<StringBuilder, float>();
+    Dictionary<BaseGround, float> phyStateDic = new Dictionary<BaseGround, float>();
     /// <summary>
     /// 时间受力容器
     /// </summary>
@@ -67,7 +68,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
     /// <summary>
     /// 状态受力容器
     /// </summary>
-    Dictionary<StringBuilder,Vector2> startForceDic = new Dictionary<StringBuilder,Vector2>();
+    Dictionary<BaseGround, Vector2> startForceDic = new Dictionary<BaseGround, Vector2>();
     /// <summary>
     /// 物理约束情况改变时才重算（脏标识
     /// </summary>
@@ -118,13 +119,13 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
             // 离开上一个平台
             if (lastFrameGroundPlatform != null)
             {
-                lastFrameGroundPlatform.OutObjPhy(gameObject.GetInstanceID());
+                lastFrameGroundPlatform.OutObjPhy(this);
             }
 
             // 进入新平台
             if (currentGroundPlatform != null)
             {
-                currentGroundPlatform.SetObjToPhyList(gameObject.GetInstanceID(), this);
+                currentGroundPlatform.SetObjToPhyList(this);
             }
             // 记录本帧状态，供下帧对比
             lastFrameGroundPlatform = currentGroundPlatform;
@@ -137,12 +138,14 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
         //检测墙是否有特殊逻辑（无特殊逻辑则表示无法贴墙下滑
         playerPhysicsData.onLeftWall = false;
+        playerPhysicsData.canLeftWall = null;
         if (hit1.collider != null)
         {
             playerPhysicsData.onLeftWall = true;
             hit1.collider.TryGetComponent<Wall>(out playerPhysicsData.canLeftWall);
         }
         playerPhysicsData.onRightWall = false;
+        playerPhysicsData.canRightWall = null;
         if (hit2.collider != null)
         {
             playerPhysicsData.onRightWall = true;
@@ -155,6 +158,8 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         PhyEventUpdate();
         //处理受力情况
         Vector2 nowforce= UnderForce();
+        //所有物理受力，速度计算完成，重置标识
+        isRecalculate = false;
         //水平速度影响
         playerPhysicsData.horizontalSpeed += nowforce.x;//叠加操作
         // 重力
@@ -297,18 +302,18 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(FixFun, cPhysics.phyMask);
         }
 
-        lastFrameGroundPlatform?.OutObjPhy(gameObject.GetInstanceID());
+        lastFrameGroundPlatform?.OutObjPhy(this);
         lastFrameGroundPlatform = null;
-        playerPhysicsData.nowtaijie?.OutObjPhy(gameObject.GetInstanceID());
+        playerPhysicsData.nowtaijie?.OutObjPhy(this);
     }
 
-    public void OnPhyEnter(StringBuilder iD, float num)
+    public void OnPhyEnter(BaseGround iD, float num)
     {
         //避免键重复而报错
         phyStateDic[iD] = num;
         isRecalculate = true;
     }
-    public void OnPhyExit(StringBuilder iD)
+    public void OnPhyExit(BaseGround iD)
     {
         phyStateDic.Remove(iD);
         isRecalculate = true;
@@ -322,13 +327,13 @@ public abstract class BasePhysicsEntity : MonoBehaviour,IPhysicalconstraint
         UnderForceList.Add(data);
     }
 
-    public void AddForce(StringBuilder iD, Vector2 force)
+    public void AddForce(BaseGround iD, Vector2 force)
     {
         startForceDic[iD] = force;
         isRecalculate = true;
     }
 
-    public void RemoveForce(StringBuilder iD)
+    public void RemoveForce(BaseGround iD)
     {
         startForceDic.Remove(iD);
         isRecalculate = true;

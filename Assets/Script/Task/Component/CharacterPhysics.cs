@@ -93,7 +93,7 @@ public class CharacterPhysics : BasePhysicsEntity
             float data = 1f;
             if (playerPhysicsData.nowtaijie != null)
             {
-                data=1+playerPhysicsData.nowtaijie.JumpHeightNum;
+                data+=playerPhysicsData.nowtaijie.JumpHeightNum;
             }
             //当前竖直速度等于跳跃速度
             playerPhysicsData.verticalSpeed = cPhysics.upSpeed*data;
@@ -111,10 +111,10 @@ public class CharacterPhysics : BasePhysicsEntity
             jumpForce = wallJumpV * cPhysics.speed;
 
             playerPhysicsData.verticalSpeed = jumpHeight;
-
+            //速度叠加
             if (playerPhysicsData.onLeftWall)
             {
-                // speedStack 在这里应用
+
                 AddSpeed(0.2f, new Vector2(jumpForce, 0));
             }
             else

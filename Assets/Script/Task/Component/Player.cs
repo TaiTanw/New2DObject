@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using PhyData;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -47,6 +48,7 @@ public class Player : MonoBehaviour
     /// 物理组件
     /// </summary>
     CharacterPhysics playPDate;
+    public ReadOnly_PlayerPhysicsData NowPhyData => playPDate.ReadOnly_PlayerPhyData;
     /// <summary>
     /// 玩家当前输入数据,初始化交给外部
     /// </summary>
@@ -83,9 +85,9 @@ public class Player : MonoBehaviour
     private void Start()
     {
         //保证可用
-        fsm.InitData(playPDate.readOnly_playerPhysicsData, inputData, actionData);
+        fsm.InitData(playPDate.ReadOnly_PlayerPhyData, inputData, actionData);
         playPDate.Init(_ActionData, fsm.EventSystem);
-        animatorFSM.Init(playPDate.readOnly_playerPhysicsData, _ActionData);
+        animatorFSM.Init(playPDate.ReadOnly_PlayerPhyData, _ActionData);
     }
     /// <summary>
     /// 注入玩家按键数据行为
@@ -94,6 +96,10 @@ public class Player : MonoBehaviour
     public void ChangeInputAsset(PlayerInputData data)
     {
         inputData = data;
+    }
+    public void RemoveInput()
+    {
+        inputData=null;
     }
     //float time;
     void Update()

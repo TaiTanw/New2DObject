@@ -150,6 +150,7 @@ public class IsInAir : BasePlayerState
     bool canJumpCut;
     public override void Enter()
     {
+        //Debug.Log("啊啊啊");
         //Debug.Log("空中状态进入");
         nowTime = 0;
         jbt = 0;
@@ -180,7 +181,7 @@ public class IsInAir : BasePlayerState
         //响应跳跃键输入
         if (input.jumpPressed)
         {
-            if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)//是否可使用地面跳
+            if(nowTime < stateMachine.coyoteTime && stateMachine.groundJump)//是否可使用地面跳（土狼时间响应跳跃
             {
                 localEventSystem.EventTigger(PlayerStateMachine.E_playEvent.jump);
                 jumpWtime=nowTime;
@@ -204,6 +205,7 @@ public class IsInAir : BasePlayerState
                 //Debug.Log("跳跃缓冲计时触发");
             }
         }
+        //响应跳跃松开
         if (input.jumpRelease)
         {
             if (nowTime - jumpWtime >= stateMachine.jumpUpTime)//超时斩断
@@ -240,7 +242,7 @@ public class IsInAir : BasePlayerState
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.isOnGround);
             return;
         }
-        else if ((input.moveInput < 0 && playPhyData.canLeftWall) || (input.moveInput > 0 && playPhyData.canRightWall))//在贴墙
+        else if ((input.moveInput < 0 && playPhyData.canLeftWall) || (input.moveInput > 0 && playPhyData.canRightWall))//在贴墙,且可贴墙
         {
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
             return;
@@ -264,11 +266,6 @@ public class OnWallSliding : BasePlayerState
 
     public override void Update()
     {
-        base.Update();
-        //移动动作响应
-        //playActionData.onMove = input.moveInput;
-
-
 
         if (playPhyData.isGrounded)//在地面
         {
@@ -276,8 +273,8 @@ public class OnWallSliding : BasePlayerState
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.isOnGround);
             return;
         }
-        else if ((input.moveInput >= 0 && playPhyData.onLeftWall)||( input.moveInput <= 0 && playPhyData.onRightWall)
-            || (!playPhyData.onLeftWall && !playPhyData.onRightWall))
+        else if ((input.moveInput > 0 && playPhyData.onLeftWall)||( input.moveInput < 0 && playPhyData.onRightWall)
+            || (!playPhyData.nowKWall))
         {
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
             return;

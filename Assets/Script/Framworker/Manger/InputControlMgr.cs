@@ -20,6 +20,7 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
     /// 所控制玩家的实例
     /// </summary>
     Player player;
+    public Player Player => player;
     /// <summary>
     /// 玩家美术资源所指向路径（名称）此处已经配置===========================================================
     /// </summary>
@@ -208,11 +209,14 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
         }
     }
     /// <summary>
-    /// 关联玩家,由玩家主动拉取
+    /// 关联玩家,由玩家主动拉取(核心数据提前初始化完成，待到玩家创建时主动获取）
     /// </summary>
     /// <param name="player"></param>
     public void BindPlayer(Player player)
     {
+        //使当前缓存玩家退出输入控制
+        if (player != null)
+            player.RemoveInput();
         this.player = player;
         this.player.ChangeInputAsset(inputData);
     }

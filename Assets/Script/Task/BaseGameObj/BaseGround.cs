@@ -35,68 +35,42 @@ public class BaseGround : MonoBehaviour
     /// <summary>
     /// 受控物理角色容器（表示所有受环境影响的物体站在此平台上）
     /// </summary>
-    protected Dictionary<int,IPhysicalconstraint> objPhyDic=new Dictionary<int,IPhysicalconstraint>();
+    protected HashSet<IPhysicalconstraint> objIPhyHas=new HashSet<IPhysicalconstraint>();
 
-    StringBuilder idid = new ("ground");
-
-    public void SetObjToPhyList(int id, IPhysicalconstraint obj)
+    public void SetObjToPhyList(IPhysicalconstraint obj)
     {
-        print("aaaaa");
-        //if (!objPhyDic.ContainsKey(id))
+        //print("aaaaa");
+        //不重复则进入
+        if (!objIPhyHas.Contains(obj))
         {
-            objPhyDic[id] = obj;
-            obj.OnPhyEnter(idid.Append(gameObject.GetInstanceID()), speedChangeNum);
-            obj.AddForce(idid.Append(gameObject.GetInstanceID()), phySpeed);
+            objIPhyHas.Add(obj);
+            obj.OnPhyEnter(this, speedChangeNum);
+            obj.AddForce(this, phySpeed);
         }
 
     }
 
-    //public void SetObjToPhyList(int id, IPhysicalconstraint obj)
-    //{
-    //    if (objPhyDic.ContainsKey(id))
-    //    {
-    //        // 已存在，先移除旧的
-    //        objPhyDic[id].OnPhyExit(GetPhyID(id));
-    //        objPhyDic[id].RemoveForce(GetPhyID(id));
-    //    }
 
-    //    objPhyDic[id] = obj;
-    //    StringBuilder phyID = GetPhyID(id);
-    //    obj.OnPhyEnter(phyID, speedChangeNum);
-    //    obj.AddForce(phyID, phySpeed);
-    //}
-    //Dictionary<int,StringBuilder> phyIDCache=new Dictionary<int,StringBuilder>();
-    //private StringBuilder GetPhyID(int objId)
-    //{
-    //    // 缓存 StringBuilder，避免重复创建和污染
-    //    if (!phyIDCache.TryGetValue(objId, out var sb))
-    //    {
-    //        sb = new StringBuilder("ground").Append(gameObject.GetInstanceID())
-    //                                       .Append("_").Append(objId);
-    //        phyIDCache[objId] = sb;
-    //    }
-    //    return sb;
-    //}
-    public void OutObjPhy(int id)
+    public void OutObjPhy(IPhysicalconstraint obj)
     {
-        print("bbbbbbbb");
-        if (objPhyDic.ContainsKey(id))
+        //print("bbbbbbbb");
+        if (objIPhyHas.TryGetValue(obj,out var theo))
         {
-            objPhyDic[id].OnPhyExit(idid.Append(gameObject.GetInstanceID()));
-            objPhyDic[id].RemoveForce(idid.Append(gameObject.GetInstanceID()));
-            objPhyDic.Remove(id);
+            theo.OnPhyExit(this);
+            theo.RemoveForce(this);
+            objIPhyHas.Remove(obj);
         }
 
     }
 
     private void OnDisable()
     {
-        foreach(var obj in objPhyDic.Values)
+        foreach(var obj in objIPhyHas)
         {
             //取消影响
-            obj.OnPhyExit(idid.Append(gameObject.GetInstanceID()));
-            obj.RemoveForce(idid.Append(gameObject.GetInstanceID()));
+            obj.OnPhyExit(this);
+            obj.RemoveForce(this);
         }
-        objPhyDic.Clear();
+        objIPhyHas.Clear();
     }
 }

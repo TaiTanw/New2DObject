@@ -38,6 +38,7 @@ public class PresentationLayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //处理朝向
         if (playActionData.onMove > 0)
         {
             spriteRenderer.flipX = false;
@@ -46,6 +47,18 @@ public class PresentationLayer : MonoBehaviour
         else if(playActionData.onMove < 0)
         {
             spriteRenderer.flipX = true;
+        }
+
+        switch (playActionData.NowState)
+        {
+            case PlayerStateMachine.E_playerState.isOnGround:
+                break;
+            case PlayerStateMachine.E_playerState.inAir:
+                break;
+            case PlayerStateMachine.E_playerState.onWallSliding:
+                break;
+            default:
+                break;
         }
     }
 }
