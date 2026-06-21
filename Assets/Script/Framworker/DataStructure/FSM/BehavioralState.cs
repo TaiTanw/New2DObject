@@ -274,7 +274,7 @@ public class OnWallSliding : BasePlayerState
             return;
         }
         else if ((input.moveInput > 0 && playPhyData.onLeftWall)||( input.moveInput < 0 && playPhyData.onRightWall)
-            || (!playPhyData.nowKWall))
+            || (!playPhyData.nowKWall)||input.moveInput==0)
         {
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
             return;

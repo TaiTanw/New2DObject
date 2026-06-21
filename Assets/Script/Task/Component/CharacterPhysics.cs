@@ -26,8 +26,8 @@ public class CharacterPhysics : BasePhysicsEntity
 
 
     #region 控制流数据=================================================================
-    //玩家状态机内部事件系统引用
-    LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem;
+    //玩家状态机内部事件系统引用(一次性注册事件（因为生命周期和局部事件系统一致，所以暂时不用考虑注销物体（随物体删除一并销毁
+    //LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem;
     /// <summary>
     /// 玩家可执行动作
     /// </summary>
@@ -71,7 +71,7 @@ public class CharacterPhysics : BasePhysicsEntity
     public void Init(ReadOnly_ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
     {
         playActionData = actionData;
-        this.fsmEventSystem = fsmEventSystem;
+        //this.fsmEventSystem = fsmEventSystem;
         //注册事件
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump, Jump);
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease, JumpRelease);
@@ -125,9 +125,7 @@ public class CharacterPhysics : BasePhysicsEntity
             wallJump = false;
         }
     }
-    /// <summary>
-    /// 贴墙下滑
-    /// </summary>
+
     protected override void VerticalTransmission()
     {
         //在贴墙以及在下落

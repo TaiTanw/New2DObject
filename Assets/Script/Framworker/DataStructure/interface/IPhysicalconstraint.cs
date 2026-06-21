@@ -13,12 +13,12 @@ public interface IPhysicalconstraint
     /// </summary>
     /// <param name="iD">唯一标识</param>
     /// <param name="num">影响程度</param>
-    public void OnPhyEnter(BaseGround iD, float num);
+    public void OnPhyEnter(BasicPhysicalObject iD, float num);
     /// <summary>
     /// 持续性移动受限取消
     /// </summary>
     /// <param name="iD"></param>
-    public void OnPhyExit(BaseGround iD);
+    public void OnPhyExit(BasicPhysicalObject iD);
 
     /// <summary>
     /// 外部提供速度(固定时间影响
@@ -30,11 +30,11 @@ public interface IPhysicalconstraint
     /// 外部提供速度（状态持续影响
     /// </summary>
     /// <param name="force"></param>
-    public void AddForce(BaseGround iD,Vector2 force);
+    public void AddForce(BasicPhysicalObject iD,Vector2 force);
     /// <summary>
     /// 外部取消状态性质速度
     /// </summary>
     /// <param name="force"></param>
-    public void RemoveForce(BaseGround iD);
+    public void RemoveForce(BasicPhysicalObject iD);
 
 }
