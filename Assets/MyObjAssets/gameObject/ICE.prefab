@@ -145,7 +145,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedChangeNum: -0.5
   phySpeed: {x: 0, y: 0}
-  jumpHeightNum: -0.8
+  jumpHeightNum: -0.5
   Idex: 15
   Qdex: 7
   maxISpeed: 2

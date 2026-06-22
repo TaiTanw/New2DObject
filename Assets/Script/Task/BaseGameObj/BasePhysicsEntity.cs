@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 public abstract class BasePhysicsEntity : MonoBehaviour
 {
@@ -69,6 +70,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// 状态受力容器
     /// </summary>
     Dictionary<BasicPhysicalObject, Vector2> startForceDic = new Dictionary<BasicPhysicalObject, Vector2>();
+    /// <summary>
+    /// 受力情况只读容器
+    /// </summary>
+    public Dictionary<BasicPhysicalObject, Vector2> StartForceDic=>startForceDic;
+    /// <summary>
+    /// 延迟状状态力删除容器（用于保存哪些物体存在延迟删除的状态力，随后会有专门流程依据此容器，在状态受力容器内找到对应速度，施加缓降
+    /// </summary>
+    HashSet<BasicPhysicalObject> delayedRemoveForce = new HashSet<BasicPhysicalObject>();
+
+
     /// <summary>
     /// 物理约束情况改变时才重算（脏标识
     /// </summary>
@@ -284,13 +295,47 @@ public abstract class BasePhysicsEntity : MonoBehaviour
                 sp += UnderForceList[i].speedStack;
             }
         }
+        if (delayedRemoveForce.Count != 0)
+        {
+            //当处于空中时，速度变换小，否则迅速复原
+            float t = 1;
+            if (playerPhysicsData.nowtaijie != null)
+            {
+                t = 10;
+            }
+
+
+            var keysToUpdate = new List<BasicPhysicalObject>(delayedRemoveForce.Count);
+            foreach (var i in delayedRemoveForce)
+            {
+                startForceDic[i] *= 1f / (1 + t * cPhysics.envImpact * Time.fixedDeltaTime);
+                if (startForceDic[i].sqrMagnitude < 0.2f)
+                {
+                    startForceDic.Remove(i);
+                    keysToUpdate.Add(i);
+                }
+            }
+            //循环删除
+            foreach (var i in keysToUpdate)
+            {
+                delayedRemoveForce.Remove(i);
+            }
+
+
+
+            isRecalculate = true;
+        }
+
         //再计算状态力
         if (isRecalculate)
         {
+            //print("测试状态力计算次数");
+
             foreach (var i in startForceDic.Values)
             {
                 sp += i;
             }
+
         }
         //赋值操作，保证正确
         playerPhysicsData.phyHSpeed = sp.x;
@@ -329,7 +374,8 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// 持续性移动受限取消
     /// </summary>
     /// <param name="iD"></param>
-    public void OnPhyExit(BasicPhysicalObject iD)
+    /// <param name="Isdelayed">是否延迟</param>
+    public void OnPhyExit(BasicPhysicalObject iD,bool Isdelayed=false)
     {
         phyStateDic.Remove(iD);
         isRecalculate = true;
@@ -339,6 +385,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     /// <param name="time">持续时间</param>
     /// <param name="force">受力大小</param>
+
     public void AddSpeed(float time,Vector2 force)
     {
         SpeedStackData data = new SpeedStackData();
@@ -352,16 +399,35 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <param name="force"></param>
     public void AddForce(BasicPhysicalObject iD, Vector2 force)
     {
-        startForceDic[iD] = force;
+        //若在延迟删力过程中再度施力，则删除缓存中的内容
+        if (delayedRemoveForce.TryGetValue(iD,out var actualValue))
+        {
+            delayedRemoveForce.Remove(iD);
+        }
+        else
+        {
+            startForceDic[iD] = force;
+        }
+
         isRecalculate = true;
     }
     /// <summary>
     /// 外部取消状态性质速度
     /// </summary>
     /// <param name="force"></param>
-    public void RemoveForce(BasicPhysicalObject iD)
+    /// <param name="Isdelayed">是否延迟</param>
+    public void RemoveForce(BasicPhysicalObject iD, bool Isdelayed = false)
     {
-        startForceDic.Remove(iD);
+        if (Isdelayed)
+        {
+            delayedRemoveForce.Add(iD);
+        }
+        else
+        {
+            //否则再将受力容器对应值删除
+            startForceDic.Remove(iD);
+        }
+
         isRecalculate = true;
     }
 }
