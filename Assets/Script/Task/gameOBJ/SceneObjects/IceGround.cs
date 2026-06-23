@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using PhyData;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ public class IceGround : BaseGround
     /// </summary>
     public float Qdex=1;
     /// <summary>
-    /// 最大滑动速度
+    /// 最大滑动速度系数
     /// </summary>
     public float maxISpeed=1;
 
@@ -28,8 +29,11 @@ public class IceGround : BaseGround
         {
             objIPhyHas.Add(obj);
             obj.OnPhyEnter(this, speedChangeNum);
-            //内部自动判断，若有留存力，则依据新力触发
-            obj.AddForce(this, phySpeed);
+            obj.AddSpeedStatus(this, phySpeed);
+            ForceData force = new ForceData();
+            //设置受力,复原速度和最大速度
+            force.Init(Idex,Qdex, obj.speed * maxISpeed * speedChangeNum);
+            obj.AddForce(this, force);
         }
     }
     public override void OutObjPhy(BasePhysicsEntity obj)
@@ -39,7 +43,8 @@ public class IceGround : BaseGround
         {
             theo.OnPhyExit(this);
             //状态力的延迟删除
-            theo.RemoveForce(this,true);
+            theo.RemoveSpeedStatus(this);
+            theo.RemoveForce(this);
             objIPhyHas.Remove(obj);
         }
     }
@@ -47,50 +52,68 @@ public class IceGround : BaseGround
     {
         foreach (var item in objIPhyHas)
         {
-            //得到角色当前主动速度
-            float v = item.ReadOnly_PlayerPhyData.horizontalSpeed * maxISpeed;
-            //得到此角色受此物体的受力情况
-            float x = item.StartForceDic[this].x;
-            //玩家移动时加速过程
+            //得到角色当前主动移动方向
+            float v =item.ReadOnly_PlayerPhyData.horizontalSpeed;
             if (v > 0)
             {
-                if (x < v)
-                {
-                    x += Idex * Time.fixedDeltaTime;
-                }
-                else if (x > v)
-                {
-                    x = v; 
-                }
+                item.ChangeForce(this, Idex);
+                item.ChangeType(this, E_PhyForceType.apply);
             }
-            else if(v < 0)
+            else if (v < 0)
             {
-                if (x > v)
-                {
-                    x -= Idex * Time.fixedDeltaTime;
-                }
-                else if (x < v)
-                {
-                    x = v;
-                }
-            }
-            else//玩家主动位移归零时，叠加速度复原过程
+                item.ChangeForce(this, -Idex);
+                item.ChangeType(this, E_PhyForceType.apply);
+            }          
+            else
             {
-                if(x <-0.5f)
-                {
-                    x += Qdex * Time.fixedDeltaTime;
-                }
-                else if(x > 0.5f)
-                {
-                    x -= Qdex * Time.fixedDeltaTime;
-                }
-                else
-                {
-                    x = 0f;
-                }
+                item.ChangeType(this,E_PhyForceType.controlRecovery);
             }
-            //施力
-            item.AddForce(this, new Vector2(x, 0));
+                
+
+            ////得到角色当前主动速度
+            //float v = item.ReadOnly_PlayerPhyData.horizontalSpeed * maxISpeed;
+            ////得到此角色受此物体的受力情况
+            //float x = item.StartForceDic[this].x;
+            ////玩家移动时加速过程
+            //if (v > 0)
+            //{
+            //    if (x < v)
+            //    {
+            //        x += Idex * Time.fixedDeltaTime;
+            //    }
+            //    else if (x > v)
+            //    {
+            //        x = v; 
+            //    }
+            //}
+            //else if(v < 0)
+            //{
+            //    if (x > v)
+            //    {
+            //        x -= Idex * Time.fixedDeltaTime;
+            //    }
+            //    else if (x < v)
+            //    {
+            //        x = v;
+            //    }
+            //}
+            //else//角色主动位移归零时，叠加速度复原过程
+            //{
+            //    if(x <-0.5f)
+            //    {
+            //        x += Qdex * Time.fixedDeltaTime;
+            //    }
+            //    else if(x > 0.5f)
+            //    {
+            //        x -= Qdex * Time.fixedDeltaTime;
+            //    }
+            //    else
+            //    {
+            //        x = 0f;
+            //    }
+            //}
+            ////施力
+            //item.AddSpeedStatus(this, new Vector2(x, 0));
         }
     }
 
@@ -100,6 +123,7 @@ public class IceGround : BaseGround
         {
             //取消影响
             obj.OnPhyExit(this);
+            obj.RemoveSpeedStatus(this);
             obj.RemoveForce(this);
         }
         objIPhyHas.Clear();

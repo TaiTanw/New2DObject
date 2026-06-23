@@ -147,5 +147,5 @@ MonoBehaviour:
   phySpeed: {x: 0, y: 0}
   jumpHeightNum: -0.5
   Idex: 15
-  Qdex: 7
+  Qdex: 5
   maxISpeed: 2

@@ -38,7 +38,7 @@ public class BasicPhysicalObject : MonoBehaviour
         {
             objIPhyHas.Add(obj);
             obj.OnPhyEnter(this, speedChangeNum);
-            obj.AddForce(this, phySpeed);
+            obj.AddSpeedStatus(this, phySpeed);
         }
     }
     /// <summary>
@@ -50,7 +50,7 @@ public class BasicPhysicalObject : MonoBehaviour
         if (objIPhyHas.TryGetValue(obj, out var theo))
         {
             theo.OnPhyExit(this);
-            theo.RemoveForce(this);
+            theo.RemoveSpeedStatus(this);
             objIPhyHas.Remove(obj);
         }
     }
@@ -64,7 +64,7 @@ public class BasicPhysicalObject : MonoBehaviour
         {
             //取消影响
             obj.OnPhyExit(this);
-            obj.RemoveForce(this);
+            obj.RemoveSpeedStatus(this);
         }
         objIPhyHas.Clear();
     }
