@@ -115,11 +115,11 @@ public class CharacterPhysics : BasePhysicsEntity
             if (playerPhysicsData.onLeftWall)
             {
 
-                AddSpeed(0.2f, new Vector2(jumpForce, 0));
+                AddSpeed(0.2f, jumpForce);
             }
             else
             {
-                AddSpeed(0.2f, new Vector2(-jumpForce, 0));
+                AddSpeed(0.2f, -jumpForce);
             }
             //消费
             wallJump = false;

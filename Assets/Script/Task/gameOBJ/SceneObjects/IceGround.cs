@@ -12,10 +12,7 @@ public class IceGround : BaseGround
     /// 加速影响因子
     /// </summary>
     public float Idex=1;
-    /// <summary>
-    /// 减速影响因子
-    /// </summary>
-    public float Qdex=1;
+
     /// <summary>
     /// 最大滑动速度系数
     /// </summary>
@@ -32,7 +29,7 @@ public class IceGround : BaseGround
             obj.AddSpeedStatus(this, phySpeed);
             ForceData force = new ForceData();
             //设置受力,复原速度和最大速度
-            force.Init(Idex,Qdex, obj.speed * maxISpeed * speedChangeNum);
+            force.Init(Idex, slowingEffect, obj.speed * maxISpeed * speedChangeNum);
             obj.AddForce(this, force);
         }
     }
@@ -68,52 +65,7 @@ public class IceGround : BaseGround
             {
                 item.ChangeType(this,E_PhyForceType.controlRecovery);
             }
-                
 
-            ////得到角色当前主动速度
-            //float v = item.ReadOnly_PlayerPhyData.horizontalSpeed * maxISpeed;
-            ////得到此角色受此物体的受力情况
-            //float x = item.StartForceDic[this].x;
-            ////玩家移动时加速过程
-            //if (v > 0)
-            //{
-            //    if (x < v)
-            //    {
-            //        x += Idex * Time.fixedDeltaTime;
-            //    }
-            //    else if (x > v)
-            //    {
-            //        x = v; 
-            //    }
-            //}
-            //else if(v < 0)
-            //{
-            //    if (x > v)
-            //    {
-            //        x -= Idex * Time.fixedDeltaTime;
-            //    }
-            //    else if (x < v)
-            //    {
-            //        x = v;
-            //    }
-            //}
-            //else//角色主动位移归零时，叠加速度复原过程
-            //{
-            //    if(x <-0.5f)
-            //    {
-            //        x += Qdex * Time.fixedDeltaTime;
-            //    }
-            //    else if(x > 0.5f)
-            //    {
-            //        x -= Qdex * Time.fixedDeltaTime;
-            //    }
-            //    else
-            //    {
-            //        x = 0f;
-            //    }
-            //}
-            ////施力
-            //item.AddSpeedStatus(this, new Vector2(x, 0));
         }
     }
 

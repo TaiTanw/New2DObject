@@ -100,8 +100,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speedChangeNum: 1
-  jumpHeightNum: 0.5
   phySpeed: {x: 0, y: 0}
+  slowingEffect: 4
+  jumpHeightNum: 0.5
   spriteRenderer: {fileID: 5949329199238736269}
 --- !u!61 &-7415039183942202482
 BoxCollider2D:

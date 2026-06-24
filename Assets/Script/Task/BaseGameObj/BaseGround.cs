@@ -6,11 +6,17 @@ using UnityEngine;
 /// 碰撞物体基类（非生物
 /// </summary>
 public class BaseGround : BasicPhysicalObject
+{
 
     //只要是外部需要用到的数据，均在基类声明
     //当前行为：基类只负责所有可能用到的数据，具体行为由子类实现
-{
 
+    /// <summary>
+    /// 减速影响因子（处于此地面时，对消退类型力的衰减幅度）
+    /// </summary>
+    [SerializeField]
+    protected float slowingEffect = 1;
+    public float SlowingEffect=>slowingEffect;
     /// <summary>
     /// 跳跃高度速度影响百分比
     /// </summary>

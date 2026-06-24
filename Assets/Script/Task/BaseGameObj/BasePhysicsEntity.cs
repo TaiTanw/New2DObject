@@ -69,19 +69,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <summary>
     /// 状态速度容器（传送带模型
     /// </summary>
-    Dictionary<BasicPhysicalObject, Vector2> startForceDic = new Dictionary<BasicPhysicalObject, Vector2>();
-    /// <summary>
-    /// 受力情况只读容器
-    /// </summary>
-    public Dictionary<BasicPhysicalObject, Vector2> StartForceDic=>startForceDic;
+    Dictionary<BasicPhysicalObject, Vector2> startSpeedDic = new Dictionary<BasicPhysicalObject, Vector2>();
+
     /// <summary>
     /// 受到哪些物体的施力影响
     /// </summary>
-    HashSet<BasicPhysicalObject> delayedRemoveForce = new HashSet<BasicPhysicalObject>();
+    HashSet<BasicPhysicalObject> objectApplyingForce = new HashSet<BasicPhysicalObject>();
     /// <summary>
     /// 受力计算容器
     /// </summary>
-    Dictionary<BasicPhysicalObject,ForceData> ForceDic=new Dictionary<BasicPhysicalObject,ForceData>();
+    Dictionary<BasicPhysicalObject,ForceData> dynamicForceDic=new Dictionary<BasicPhysicalObject,ForceData>();
     /// <summary>
     /// 自身阻力系数
     /// </summary>
@@ -124,6 +121,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     {
         // 地面检测（只做检测，不做响应）
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        //判断是否获取到脚本
         bool noNullGround=false;
         BaseGround currentGroundPlatform = null;
         bool onGroundNow=false;
@@ -137,6 +135,9 @@ public abstract class BasePhysicsEntity : MonoBehaviour
             self_resistanceCoefficient = 20;
             //下文需要判空处理，空表示无任何特殊逻辑的地面
             noNullGround = hit.collider.TryGetComponent<BaseGround>(out currentGroundPlatform);
+            if (noNullGround) 
+                //当找到脚本时，自身阻力受到地面阻力影响
+                self_resistanceCoefficient*=currentGroundPlatform.SlowingEffect;
         }
         // 比对状态，只在地面改变时调用
         if (currentGroundPlatform != lastFrameGroundPlatform)//简易理解为状态（同时只能在一种地面上）
@@ -183,10 +184,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         PhyEventUpdate();
         //处理受力情况
         UnderForce();
-        //所有物理受力，速度计算完成，重置标识
-        //isRecalculate = false;
-        //水平速度影响
-        //playerPhysicsData.horizontalSpeed += nowforce.x;//叠加操作
+
         // 重力
         if (!playerPhysicsData.isGrounded)
         {
@@ -198,8 +196,6 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         }
         //垂直变速（赋值或者累加操作
         VerticalTransmission();
-        //竖直速度影响
-        //playerPhysicsData.verticalSpeed += nowforce.y;
         //计算当前速度向量与移动距离
         float nowHSpeed = playerPhysicsData.horizontalSpeed + playerPhysicsData.phyHSpeed;
         Vector2 velocity = new Vector2(nowHSpeed,
@@ -230,19 +226,39 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         }
 
         Vector2 wordDelta = moveDelta + platformDelta;      //计算世界绝对位移
-        //计算世界物理位移受限(防止过度挤压出现奇怪问题
+        //计算世界物理位移受限(防止过度挤压出现奇怪问题,此处只考虑了左右贴墙，后续考虑逻辑收束
         if (wordDelta.x < 0 && playerPhysicsData.onLeftWall )
         {
             //横向速度制0
             wordDelta.x = 0;
-            //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题
-            UnderForceList.Clear();
+            //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题,而附加力则清空速度但不移除受力影响
+            if(playerPhysicsData.phyHSpeed < 0)//只有当被动速度也趋向于挤压
+            {
+                UnderForceList.Clear();
+                foreach(var i in objectApplyingForce)//遍历置零
+                {
+                    ForceData data=dynamicForceDic[i];
+                    data.speedStacking = 0;
+                    dynamicForceDic[i]=data;
+                } 
+            }
+            
             playerPhysicsData.nowWall=playerPhysicsData.canLeftWall;
         }
         else if (wordDelta.x > 0 && playerPhysicsData.onRightWall)
         {
             wordDelta.x = 0;
-            UnderForceList.Clear();
+            if (playerPhysicsData.phyHSpeed > 0)
+            {
+                UnderForceList.Clear();
+                foreach (var i in objectApplyingForce)//遍历置零
+                {
+                    ForceData data = dynamicForceDic[i];
+                    data.speedStacking = 0;
+                    dynamicForceDic[i] = data;
+                }
+            }
+                
             //设置当前靠墙
             playerPhysicsData.nowWall = playerPhysicsData.canRightWall;
         }
@@ -308,74 +324,60 @@ public abstract class BasePhysicsEntity : MonoBehaviour
             }
             else
             {
-                sp += UnderForceList[i].speedStack;
+                sp.x += UnderForceList[i].hspeed;
             }
         }
-        ////延迟缓存有值
-        //if (delayedRemoveForce.Count != 0)
-        //{
-        //    //当处于空中时，速度变换小，否则迅速复原
-        //    float t = 1;
-        //    if (playerPhysicsData.nowtaijie != null)
-        //    {
-        //        t = 10;
-        //    }
 
-        //    var keysToUpdate = new List<BasicPhysicalObject>(delayedRemoveForce.Count);
-        //    foreach (var i in delayedRemoveForce)
-        //    {
-        //        startForceDic[i] *= 1f / (1 + t * cPhysics.envImpact * Time.fixedDeltaTime);
-        //        if (startForceDic[i].sqrMagnitude < 0.2f)
-        //        {
-        //            startForceDic.Remove(i);
-        //            keysToUpdate.Add(i);
-        //        }
-        //    }
-        //    //循环删除
-        //    foreach (var i in keysToUpdate)
-        //    {
-        //        delayedRemoveForce.Remove(i);
-        //    }
-
-        //    //isRecalculate = true;
-        //}
-        if (delayedRemoveForce.Count != 0)
+        if (objectApplyingForce.Count != 0)
         {
             //待删除列表
-            var removelist = new List<BasicPhysicalObject>(delayedRemoveForce.Count);
+            var removelist = new List<BasicPhysicalObject>(objectApplyingForce.Count);
             //更新受力所致速度变化
-            foreach (var i in delayedRemoveForce)
+            foreach (var i in objectApplyingForce)
             {
                 //结构体需要先拷贝，再传入更新
-                ForceData data = ForceDic[i];
+                ForceData data = dynamicForceDic[i];
                 switch (data.type)
                 {
                     case E_PhyForceType.apply:
                         sp.x += data.FixUpdate(cPhysics.envImpact);
                         //更新
-                        ForceDic[i] = data;
+                        dynamicForceDic[i] = data;
                         break;
                     case E_PhyForceType.controlRecovery://如果是受控复原
                         //速度受控情况下衰减
                         sp.x += data.ControlledSpeedRecovery(cPhysics.envImpact);
-                        ForceDic[i] = data;
+                        dynamicForceDic[i] = data;
                         break;
                     case E_PhyForceType.balance:
                         //平衡状态下不做处理
                         break;
                     case E_PhyForceType.fadeAway:
-                        data.speedStacking -= self_resistanceCoefficient * cPhysics.envImpact * Time.fixedDeltaTime;
+                        //计算受自身阻力影响的速度衰减
+                        if (data.speedStacking > 0f)//正向速度减衰减
+                        {
+                            data.speedStacking -= self_resistanceCoefficient * cPhysics.envImpact * Time.fixedDeltaTime;
+                            //防止速度反向
+                            data.speedStacking = Mathf.Clamp(data.speedStacking, 0f, data.speedStacking);
+                        }
+                        else if (data.speedStacking < 0f)
+                        {
+                            data.speedStacking += self_resistanceCoefficient * cPhysics.envImpact * Time.fixedDeltaTime;
+                            //防止速度反向
+                            data.speedStacking = Mathf.Clamp(data.speedStacking, data.speedStacking, 0f);
+                        }
+                        //速度绝对值小于阈值则消除
                         if (Mathf.Abs( data.speedStacking) < 0.2)
                         {
                             //移入删除
                             removelist.Add(i);
                             //删除受力影响
-                            ForceDic.Remove(i);
+                            dynamicForceDic.Remove(i);
                         }
                         else
                         {
                             sp.x += data.speedStacking;
-                            ForceDic[i] = data;
+                            dynamicForceDic[i] = data;
                         }
                         break;
                     default:
@@ -385,7 +387,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
             //遍历删除
             foreach (var i in removelist)
             {
-                delayedRemoveForce.Remove(i);
+                objectApplyingForce.Remove(i);
             }
         }
         //再计算状态力
@@ -394,7 +396,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         {
             //print("测试状态力计算次数");
 
-            foreach (var i in startForceDic.Values)
+            foreach (var i in startSpeedDic.Values)
             {
                 sp += i;
             }
@@ -447,13 +449,13 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// 外部提供速度(固定时间影响
     /// </summary>
     /// <param name="time">持续时间</param>
-    /// <param name="force">受力大小</param>
+    /// <param name="addSpeed">水平速度叠加</param>
 
-    public void AddSpeed(float time,Vector2 force)
+    public void AddSpeed(float time,float addSpeed)
     {
         SpeedStackData data = new SpeedStackData();
         data.responseTimer1= Time.time+time;
-        data.speedStack=force*cPhysics.envImpact;
+        data.hspeed = addSpeed * cPhysics.envImpact;
         UnderForceList.Add(data);
     }
     /// <summary>
@@ -463,7 +465,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     public void AddSpeedStatus(BasicPhysicalObject iD, Vector2 force)
     {
 
-        startForceDic[iD] = force;
+        startSpeedDic[iD] = force;
 
         //isRecalculate = true;
     }
@@ -475,7 +477,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     public void RemoveSpeedStatus(BasicPhysicalObject iD)
     {
         //否则再将受力容器对应值删除
-        startForceDic.Remove(iD);
+        startSpeedDic.Remove(iD);
 
         //isRecalculate = true;
     }
@@ -483,16 +485,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     public void AddForce(BasicPhysicalObject iD,ForceData force)
     {
         //若已有影响，则直接设置类型并返回
-        if (delayedRemoveForce.Contains(iD))
+        if (objectApplyingForce.Contains(iD))
         {
             ChangeType(iD,E_PhyForceType.apply);
             return;
         }
             
         //添加引用（（用于遍历
-        delayedRemoveForce.Add(iD);
+        objectApplyingForce.Add(iD);
         //只有未找到此影响，则新增赋值
-        ForceDic[iD] = force;
+        dynamicForceDic[iD] = force;
         //否则按照原有数据继续计算
     }
     /// <summary>
@@ -502,9 +504,9 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <param name="newForce"></param>
     public void ChangeForce(BasicPhysicalObject iD,float newForce)
     {
-        ForceData data =ForceDic[iD];
+        ForceData data =dynamicForceDic[iD];
         data.Force = newForce;
-        ForceDic[iD] = data;
+        dynamicForceDic[iD] = data;
     }
     /// <summary>
     /// 施力类型变化
@@ -513,14 +515,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <param name="newSpeed"></param>
     public void ChangeType(BasicPhysicalObject iD,E_PhyForceType type)
     {
-        ForceData data = ForceDic[iD];
+        ForceData data = dynamicForceDic[iD];
         data.type = type;
-        ForceDic[iD] = data;
+        dynamicForceDic[iD] = data;
     }
 
 
     public void RemoveForce(BasicPhysicalObject iD)
     {
+        if (!dynamicForceDic.TryGetValue(iD, out var data))
+            return;
         //受力类型改为消除，物理循环自动更新和移除
         ChangeType(iD, E_PhyForceType.fadeAway);
     }

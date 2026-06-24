@@ -13,13 +13,16 @@ namespace PhyData
         /// 响应计时器（控制瞬发速度何时复原（受力时间
         /// </summary>
         public float responseTimer1;
+
         /// <summary>
-        /// 技能速度叠加(墙跳，冲刺等等，受力大小
+        /// 水平速度
         /// </summary>
-        public Vector2 speedStack;
+        public float hspeed;
 
     }
-
+    /// <summary>
+    /// 施力类型
+    /// </summary>
     public enum E_PhyForceType
     {
         apply,//施加
