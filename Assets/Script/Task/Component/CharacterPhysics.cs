@@ -7,7 +7,7 @@ using PhyData;
 /// <summary>
 /// 角色物理组件
 /// </summary>
-public class CharacterPhysics : BasePhysicsEntity
+public class CharacterPhysics : BasePhysicsEntity, ICanMove
 {
     #region 玩家物理配置数据
     /// <summary>
@@ -35,6 +35,10 @@ public class CharacterPhysics : BasePhysicsEntity
     //事件开关
     bool wallJump;
     bool jump;
+
+    public float MovingDirection => playActionData.onMove;
+
+    public float Mobility => cPhysics.speed;
     #endregion
 
 
@@ -115,11 +119,11 @@ public class CharacterPhysics : BasePhysicsEntity
             if (playerPhysicsData.onLeftWall)
             {
 
-                AddSpeed(0.2f, jumpForce);
+                AddTimeSpeed(0.2f, jumpForce);
             }
             else
             {
-                AddSpeed(0.2f, -jumpForce);
+                AddTimeSpeed(0.2f, -jumpForce);
             }
             //消费
             wallJump = false;

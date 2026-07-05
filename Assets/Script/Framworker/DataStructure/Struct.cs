@@ -69,10 +69,6 @@ namespace PhyData
             type = E_PhyForceType.apply;
         }
 
-        public void SetType(E_PhyForceType type)
-        {
-            this.type = type;
-        }
 
         /// <summary>
         /// 当类型为施加的物理帧更新逻辑
@@ -119,7 +115,7 @@ namespace PhyData
     }
 
     /// <summary>
-    /// 实时物理数据类型
+    /// 角色实时物理数据类型
     /// </summary>
     public class PlayerPhysicsData
     {
@@ -145,10 +141,6 @@ namespace PhyData
         /// </summary>
         public float nowPhyNum;
 
-        public void Entrance()
-        {
-
-        }
     }
     /// <summary>
     /// 物理实时数据只读包装

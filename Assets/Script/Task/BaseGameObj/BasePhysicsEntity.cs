@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 using System.Runtime.InteropServices;
 
-public abstract class BasePhysicsEntity : MonoBehaviour
+public abstract class BasePhysicsEntity : MonoBehaviour,IForceAction
 {
     /// <summary>
     /// 编辑器画图显示碰撞检测范围
@@ -61,7 +61,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
     /// </summary>
-    Dictionary<BasicPhysicalObject, float> phyStateDic = new Dictionary<BasicPhysicalObject, float>();
+    Dictionary<IApplyingForceAction, float> phyStateDic = new Dictionary<IApplyingForceAction, float>();
     /// <summary>
     /// 时间速度容器
     /// </summary>
@@ -69,24 +69,21 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <summary>
     /// 状态速度容器（传送带模型
     /// </summary>
-    Dictionary<BasicPhysicalObject, Vector2> startSpeedDic = new Dictionary<BasicPhysicalObject, Vector2>();
+    Dictionary<IApplyingForceAction, Vector2> startSpeedDic = new Dictionary<IApplyingForceAction, Vector2>();
 
     /// <summary>
     /// 受到哪些物体的施力影响
     /// </summary>
-    HashSet<BasicPhysicalObject> objectApplyingForce = new HashSet<BasicPhysicalObject>();
+    HashSet<IDynamicAddForce> objectApplyingForce = new HashSet<IDynamicAddForce>();
     /// <summary>
-    /// 受力计算容器
+    /// 受力计算容器（可确保一定有动态施力接口
     /// </summary>
-    Dictionary<BasicPhysicalObject,ForceData> dynamicForceDic=new Dictionary<BasicPhysicalObject,ForceData>();
+    Dictionary<IDynamicAddForce, ForceData> dynamicForceDic=new Dictionary<IDynamicAddForce, ForceData>();
     /// <summary>
     /// 自身阻力系数
     /// </summary>
     float self_resistanceCoefficient = 3;
-    /// <summary>
-    /// 基础水平速度
-    /// </summary>
-    public float speed => cPhysics.speed;
+
     /// <summary>
     /// 物理约束情况改变时才重算（脏标识
     /// </summary>
@@ -119,64 +116,8 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     void FixFun()
     {
-        // 地面检测（只做检测，不做响应）
-        RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
-        //判断是否获取到脚本
-        bool noNullGround=false;
-        BaseGround currentGroundPlatform = null;
-        bool onGroundNow=false;
-        //默认的空中阻力系数
-        self_resistanceCoefficient = 1;
-        //一定角度内正对碰撞才算着地
-        if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
-        {
-            onGroundNow = true;
-            //在地面，则自身阻力增大
-            self_resistanceCoefficient = 20;
-            //下文需要判空处理，空表示无任何特殊逻辑的地面
-            noNullGround = hit.collider.TryGetComponent<BaseGround>(out currentGroundPlatform);
-            if (noNullGround) 
-                //当找到脚本时，自身阻力受到地面阻力影响
-                self_resistanceCoefficient*=currentGroundPlatform.SlowingEffect;
-        }
-        // 比对状态，只在地面改变时调用
-        if (currentGroundPlatform != lastFrameGroundPlatform)//简易理解为状态（同时只能在一种地面上）
-        {
-            // 离开上一个平台
-            if (lastFrameGroundPlatform != null)
-            {
-                lastFrameGroundPlatform.OutObjPhy(this);
-            }
-
-            // 进入新平台
-            if (currentGroundPlatform != null)
-            {
-                currentGroundPlatform.SetObjToPhyList(this);
-            }
-            // 记录本帧状态，供下帧对比
-            lastFrameGroundPlatform = currentGroundPlatform;
-        }
-        // 更新数据
-        playerPhysicsData.nowtaijie = currentGroundPlatform;
-        playerPhysicsData.isGrounded=onGroundNow;
-        //检测左右靠墙
-        RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
-        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
-        //检测墙是否有特殊逻辑（无特殊逻辑则表示无法贴墙下滑
-        playerPhysicsData.onLeftWall = false;
-        playerPhysicsData.canLeftWall = null;
-        if (hit1.collider != null)
-        {
-            playerPhysicsData.onLeftWall = true;
-            hit1.collider.TryGetComponent<Wall>(out playerPhysicsData.canLeftWall);
-        }
-        playerPhysicsData.onRightWall = false;
-        playerPhysicsData.canRightWall = null;
-        if (hit2.collider != null)
-        {
-            playerPhysicsData.onRightWall = true;
-            hit2.collider.TryGetComponent<Wall>(out playerPhysicsData.canRightWall);
-        }
+        //几何查询
+        RaycastHit2D hit = GeometricQuery();
 
         //处理基础移动（赋值操作，最先）
         playerPhysicsData.horizontalSpeed = HorizontalSpeedCalculation() * (1 + PhyStateCalculate());
@@ -205,14 +146,14 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         //计算平台补偿位移
         Vector2 platformDelta = Vector2.zero;
         //使用于斜率位移修正
-        if (noNullGround && playerPhysicsData.isGrounded)
+        if (playerPhysicsData.nowtaijie && playerPhysicsData.isGrounded)
         {
             platformDelta = playerPhysicsData.nowtaijie.Delta;
             //此处斜率补正
             moveDelta = new Vector2(0, playerPhysicsData.verticalSpeed * Time.fixedDeltaTime);
             //使用总速度
             float moveAmount = nowHSpeed * Time.fixedDeltaTime;
-
+            //碰撞法线的垂线
             Vector2 tangent = new Vector2(hit.normal.y, -hit.normal.x);
             //判断方向是否一致（sign返回正负性
             if (Mathf.Sign(tangent.x) != Mathf.Sign(nowHSpeed))
@@ -272,6 +213,74 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     }
 
     /// <summary>
+    /// 几何查询，最早阶段，检测碰撞信息
+    /// </summary>
+    RaycastHit2D GeometricQuery()
+    {
+        // 地面检测（只做检测，不做响应）
+        RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        //默认数据声明
+        BaseGround currentGroundPlatform = null;
+        bool onGroundNow = false;
+        //默认的空中阻力系数
+        self_resistanceCoefficient = 1;
+        //一定角度内正对碰撞才算着地
+        if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
+        {
+            onGroundNow = true;
+            //在地面，则自身阻力增大
+            self_resistanceCoefficient = 20;
+            //下文需要判空处理，空表示无任何特殊逻辑的地面
+            hit.collider.TryGetComponent<BaseGround>(out currentGroundPlatform);
+            if (currentGroundPlatform)
+                //当找到脚本时，自身阻力受到地面阻力影响
+                self_resistanceCoefficient *= currentGroundPlatform.SlowingEffect;
+        }
+        // 比对状态，只在地面改变时调用
+        if (currentGroundPlatform != lastFrameGroundPlatform)//简易理解为状态（同时只能在一种地面上）
+        {
+            // 离开上一个平台
+            if (lastFrameGroundPlatform != null)
+            {
+                lastFrameGroundPlatform.OnPhyExit(this);
+            }
+
+            // 进入新平台
+            if (currentGroundPlatform != null)
+            {
+                currentGroundPlatform.OnPhyEnter(this);
+            }
+            // 记录本帧状态，供下帧对比
+            lastFrameGroundPlatform = currentGroundPlatform;
+        }
+        // 更新数据
+        playerPhysicsData.nowtaijie = currentGroundPlatform;
+        playerPhysicsData.isGrounded = onGroundNow;
+        //检测左右靠墙
+        RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
+        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
+        //检测墙是否有特殊逻辑（无特殊逻辑则表示无法贴墙下滑
+        playerPhysicsData.onLeftWall = false;
+        playerPhysicsData.canLeftWall = null;
+        //夹角需小于25度，内积近似0.9
+        if (hit1.collider != null && Vector2.Dot(hit1.normal, Vector2.right) > 0.9f)
+        {
+            playerPhysicsData.onLeftWall = true;
+            hit1.collider.TryGetComponent<Wall>(out playerPhysicsData.canLeftWall);
+        }
+        playerPhysicsData.onRightWall = false;
+        playerPhysicsData.canRightWall = null;
+        if (hit2.collider != null && Vector2.Dot(hit2.normal, Vector2.left) > 0.9f)
+        {
+            playerPhysicsData.onRightWall = true;
+            hit2.collider.TryGetComponent<Wall>(out playerPhysicsData.canRightWall);
+        }
+
+        return hit;
+    }
+
+
+    /// <summary>
     /// 统一计算持续性物理环境影响移动的参数（快照重算模式
     /// </summary>
     float PhyStateCalculate()
@@ -327,16 +336,22 @@ public abstract class BasePhysicsEntity : MonoBehaviour
                 sp.x += UnderForceList[i].hspeed;
             }
         }
-
+        //计算动态受力
         if (objectApplyingForce.Count != 0)
         {
             //待删除列表
-            var removelist = new List<BasicPhysicalObject>(objectApplyingForce.Count);
+            var removelist = new List<IDynamicAddForce>(objectApplyingForce.Count);
             //更新受力所致速度变化
             foreach (var i in objectApplyingForce)
             {
                 //结构体需要先拷贝，再传入更新
                 ForceData data = dynamicForceDic[i];
+                // 如果力正在渐隐消除，则跳过施力者的更新逻辑，只执行后续衰减
+                if (data.type != E_PhyForceType.fadeAway)
+                {
+                    i.ForceCalculation(this);
+                    data = dynamicForceDic[i]; // ForceCalculation 可能已经修改了 data，需要重新获取
+                }
                 switch (data.type)
                 {
                     case E_PhyForceType.apply:
@@ -420,16 +435,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(FixFun, cPhysics.phyMask);
         }
 
-        lastFrameGroundPlatform?.OutObjPhy(this);
+        lastFrameGroundPlatform?.OnPhyExit(this);
         lastFrameGroundPlatform = null;
-        playerPhysicsData.nowtaijie?.OutObjPhy(this);
+        playerPhysicsData.nowtaijie?.OnPhyExit(this);
     }
     /// <summary>
     /// 持续性移动受限开始
     /// </summary>
     /// <param name="iD">唯一标识</param>
     /// <param name="num">影响程度</param>
-    public void OnPhyEnter(BasicPhysicalObject iD, float num)
+    public void StatePowerRegistration(IApplyingForceAction iD, float num)
     {
         //避免键重复而报错
         phyStateDic[iD] = num;
@@ -440,7 +455,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     /// <param name="iD"></param>
     /// <param name="Isdelayed">是否延迟</param>
-    public void OnPhyExit(BasicPhysicalObject iD)
+    public void StatePowerCancellation(IApplyingForceAction iD)
     {
         phyStateDic.Remove(iD);
         isRecalculate = true;
@@ -451,7 +466,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// <param name="time">持续时间</param>
     /// <param name="addSpeed">水平速度叠加</param>
 
-    public void AddSpeed(float time,float addSpeed)
+    public void AddTimeSpeed(float time,float addSpeed)
     {
         SpeedStackData data = new SpeedStackData();
         data.responseTimer1= Time.time+time;
@@ -462,7 +477,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// 外部提供速度（状态持续影响
     /// </summary>
     /// <param name="force"></param>
-    public void AddSpeedStatus(BasicPhysicalObject iD, Vector2 force)
+    public void AddSpeedStatus(IApplyingForceAction iD, Vector2 force)
     {
 
         startSpeedDic[iD] = force;
@@ -474,7 +489,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     /// <param name="force"></param>
     /// <param name="Isdelayed">是否延迟</param>
-    public void RemoveSpeedStatus(BasicPhysicalObject iD)
+    public void RemoveSpeedStatus(IApplyingForceAction iD)
     {
         //否则再将受力容器对应值删除
         startSpeedDic.Remove(iD);
@@ -482,7 +497,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
         //isRecalculate = true;
     }
 
-    public void AddForce(BasicPhysicalObject iD,ForceData force)
+    public void AddForce(IDynamicAddForce iD,ForceData force)
     {
         //若已有影响，则直接设置类型并返回
         if (objectApplyingForce.Contains(iD))
@@ -502,7 +517,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     /// <param name="iD"></param>
     /// <param name="newForce"></param>
-    public void ChangeForce(BasicPhysicalObject iD,float newForce)
+    public void ChangeForce(IDynamicAddForce iD,float newForce)
     {
         ForceData data =dynamicForceDic[iD];
         data.Force = newForce;
@@ -513,7 +528,7 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     /// </summary>
     /// <param name="iD"></param>
     /// <param name="newSpeed"></param>
-    public void ChangeType(BasicPhysicalObject iD,E_PhyForceType type)
+    public void ChangeType(IDynamicAddForce iD,E_PhyForceType type)
     {
         ForceData data = dynamicForceDic[iD];
         data.type = type;
@@ -521,11 +536,16 @@ public abstract class BasePhysicsEntity : MonoBehaviour
     }
 
 
-    public void RemoveForce(BasicPhysicalObject iD)
+    public void RemoveForce(IDynamicAddForce iD)
     {
         if (!dynamicForceDic.TryGetValue(iD, out var data))
             return;
         //受力类型改为消除，物理循环自动更新和移除
         ChangeType(iD, E_PhyForceType.fadeAway);
+    }
+
+    public ReadOnly_PlayerPhysicsData GetPhyData()
+    {
+        return readOnly_playerPhysicsData;
     }
 }

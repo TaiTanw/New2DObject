@@ -30,27 +30,4 @@ public class BaseGround : BasicPhysicalObject
     protected Vector2 delta;
     public Vector2 Delta=>delta;
 
-
-    /// <summary>
-    /// 进入时施加影响(外部由基础受力角色控制器主动调用
-    /// </summary>
-    /// <param name="obj"></param>
-    public virtual void SetObjToPhyList(BasePhysicsEntity obj)
-    {
-        ApplyForceOnContact(obj);
-
-    }
-
-    /// <summary>
-    /// 离开时消除影响(外部由基础受力角色控制器主动调用
-    /// </summary>
-    /// <param name="obj"></param>
-
-    public virtual void OutObjPhy(BasePhysicsEntity obj)
-    {
-        LeaveTOoutForce(obj);
-
-    }
-
-
 }

@@ -202,6 +202,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedChangeNum: 0
   phySpeed: {x: 0, y: 0}
+  slowingEffect: 1
   jumpHeightNum: 0
   canClimb: 0
   wallJumpDistance: 0
@@ -1123,6 +1124,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2046211537
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1414119369126388611, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_Name
+      value: ICE 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 51.61093
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.03168
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -141.64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 10.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.991204
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.13234283
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8051304817846508797, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -15.21
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 057a47eb5e3cd1a47b6210d3b720aa31, type: 3}
 --- !u!1001 &1637417383982581336
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1329,6 +1395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedChangeNum: 0
   phySpeed: {x: 0, y: 0}
+  slowingEffect: 1
   jumpHeightNum: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -1347,3 +1414,4 @@ SceneRoots:
   - {fileID: 1216417799}
   - {fileID: 753042299}
   - {fileID: 1730587909}
+  - {fileID: 2046211537}
