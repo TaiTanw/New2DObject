@@ -114,8 +114,10 @@ namespace PhyData
 
     }
 
+    #region 物理实时数据
+
     /// <summary>
-    /// 角色实时物理数据类型
+    /// 速度实时物理数据
     /// </summary>
     public class PlayerPhysicsData
     {
@@ -123,6 +125,18 @@ namespace PhyData
         public float verticalSpeed;  //当前自身竖直速度
         public float phyHSpeed;//水平物理影响速度（被动位移
         public float phyVSpeed;//垂直物理影响速度（被动
+
+        /// <summary>
+        /// 当前环境物理约束数据,移动速度（粘滞力
+        /// </summary>
+        public float nowPhyNum;
+
+    }
+    /// <summary>
+    /// 几何物理检测结果数据
+    /// </summary>
+    public class GeometryPhysicsData
+    {
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
@@ -137,13 +151,12 @@ namespace PhyData
         /// </summary>
         public Wall nowWall;
         /// <summary>
-        /// 当前环境物理约束数据,移动速度
+        /// 贴地法线
         /// </summary>
-        public float nowPhyNum;
-
+        public Vector2 groundNormal;
     }
     /// <summary>
-    /// 物理实时数据只读包装
+    /// 速度物理实时数据只读包装
     /// </summary>
     public class ReadOnly_PlayerPhysicsData
     {
@@ -160,6 +173,19 @@ namespace PhyData
         public float verticalSpeed => _data.verticalSpeed;  //当前自身竖直速度
 
         public float phyVSpeed=>_data.phyVSpeed;//被动垂直速度
+
+
+    }
+
+    public class ReadOnly_GeometryPhysicsData
+    {
+        private readonly GeometryPhysicsData _data;
+        public ReadOnly_GeometryPhysicsData(GeometryPhysicsData data)
+        {
+            _data = data;
+
+        }
+
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
@@ -168,10 +194,12 @@ namespace PhyData
         public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall => _data.onRightWall;
 
-        public Wall canRightWall=> _data.canRightWall;
-        public Wall canLeftWall=> _data.canLeftWall;
+        public Wall canRightWall => _data.canRightWall;
+        public Wall canLeftWall => _data.canLeftWall;
 
         public Wall nowKWall => _data.nowWall;
-
     }
+
+
+    #endregion
 }

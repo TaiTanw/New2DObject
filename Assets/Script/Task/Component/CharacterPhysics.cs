@@ -22,6 +22,10 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     /// 跳跃斩断系数
     /// </summary>
     private float jumpRelNum = 0.6f;
+
+    public float speed = 15;    // 基础水平移速
+
+    public float upSpeed = 15;//基础跳跃速度
     #endregion
 
 
@@ -38,7 +42,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     public float MovingDirection => playActionData.onMove;
 
-    public float Mobility => cPhysics.speed;
+    public float Mobility => speed;
     #endregion
 
 
@@ -75,7 +79,6 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     public void Init(ReadOnly_ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
     {
         playActionData = actionData;
-        //this.fsmEventSystem = fsmEventSystem;
         //注册事件
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump, Jump);
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease, JumpRelease);
@@ -84,7 +87,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     protected override float HorizontalSpeedCalculation()
     {
-        return playActionData.onMove * cPhysics.speed;
+        return playActionData.onMove * speed;
     }
 
     protected override void PhyEventUpdate()
@@ -95,12 +98,12 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         {
             //受到地面影响程度
             float data = 1f;
-            if (playerPhysicsData.nowtaijie != null)
+            if (nowGemetry.nowtaijie != null)
             {
-                data+=playerPhysicsData.nowtaijie.JumpHeightNum;
+                data+=nowGemetry.nowtaijie.JumpHeightNum;
             }
             //当前竖直速度等于跳跃速度
-            playerPhysicsData.verticalSpeed = cPhysics.upSpeed*data;
+            playerPhysicsData.verticalSpeed = upSpeed * data;
             //数据消费
             jump = false;
         }
@@ -111,12 +114,12 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             float jumpHeight;     //跳高程度
             float jumpForce;      //墙跳距离
 
-            jumpHeight = cPhysics.upSpeed;
-            jumpForce = wallJumpV * cPhysics.speed;
+            jumpHeight = upSpeed;
+            jumpForce = wallJumpV * speed;
 
             playerPhysicsData.verticalSpeed = jumpHeight;
             //速度叠加
-            if (playerPhysicsData.onLeftWall)
+            if (nowGemetry.onLeftWall)
             {
 
                 AddTimeSpeed(0.2f, jumpForce);
@@ -134,9 +137,9 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     {
         //在贴墙以及在下落
         //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
-        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playerPhysicsData.nowWall)
+        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && nowGemetry.nowWall)
         {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playerPhysicsData.nowWall.WallFRICTION);
+            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/nowGemetry.nowWall.WallFRICTION);
         }
     }
 }

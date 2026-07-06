@@ -13,6 +13,10 @@ public class IceGround : BaseGround, IDynamicAddForce
     /// 加速影响因子
     /// </summary>
     public float Idex=1;
+    /// <summary>
+    /// 减速因子受控
+    /// </summary>
+    public float Odex=1;
 
     /// <summary>
     /// 最大滑动速度系数
@@ -33,7 +37,7 @@ public class IceGround : BaseGround, IDynamicAddForce
             //受力物体是否有可移动能力
             if (obj is ICanMove Ic)
             {
-                force.Init(Idex, slowingEffect, Ic.Mobility * maxISpeed * speedChangeNum);
+                force.Init(Idex, Odex, Ic.Mobility * maxISpeed * speedChangeNum);
             }
             else
             {
@@ -57,30 +61,6 @@ public class IceGround : BaseGround, IDynamicAddForce
             objIPhyHas.Remove(obj);
         }
     }
-    //private void FixedUpdate()
-    //{
-    //    foreach (var item in objIPhyHas)
-    //    {
-
-    //        //得到角色当前主动移动方向
-    //        float v =item.GetPhyData().horizontalSpeed;
-    //        if (v > 0)
-    //        {
-    //            item.ChangeForce(this, Idex);
-    //            item.ChangeType(this, E_PhyForceType.apply);
-    //        }
-    //        else if (v < 0)
-    //        {
-    //            item.ChangeForce(this, -Idex);
-    //            item.ChangeType(this, E_PhyForceType.apply);
-    //        }          
-    //        else
-    //        {
-    //            item.ChangeType(this,E_PhyForceType.controlRecovery);
-    //        }
-
-    //    }
-    //}
 
     protected override void OnDisable()
     {

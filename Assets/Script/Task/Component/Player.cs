@@ -48,7 +48,12 @@ public class Player : MonoBehaviour
     /// 物理组件
     /// </summary>
     CharacterPhysics playPDate;
-    public ReadOnly_PlayerPhysicsData NowPhyData => playPDate.ReadOnly_PlayerPhyData;
+    /// <summary>
+    /// 物理碰撞信息
+    /// </summary>
+    public ReadOnly_GeometryPhysicsData NowPhyData => playPDate.ReadOnly_GeometryPhysicsData;
+
+    public ReadOnly_PlayerPhysicsData NowSpeedData => playPDate.ReadOnly_PlayersPhysicsData;
     /// <summary>
     /// 玩家当前输入数据,初始化交给外部
     /// </summary>
@@ -85,9 +90,9 @@ public class Player : MonoBehaviour
     private void Start()
     {
         //保证可用
-        fsm.InitData(playPDate.ReadOnly_PlayerPhyData, inputData, actionData);
+        fsm.InitData(playPDate.ReadOnly_GeometryPhysicsData, inputData, actionData);
         playPDate.Init(_ActionData, fsm.EventSystem);
-        animatorFSM.Init(playPDate.ReadOnly_PlayerPhyData, _ActionData);
+        animatorFSM.Init(playPDate.ReadOnly_PlayersPhysicsData,playPDate.ReadOnly_GeometryPhysicsData, _ActionData);
     }
     /// <summary>
     /// 注入玩家按键数据行为

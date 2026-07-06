@@ -16,9 +16,13 @@ public class PresentationLayer : MonoBehaviour
     /// </summary>
     SpriteRenderer spriteRenderer;
     /// <summary>
-    /// 物理数据引用
+    /// 物理速度数据引用
     /// </summary>
     ReadOnly_PlayerPhysicsData playPhyDate;
+    /// <summary>
+    /// 物理几何数据引用
+    /// </summary>
+    ReadOnly_GeometryPhysicsData playPhyDate2;
     /// <summary>
     /// 只读的可执行动作引用
     /// </summary>
@@ -29,9 +33,10 @@ public class PresentationLayer : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void Init(ReadOnly_PlayerPhysicsData phy,ReadOnly_ActionData actionData)
+    public void Init(ReadOnly_PlayerPhysicsData phy,ReadOnly_GeometryPhysicsData phy2,ReadOnly_ActionData actionData)
     {
         playPhyDate=phy;
+        playPhyDate2=phy2;
         playActionData = actionData;
     }
 

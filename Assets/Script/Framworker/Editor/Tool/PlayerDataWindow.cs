@@ -51,10 +51,10 @@ public class PlayerDataWindow : EditorWindow
         EditorGUILayout.LabelField("世界坐标", targetPlayer.transform.position.ToString());
         // 画一条分隔线
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("当前相对水平速度", targetPlayer.NowPhyData.horizontalSpeed.ToString());
-        EditorGUILayout.LabelField("被动水平速度", targetPlayer.NowPhyData.phyHSpeed.ToString());
-        EditorGUILayout.LabelField("当前竖直下落速度", targetPlayer.NowPhyData.verticalSpeed.ToString());
-        EditorGUILayout.LabelField("被动垂直速度叠加", targetPlayer.NowPhyData.phyVSpeed.ToString());
+        EditorGUILayout.LabelField("当前相对水平速度", targetPlayer.NowSpeedData.horizontalSpeed.ToString());
+        EditorGUILayout.LabelField("被动水平速度", targetPlayer.NowSpeedData.phyHSpeed.ToString());
+        EditorGUILayout.LabelField("当前竖直下落速度", targetPlayer.NowSpeedData.verticalSpeed.ToString());
+        EditorGUILayout.LabelField("被动垂直速度叠加", targetPlayer.NowSpeedData.phyVSpeed.ToString());
         EditorGUILayout.LabelField("当前状态机", targetPlayer._ActionData.NowState.ToString());
 
     }

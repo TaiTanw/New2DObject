@@ -40,7 +40,7 @@ public interface IBehavioralState
 public class BasePlayerState : IBehavioralState
 {
     //玩家物理状态/只读
-    protected ReadOnly_PlayerPhysicsData playPhyData;
+    protected ReadOnly_GeometryPhysicsData playPhyData;
     //原始输入/只读
     protected PlayerInputData input;
     //过滤后的动作输出/读写
@@ -50,7 +50,7 @@ public class BasePlayerState : IBehavioralState
     //此状态机内部的事件系统
     protected LocalEventSystem<PlayerStateMachine.E_playEvent> localEventSystem;
 
-    public void Init(ReadOnly_PlayerPhysicsData playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,MovementData playActionData)
+    public void Init(ReadOnly_GeometryPhysicsData playPhyData, PlayerInputData input, PlayerStateMachine stateMachine,MovementData playActionData)
     {
         this.playPhyData = playPhyData;
         this.input = input;
