@@ -92,10 +92,7 @@ public class Taijie : BaseGround
 
         //lastT = t;
     }
-    private void FixedUpdate()
-    {
-        
-    }
+
     private void OnDestroy()
     {
         if (!MonoPublicMgr.IsQuitting)

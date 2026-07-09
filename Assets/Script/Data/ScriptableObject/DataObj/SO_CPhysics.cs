@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+/// <summary>
+/// 物理环境检测点位
+/// </summary>
 [CreateAssetMenu(fileName = "StartResName", menuName = "自定义数据结构/角色配置数据/角色物理配置")]
 public class SO_CPhysics : ScriptableObject
 {
@@ -20,20 +23,18 @@ public class SO_CPhysics : ScriptableObject
     /// 左右检测厚度
     /// </summary>
     public Vector2 boxCastV = new Vector2(0.1f, 1);
-    //速度向下配置
-    //public float speed = 15;    // 基础水平移速
-    //public float upSpeed = 15;//基础跳跃速度
-    //物理性质向上抽象
-    //public float gravity = -35f;    //重力速度
-    //public float airResistance = 1;//空气阻力（0-1范围，影响下落情况
-    /// <summary>
-    /// 物理帧更新时序层级(0开始
-    /// </summary>
-    public int phyMask = 1;
-    /// <summary>
-    /// 受到环境影响程度（近似理解为质量的倒数
-    /// </summary>
-    //public float envImpact = 1;
 
+    /// <summary>
+    /// 地面检测中心（外部拖拽关联
+    /// </summary>
+    public Vector2 groundV;
+    /// <summary>
+    /// 左墙检测
+    /// </summary>
+    public Vector2 leftV;
+    /// <summary>
+    /// 右墙检测
+    /// </summary>
+    public Vector2 rightV;
 
 }

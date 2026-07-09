@@ -100,7 +100,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             float data = 1f;
             if (nowGemetry.nowtaijie != null)
             {
-                data+=nowGemetry.nowtaijie.JumpHeightNum;
+                data+=nowPhyFun.nowGround.JumpHeightNum;
             }
             //当前竖直速度等于跳跃速度
             playerPhysicsData.verticalSpeed = upSpeed * data;
@@ -135,11 +135,12 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     protected override void VerticalTransmission()
     {
+        
         //在贴墙以及在下落
         //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
-        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && nowGemetry.nowWall)
+        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playphyFunData.nowWall)
         {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/nowGemetry.nowWall.WallFRICTION);
+            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playphyFunData.nowWall.WallFRICTION);
         }
     }
 }

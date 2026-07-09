@@ -5,6 +5,11 @@ using UnityEngine;
 namespace PhyData
 {
     /// <summary>
+    /// 物理引用接口
+    /// </summary>
+    public interface IPhyBaseI { }
+
+    /// <summary>
     /// 限时速度叠加效果
     /// </summary>
 	public struct SpeedStackData
@@ -122,7 +127,7 @@ namespace PhyData
     public class PlayerPhysicsData
     {
         public float horizontalSpeed;   //当前自身水平速度（主动位移
-        public float verticalSpeed;  //当前自身竖直速度
+        public float verticalSpeed;  //当前自身竖直速度（可主动影响
         public float phyHSpeed;//水平物理影响速度（被动位移
         public float phyVSpeed;//垂直物理影响速度（被动
 
@@ -140,20 +145,40 @@ namespace PhyData
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
-        public BaseGround nowtaijie;
+        public IPhyBaseI nowtaijie;
+        public bool istop;//是否顶头
         public bool isGrounded;     // 物理检测
         public bool onLeftWall; //左右墙布尔，表示受墙的影响因素 
         public bool onRightWall;
+        public IPhyBaseI canLeftWall;
+        public IPhyBaseI canRightWall;
+        /// <summary>
+        /// 当前倚靠的墙
+        /// </summary>
+        public IPhyBaseI nowWall;
+        /// <summary>
+        /// 贴地法线
+        /// </summary>
+        public Vector2 groundNormal;
+    }
+    /// <summary>
+    /// 物理职能基类
+    /// </summary>
+    public class BasePhyFunData
+    {
+        public BaseGround nowGround;
+    }
+    /// <summary>
+    /// 角色物理职能数据
+    /// </summary>
+    public class PhysicalFunctionData:BasePhyFunData
+    {
         public Wall canLeftWall;
         public Wall canRightWall;
         /// <summary>
         /// 当前倚靠的墙
         /// </summary>
         public Wall nowWall;
-        /// <summary>
-        /// 贴地法线
-        /// </summary>
-        public Vector2 groundNormal;
     }
     /// <summary>
     /// 速度物理实时数据只读包装
@@ -180,24 +205,25 @@ namespace PhyData
     public class ReadOnly_GeometryPhysicsData
     {
         private readonly GeometryPhysicsData _data;
-        public ReadOnly_GeometryPhysicsData(GeometryPhysicsData data)
+        private readonly PhysicalFunctionData _data2;
+        public ReadOnly_GeometryPhysicsData(GeometryPhysicsData data,PhysicalFunctionData data2)
         {
             _data = data;
-
+            _data2 = data2;
         }
 
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
-        public BaseGround nowtaijie => _data.nowtaijie;
+        public IPhyBaseI nowtaijie => _data.nowtaijie;
         public bool isGrounded => _data.isGrounded;     // 物理检测
         public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall => _data.onRightWall;
 
-        public Wall canRightWall => _data.canRightWall;
-        public Wall canLeftWall => _data.canLeftWall;
+        public Wall canRightWall => _data2.canRightWall;
+        public Wall canLeftWall => _data2.canLeftWall;
 
-        public Wall nowKWall => _data.nowWall;
+        public Wall nowKWall => _data2.nowWall;
     }
 
 

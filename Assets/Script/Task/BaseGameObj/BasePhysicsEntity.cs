@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 /// <summary>
 /// 角色物理基类
 /// </summary>
-public abstract class BasePhysicsEntity : BasicEntity
+public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
 {
     /// <summary>
     /// 编辑器画图显示碰撞检测范围
@@ -34,12 +34,14 @@ public abstract class BasePhysicsEntity : BasicEntity
     #region 运行时数据
     //只读数据包装
     ReadOnly_GeometryPhysicsData readOnly_GeometryPhysicsData;
+    //自身特殊几何检测数据
+    protected PhysicalFunctionData playphyFunData;
     public ReadOnly_GeometryPhysicsData ReadOnly_GeometryPhysicsData => readOnly_GeometryPhysicsData;
 
     ReadOnly_PlayerPhysicsData readOnly_PlayerPhysicsData;
     public ReadOnly_PlayerPhysicsData ReadOnly_PlayersPhysicsData => readOnly_PlayerPhysicsData;
 
-    BaseGround lastFrameGroundPlatform = null;  //缓存上一帧的平台
+
 
     #endregion
 
@@ -47,17 +49,23 @@ public abstract class BasePhysicsEntity : BasicEntity
     {
         base.Awake();
 
-        readOnly_GeometryPhysicsData = new(nowGemetry);
+    }
+    protected override void Init()
+    {
+        nowPhyFun = new PhysicalFunctionData();
+        playphyFunData = nowPhyFun as PhysicalFunctionData;
+        readOnly_GeometryPhysicsData = new(nowGemetry, playphyFunData);
         readOnly_PlayerPhysicsData = new(playerPhysicsData);
     }
     protected override void GeometricQuery()
     {
+
         // 地面检测（只做检测，不做响应）
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
         //缓存贴地法线
         nowGemetry.groundNormal = hit.normal;
         //默认数据声明
-        BaseGround currentGroundPlatform = null;
+        IPhyBaseI currentGroundPlatform = null;
         bool onGroundNow = false;
         //默认的空中阻力系数
         self_resistanceCoefficient = 1;
@@ -68,27 +76,8 @@ public abstract class BasePhysicsEntity : BasicEntity
             //在地面，则自身阻力增大
             self_resistanceCoefficient = 20;
             //下文需要判空处理，空表示无任何特殊逻辑的地面
-            hit.collider.TryGetComponent<BaseGround>(out currentGroundPlatform);
-            if (currentGroundPlatform)
-                //当找到脚本时，自身阻力受到地面阻力影响
-                self_resistanceCoefficient *= currentGroundPlatform.SlowingEffect;
-        }
-        // 比对状态，只在地面改变时调用
-        if (currentGroundPlatform != lastFrameGroundPlatform)//简易理解为状态（同时只能在一种地面上）
-        {
-            // 离开上一个平台
-            if (lastFrameGroundPlatform != null)
-            {
-                lastFrameGroundPlatform.OnPhyExit(this);
-            }
+            hit.collider.TryGetComponent<IPhyBaseI>(out currentGroundPlatform);
 
-            // 进入新平台
-            if (currentGroundPlatform != null)
-            {
-                currentGroundPlatform.OnPhyEnter(this);
-            }
-            // 记录本帧状态，供下帧对比
-            lastFrameGroundPlatform = currentGroundPlatform;
         }
         // 更新数据
         nowGemetry.nowtaijie = currentGroundPlatform;
@@ -96,23 +85,51 @@ public abstract class BasePhysicsEntity : BasicEntity
         //检测左右靠墙
         RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
         RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
-        //检测墙是否有特殊逻辑（无特殊逻辑则表示无法贴墙下滑
+        //检测墙是否有物理逻辑（无特殊逻辑则表示无法贴墙下滑
         nowGemetry.onLeftWall = false;
         nowGemetry.canLeftWall = null;
+        playphyFunData.canLeftWall=null;
         //夹角需小于25度，内积近似0.9
         if (hit1.collider != null && Vector2.Dot(hit1.normal, Vector2.right) > 0.9f)
         {
             nowGemetry.onLeftWall = true;
-            hit1.collider.TryGetComponent<Wall>(out nowGemetry.canLeftWall);
+            hit1.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canLeftWall);  
         }
         nowGemetry.onRightWall = false;
         nowGemetry.canRightWall = null;
+        playphyFunData.canRightWall=null;
         if (hit2.collider != null && Vector2.Dot(hit2.normal, Vector2.left) > 0.9f)
         {
             nowGemetry.onRightWall = true;
-            hit2.collider.TryGetComponent<Wall>(out nowGemetry.canRightWall);
+            hit2.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canRightWall);
         }
 
+    }
+
+    protected override void PhyFunUpdate()
+    {
+        base.PhyFunUpdate();
+
+        playphyFunData.canLeftWall =null; 
+        if (nowGemetry.canLeftWall is Wall)
+        {
+            playphyFunData.canLeftWall = nowGemetry.canLeftWall as Wall; //获取特殊物理职能数据
+        }
+        playphyFunData.canRightWall = null;
+        if(nowGemetry.canRightWall is Wall)
+        {
+            playphyFunData.canRightWall =nowGemetry.canRightWall as Wall;
+        }
+
+        //获取自身物理环境可用快照
+        if ((playphyFunData.canRightWall || playphyFunData.canLeftWall) && nowGemetry.nowWall != null && nowGemetry.nowWall is Wall)
+        {
+            playphyFunData.nowWall = nowGemetry.nowWall as Wall;
+        }
+        else
+        {
+            playphyFunData.nowWall = null;
+        }
     }
     protected override void HActiveSpeedOperation()
     {
@@ -151,5 +168,15 @@ public abstract class BasePhysicsEntity : BasicEntity
 
         lastFrameGroundPlatform?.OnPhyExit(this);
         lastFrameGroundPlatform = null;
+    }
+
+    public void OnPhyEnter(IForceAction iD)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void OnPhyExit(IForceAction iD)
+    {
+        throw new System.NotImplementedException();
     }
 }

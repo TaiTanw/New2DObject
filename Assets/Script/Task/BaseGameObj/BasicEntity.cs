@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 实体基类
 /// </summary>
-public abstract class BasicEntity : MonoBehaviour, IForceAction
+public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
@@ -30,6 +30,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
     /// </summary>
     [SerializeField]
     protected Transform rightV;
+    /// <summary>
+    /// 头顶检测
+    /// </summary>
+    [SerializeField]
+    protected Transform upV;
 
     public float gravity = -35f;    //重力速度
 
@@ -45,9 +50,15 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
     /// </summary>
     protected GeometryPhysicsData nowGemetry;
     /// <summary>
+    /// 物理职能数据
+    /// </summary>
+    protected BasePhyFunData nowPhyFun;
+    /// <summary>
     /// 当前移动属性
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
+
+    protected BaseGround lastFrameGroundPlatform = null;  //缓存上一帧的平台
 
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
@@ -135,7 +146,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         //否则再将受力容器对应值删除
         startSpeedDic.Remove(iD);
 
-        //isRecalculate = true;
     }
 
     public void AddForce(IDynamicAddForce iD, ForceData force)
@@ -204,30 +214,77 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         nowGemetry =new GeometryPhysicsData();
         //下落加速度受空气阻力影响
         gravity*=airResistance;
+        Init();
+    }
+    /// <summary>
+    /// 初始化附加逻辑
+    /// </summary>
+    protected virtual void Init()
+    {
+        nowPhyFun = new BasePhyFunData();
     }
 
     protected virtual void OnEnable()
     {
-        //物理更新时序为1层
-        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(FixFun, cPhysics.phyMask);
-    }
-
-    void FixFun()
-    {
+        //物理更新时序设置
         //几何查询
-        GeometricQuery();
-        //水平速度计算
-        HorizontalSpeedCalculation();
-        //竖直速度计算
-        VerticalSpeedCalculation();
-        //位移修正与最终位移
-        DisplacementCorrection();
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
+        //物理职能更新
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(PhyFunUpdate, 2);
+        //速度计算
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
+        //最终位移
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 4);
     }
 
     /// <summary>
     /// 几何查询，最早阶段，检测碰撞信息
     /// </summary>
     protected abstract void GeometricQuery();
+    /// <summary>
+    /// 物理职能更新（自身
+    /// </summary>
+    protected virtual void PhyFunUpdate()
+    {
+        //得到地面的物理世界组件
+        //解析并获得站地物理职能
+        nowPhyFun.nowGround = null;
+        if (nowGemetry.nowtaijie is BaseGround)
+        {
+            nowPhyFun.nowGround = nowGemetry.nowtaijie as BaseGround;
+            //当找到脚本时，自身阻力受到地面阻力影响
+            self_resistanceCoefficient *= nowPhyFun.nowGround.SlowingEffect;
+        }
+        // 比对状态，只在地面改变时调用
+        if (nowPhyFun.nowGround != lastFrameGroundPlatform)//简易理解为状态（同时最多只能在一种地面上）
+        {
+            // 离开上一个平台
+            if (lastFrameGroundPlatform != null)
+            {
+                lastFrameGroundPlatform.OnPhyExit(this);
+            }
+
+            // 进入新平台
+            if (nowPhyFun.nowGround != null)
+            {
+                nowPhyFun.nowGround.OnPhyEnter(this);
+            }
+            // 记录本帧状态，供下帧对比
+            lastFrameGroundPlatform = nowPhyFun.nowGround;
+        }
+
+    }
+
+    /// <summary>
+    /// 速度计算
+    /// </summary>
+    void SpeedCalculation()
+    {
+        //水平速度计算
+        HorizontalSpeedCalculation();
+        //竖直速度计算
+        VerticalSpeedCalculation();
+    }
 
     /// <summary>
     /// 水平速度计算
@@ -236,10 +293,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
     {
         //计算环境约束
         PhyStateCalculate();
-        //计算主动操作的速度影响（计算主动速度
-        HActiveSpeedOperation();
         //计算被动速度
         HUnderForce();
+        //计算主动操作的速度影响（计算主动速度,以及被动速度的特殊影响
+        HActiveSpeedOperation();
+
 
     }
 
@@ -262,10 +320,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
             isRecalculate = false;
         }
     }
-    /// <summary>
-    /// 子类实现水平速度主动操作
-    /// </summary>
-    protected abstract void HActiveSpeedOperation();
+
 
     /// <summary>
     /// 统一计算外界因素带来的水平附加速度改变
@@ -378,6 +433,14 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         playerPhysicsData.phyVSpeed = sp.y;
     }
     /// <summary>
+    /// 子类实现水平速度主动操作(后处理
+    /// </summary>
+    protected virtual void HActiveSpeedOperation()
+    {
+
+    }
+
+    /// <summary>
     /// 竖直速度计算
     /// </summary>
     void VerticalSpeedCalculation()
@@ -403,12 +466,15 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         }
     }
     /// <summary>
-    /// 子类实现竖直速度主动操作
+    /// 子类实现竖直速度主动操作（子类可选操作使用虚函数
     /// </summary>
-    protected abstract void VActiveSpeedOperation();
+    protected virtual void VActiveSpeedOperation()
+    {
+
+    }
 
     /// <summary>
-    /// 位移修正
+    /// 位移修正与应用
     /// </summary>
     void DisplacementCorrection()
     {
@@ -417,13 +483,15 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         Vector2 velocity = new Vector2(nowHSpeed,
                                         playerPhysicsData.verticalSpeed + playerPhysicsData.phyVSpeed);
 
-        Vector2 moveDelta = velocity * Time.fixedDeltaTime;             //计算玩家相对位移
+        Vector2 moveDelta = velocity * Time.fixedDeltaTime;             //计算相对位移
         //计算平台补偿位移
         Vector2 platformDelta = Vector2.zero;
         //使用于斜率位移修正
-        if (nowGemetry.nowtaijie && nowGemetry.isGrounded)
+        if (nowGemetry.isGrounded)
         {
-            platformDelta = nowGemetry.nowtaijie.Delta;
+            //若有地面脚本，则获取位移修正
+            if (nowPhyFun.nowGround)
+                platformDelta = nowPhyFun.nowGround.Delta;
             //此处斜率补正
             moveDelta = new Vector2(0, playerPhysicsData.verticalSpeed * Time.fixedDeltaTime);
             //使用总速度
@@ -442,7 +510,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         }
 
         Vector2 wordDelta = moveDelta + platformDelta;      //计算世界绝对位移
-        //计算世界物理位移受限(防止过度挤压出现奇怪问题,此处只考虑了左右贴墙，后续考虑逻辑收束
+        //计算世界物理位移受限(防止过度挤压出现奇怪问题,此处只考虑了左右贴墙，后续考虑逻辑收束（上下处理
         if (wordDelta.x < 0 && nowGemetry.onLeftWall)
         {
             //横向速度制0
@@ -493,9 +561,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction
         //事件注销
         if (!MonoPublicMgr.IsQuitting)
         {
-            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(FixFun, cPhysics.phyMask);
+            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
+            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 2);
+            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 3);
         }
 
-        nowGemetry.nowtaijie?.OnPhyExit(this);
+        nowPhyFun.nowGround?.OnPhyExit(this);
     }
 }

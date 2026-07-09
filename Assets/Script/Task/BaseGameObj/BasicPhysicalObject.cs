@@ -1,11 +1,12 @@
-﻿using System.Collections;
+﻿using PhyData;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 基础物理作用体
 /// </summary>
-public class BasicPhysicalObject : MonoBehaviour,IApplyingForceAction
+public class BasicPhysicalObject : MonoBehaviour,IApplyingForceAction,IPhyBaseI
 {
     //当此物体的持续力对所有施力物体一致时，可用父类的增减方法
 
