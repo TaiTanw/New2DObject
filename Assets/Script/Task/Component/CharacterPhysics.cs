@@ -98,7 +98,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         {
             //受到地面影响程度
             float data = 1f;
-            if (nowGemetry.nowtaijie != null)
+            if (nowPhyFun.nowGround != null)//判断要使用的对象是否为空，而非逻辑上层的taijie等等
             {
                 data+=nowPhyFun.nowGround.JumpHeightNum;
             }
@@ -138,9 +138,9 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         
         //在贴墙以及在下落
         //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
-        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playphyFunData.nowWall)
+        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playphyFunData.nowWallt)
         {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playphyFunData.nowWall.WallFRICTION);
+            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playphyFunData.nowWallt.WallFRICTION);
         }
     }
 }

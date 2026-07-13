@@ -70,6 +70,12 @@ public class PhysicalBox : BasicEntity
 
     }
 
+    //private void FixedUpdate()
+    //{
+    //    print(nowGemetry.onLeftWall);
+    //    print(nowGemetry.onRightWall);
+    //    print(nowPhyFun.nowWall);
+    //}
 
 }
  

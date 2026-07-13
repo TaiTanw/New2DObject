@@ -118,17 +118,22 @@ public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
         playphyFunData.canRightWall = null;
         if(nowGemetry.canRightWall is Wall)
         {
-            playphyFunData.canRightWall =nowGemetry.canRightWall as Wall;
+            playphyFunData.canRightWall = nowGemetry.canRightWall as Wall;
         }
 
+        
+    }
+    protected override void SecondOrderPhyFun()
+    {
+        base.SecondOrderPhyFun();
         //获取自身物理环境可用快照
-        if ((playphyFunData.canRightWall || playphyFunData.canLeftWall) && nowGemetry.nowWall != null && nowGemetry.nowWall is Wall)
+        if ((playphyFunData.canRightWall || playphyFunData.canLeftWall) && playphyFunData.nowWall != null && playphyFunData.nowWall is Wall)
         {
-            playphyFunData.nowWall = nowGemetry.nowWall as Wall;
+            playphyFunData.nowWallt = playphyFunData.nowWall as Wall;
         }
         else
         {
-            playphyFunData.nowWall = null;
+            playphyFunData.nowWallt = null;
         }
     }
     protected override void HActiveSpeedOperation()
@@ -160,15 +165,6 @@ public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
     /// <param name="v"></param>
     protected abstract void VerticalTransmission();
 
-
-
-    protected override void OnDisable()
-    {
-        base.OnDisable();
-
-        lastFrameGroundPlatform?.OnPhyExit(this);
-        lastFrameGroundPlatform = null;
-    }
 
     public void OnPhyEnter(IForceAction iD)
     {

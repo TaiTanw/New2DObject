@@ -152,10 +152,7 @@ namespace PhyData
         public bool onRightWall;
         public IPhyBaseI canLeftWall;
         public IPhyBaseI canRightWall;
-        /// <summary>
-        /// 当前倚靠的墙
-        /// </summary>
-        public IPhyBaseI nowWall;
+
         /// <summary>
         /// 贴地法线
         /// </summary>
@@ -166,7 +163,16 @@ namespace PhyData
     /// </summary>
     public class BasePhyFunData
     {
+        /// <summary>
+        /// 当前倚靠的墙
+        /// </summary>
+        public IPhyBaseI nowWall;
+        public IForceAction nowForceThing;  //当前施力物体
+        public IForceAction lastForceThing; //上一帧施力物体
         public BaseGround nowGround;
+        public BaseGround lastFrameGroundPlatform;//上一帧台阶
+
+
     }
     /// <summary>
     /// 角色物理职能数据
@@ -178,7 +184,7 @@ namespace PhyData
         /// <summary>
         /// 当前倚靠的墙
         /// </summary>
-        public Wall nowWall;
+        public Wall nowWallt;
     }
     /// <summary>
     /// 速度物理实时数据只读包装
@@ -223,7 +229,7 @@ namespace PhyData
         public Wall canRightWall => _data2.canRightWall;
         public Wall canLeftWall => _data2.canLeftWall;
 
-        public Wall nowKWall => _data2.nowWall;
+        public Wall nowKWall => _data2.nowWallt;
     }
 
 

@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 实体基类
 /// </summary>
-public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
+public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDynamicAddForce
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
@@ -57,8 +57,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
     /// 当前移动属性
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
-
-    protected BaseGround lastFrameGroundPlatform = null;  //缓存上一帧的平台
 
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
@@ -235,6 +233,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
         //最终位移
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 4);
+        //二阶响应
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SecondOrderPhyFun, 5);
+
     }
 
     /// <summary>
@@ -256,12 +257,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
             self_resistanceCoefficient *= nowPhyFun.nowGround.SlowingEffect;
         }
         // 比对状态，只在地面改变时调用
-        if (nowPhyFun.nowGround != lastFrameGroundPlatform)//简易理解为状态（同时最多只能在一种地面上）
+        if (nowPhyFun.nowGround !=  nowPhyFun.lastFrameGroundPlatform)//简易理解为状态（同时最多只能在一种地面上）
         {
             // 离开上一个平台
-            if (lastFrameGroundPlatform != null)
+            if (nowPhyFun.lastFrameGroundPlatform != null)
             {
-                lastFrameGroundPlatform.OnPhyExit(this);
+                nowPhyFun.lastFrameGroundPlatform.OnPhyExit(this);
             }
 
             // 进入新平台
@@ -270,7 +271,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
                 nowPhyFun.nowGround.OnPhyEnter(this);
             }
             // 记录本帧状态，供下帧对比
-            lastFrameGroundPlatform = nowPhyFun.nowGround;
+            nowPhyFun.lastFrameGroundPlatform = nowPhyFun.nowGround;
         }
 
     }
@@ -527,7 +528,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
                 }
             }
 
-            nowGemetry.nowWall = nowGemetry.canLeftWall;
+            nowPhyFun.nowWall = nowGemetry.canLeftWall;
         }
         else if (wordDelta.x > 0 && nowGemetry.onRightWall)
         {
@@ -544,28 +545,62 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI
             }
 
             //设置当前靠墙
-            nowGemetry.nowWall = nowGemetry.canRightWall;
+            nowPhyFun.nowWall = nowGemetry.canRightWall;
         }
         else
         {
             //离开墙面后重置
-            nowGemetry.nowWall = null;
+            nowPhyFun.nowWall = null;
         }
         //  一次性统一移动
         rb.MovePosition(rb.position + wordDelta);
     }
+    /// <summary>
+    /// 二阶物理职能更新与应用
+    /// </summary>
+    protected virtual void SecondOrderPhyFun()
+    {
+        nowPhyFun.nowForceThing = null;
+        if(nowPhyFun.nowWall != null && nowPhyFun.nowWall is IForceAction)
+        {
+            nowPhyFun.nowForceThing = nowPhyFun.nowWall as IForceAction;
+        }
 
+        if(nowPhyFun.nowForceThing!=nowPhyFun.lastForceThing)
+        {
+            //Debug.Log("AddForce");
+            ForceData d =new ForceData();
+            d.balanceSpeed = playerPhysicsData.phyHSpeed + playerPhysicsData.horizontalSpeed;
+            d.Force = 10*d.balanceSpeed;
+            nowPhyFun.nowForceThing?.AddForce(this,d );
+            nowPhyFun.lastForceThing?.RemoveForce(this);
+            //更新数据
+            nowPhyFun.lastForceThing = nowPhyFun.nowForceThing;
+        }
+
+    }
 
     protected virtual void OnDisable()
     {
         //事件注销
         if (!MonoPublicMgr.IsQuitting)
         {
-            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
-            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 2);
-            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 3);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(GeometricQuery, 1);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(PhyFunUpdate, 2);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(SpeedCalculation, 3);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(DisplacementCorrection, 4);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(SecondOrderPhyFun, 5);
         }
 
         nowPhyFun.nowGround?.OnPhyExit(this);
+
+
+        nowPhyFun.lastFrameGroundPlatform?.OnPhyExit(this);
+        nowPhyFun.lastFrameGroundPlatform = null;
+    }
+
+    public virtual void ForceCalculation(IForceAction IF)
+    {
+        
     }
 }
