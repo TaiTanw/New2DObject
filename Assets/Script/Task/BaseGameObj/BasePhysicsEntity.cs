@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 /// <summary>
 /// 角色物理基类
 /// </summary>
-public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
+public abstract class BasePhysicsEntity : BasicEntity
 {
     /// <summary>
     /// 编辑器画图显示碰撞检测范围
@@ -88,7 +88,6 @@ public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
         //检测墙是否有物理逻辑（无特殊逻辑则表示无法贴墙下滑
         nowGemetry.onLeftWall = false;
         nowGemetry.canLeftWall = null;
-        playphyFunData.canLeftWall=null;
         //夹角需小于25度，内积近似0.9
         if (hit1.collider != null && Vector2.Dot(hit1.normal, Vector2.right) > 0.9f)
         {
@@ -97,7 +96,6 @@ public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
         }
         nowGemetry.onRightWall = false;
         nowGemetry.canRightWall = null;
-        playphyFunData.canRightWall=null;
         if (hit2.collider != null && Vector2.Dot(hit2.normal, Vector2.left) > 0.9f)
         {
             nowGemetry.onRightWall = true;
@@ -166,13 +164,4 @@ public abstract class BasePhysicsEntity : BasicEntity, IApplyingForceAction
     protected abstract void VerticalTransmission();
 
 
-    public void OnPhyEnter(IForceAction iD)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void OnPhyExit(IForceAction iD)
-    {
-        throw new System.NotImplementedException();
-    }
 }

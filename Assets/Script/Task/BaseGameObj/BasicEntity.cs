@@ -215,7 +215,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         Init();
     }
     /// <summary>
-    /// 初始化附加逻辑
+    /// 初始化附加逻辑(子类可重写，初始化自身子类详细数据
     /// </summary>
     protected virtual void Init()
     {
@@ -273,7 +273,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             // 记录本帧状态，供下帧对比
             nowPhyFun.lastFrameGroundPlatform = nowPhyFun.nowGround;
         }
-
+    
     }
 
     /// <summary>
@@ -298,8 +298,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         HUnderForce();
         //计算主动操作的速度影响（计算主动速度,以及被动速度的特殊影响
         HActiveSpeedOperation();
-
-
     }
 
     /// <summary>

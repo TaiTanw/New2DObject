@@ -17,7 +17,9 @@ public class ChangePanel : BasePanel
                 UIMgr.Instance.HideOneUI<ChangePanel>();
                 break;
             case "t2":
-
+                SceneChangeMgr.Instance.LoadResToChangeSence("TeskScenes2");
+                InputControlMgr.Instance.InputOpenOrClose(true);
+                UIMgr.Instance.HideOneUI<ChangePanel>();
                 break;
             case "fan":
                 //UIMgr.Instance.ShowOneUI<BeginPanel>();

@@ -17,13 +17,13 @@ public class BasicPhysicalObject : MonoBehaviour,IApplyingForceAction,IPhyBaseI
     protected float speedChangeNum;
 
     /// <summary>
-    /// 自身状态性质施力（状态力
+    /// 自身状态性质施力（状态速度
     /// </summary>
     [SerializeField]
     protected Vector2 phySpeed;
 
     /// <summary>
-    /// 受控物理角色容器（表示所有受环境影响的物体站在此平台上）
+    /// 受控物理实体容器
     /// </summary>
     protected HashSet<IForceAction> objIPhyHas = new HashSet<IForceAction>();
 

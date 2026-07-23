@@ -24,8 +24,6 @@ public class Wall : BaseGround
     /// </summary>
     [SerializeField]
     float wallFriction=1f;
-    /// <summary>
-    /// 摩擦力
-    /// </summary>
+
     public float WallFRICTION => wallFriction;
 }

@@ -140,7 +140,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
         if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && playphyFunData.nowWallt)
         {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed/playphyFunData.nowWallt.WallFRICTION);
+            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed*playphyFunData.nowWallt.WallFRICTION);
         }
     }
 }

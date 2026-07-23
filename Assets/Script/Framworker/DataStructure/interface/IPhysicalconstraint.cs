@@ -39,24 +39,24 @@ public interface IDynamicAddForce
 public interface IForceAction
 {
     /// <summary>
-    /// 状态力注册
+    /// 粘滞力注册
     /// </summary>
     /// <param name="id">施力物体</param>
     /// <param name="num">大小</param>
     public void StatePowerRegistration(IApplyingForceAction id,float num);
     /// <summary>
-    /// 状态力注销
+    /// 粘滞力注销
     /// </summary>
     /// <param name="id">施力对象</param>
     public void StatePowerCancellation(IApplyingForceAction id);
     /// <summary>
-    /// 速度状态添加
+    /// 状态速度添加
     /// </summary>
     /// <param name="iD">施力对象</param>
     /// <param name="force">速度大小</param>
     public void AddSpeedStatus(IApplyingForceAction iD, Vector2 force);
     /// <summary>
-    /// 速度状态移除
+    /// 状态速度移除
     /// </summary>
     /// <param name="iD">施力对象</param>
     public void RemoveSpeedStatus(IApplyingForceAction iD);

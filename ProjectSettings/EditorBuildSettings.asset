@@ -14,5 +14,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/MyObjAssets/Scenes/TeskScenes1.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/MyObjAssets/Scenes/TeskScenes2.unity
+    guid: 382997bae48a3b74fa6b50aae42939e8
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 6f260eee2256a634592d3ee81ff1af98, type: 2}

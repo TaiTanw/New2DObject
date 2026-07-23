@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 /// <summary>
-/// 原始输入
+/// 输入解析结果
 /// </summary>
 public class PlayerInputData
 {
