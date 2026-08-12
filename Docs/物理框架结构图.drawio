@@ -1,0 +1,820 @@
+<mxfile host="Electron" pages="3">
+  <diagram name="第 1 页" id="9TDOq87UDH5FIDj7YUey">
+    <mxGraphModel dx="2988" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="yxqoSszjdsdWdLF4y8KW-1" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="数据管理器" vertex="1">
+          <mxGeometry height="100" width="250" x="-1110" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-1" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="输入管理器" vertex="1">
+          <mxGeometry height="80" width="80" x="-1025" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-13" edge="1" parent="1" source="yxqoSszjdsdWdLF4y8KW-1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="VAyApNafmiIovaYltMQn-1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-890" y="400" as="sourcePoint" />
+            <mxPoint x="-840" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-14" connectable="0" parent="VAyApNafmiIovaYltMQn-13" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="配置按键信息" vertex="1">
+          <mxGeometry relative="1" x="0.0089" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-18" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="硬件数据输入信息" vertex="1">
+          <mxGeometry height="75" width="75" x="-1020" y="513.39" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-19" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-18" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="VAyApNafmiIovaYltMQn-20" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-887.5" y="608.89" as="sourcePoint" />
+            <mxPoint x="-837.5" y="558.89" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-22" connectable="0" parent="VAyApNafmiIovaYltMQn-19" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="初始化传入引用" vertex="1">
+          <mxGeometry relative="1" x="-0.1511" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-20" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="逻辑状态机" vertex="1">
+          <mxGeometry height="80" width="80" x="-1022.5" y="668.89" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-24" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-20" style="endArrow=classic;html=1;rounded=0;exitX=0.99;exitY=0.587;exitDx=0;exitDy=0;entryX=0.732;entryY=0.009;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="VAyApNafmiIovaYltMQn-29" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-887.5" y="708.89" as="sourcePoint" />
+            <mxPoint x="-982.5" y="808.89" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-35" connectable="0" parent="VAyApNafmiIovaYltMQn-24" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="过滤输入信息&lt;div&gt;输出可执行动作&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0556" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-30" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="编辑器拖拽" vertex="1">
+          <mxGeometry height="80" width="80" x="-750" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-31" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="SO物理配置数据" vertex="1">
+          <mxGeometry height="80" width="80" x="-750" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-32" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-30" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="VAyApNafmiIovaYltMQn-31" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-1010" y="400" as="sourcePoint" />
+            <mxPoint x="-960" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-36" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;" value="中心组件（统一调度）" vertex="1">
+          <mxGeometry height="530" width="200" x="-1085" y="468.89" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-29" parent="VAyApNafmiIovaYltMQn-36" style="whiteSpace=wrap;html=1;aspect=fixed;" value="角色可执行动作信息&lt;div&gt;（持续性动作&lt;/div&gt;" vertex="1">
+          <mxGeometry height="85" width="85" x="105" y="356.11" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-1" parent="VAyApNafmiIovaYltMQn-36" style="whiteSpace=wrap;html=1;aspect=fixed;" value="内部事件系统&lt;br&gt;（输出瞬发动作" vertex="1">
+          <mxGeometry height="85" width="85" x="10" y="358.61" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-37" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=40;" value="抽象物理组件（提供底层运动学计算）" vertex="1">
+          <mxGeometry height="380" width="220.62" x="-810" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-38" parent="VAyApNafmiIovaYltMQn-37" style="whiteSpace=wrap;html=1;aspect=fixed;" value="物理配置数据&lt;div&gt;最大速度等等&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="80" x="60" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-45" parent="VAyApNafmiIovaYltMQn-37" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="物理更新循环" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-49" parent="VAyApNafmiIovaYltMQn-37" style="whiteSpace=wrap;html=1;aspect=fixed;" value="基础物理组件" vertex="1">
+          <mxGeometry height="80" width="80" x="60" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-50" edge="1" parent="VAyApNafmiIovaYltMQn-37" source="VAyApNafmiIovaYltMQn-45" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="VAyApNafmiIovaYltMQn-49" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-160" y="310" as="sourcePoint" />
+            <mxPoint x="-110" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-51" connectable="0" parent="VAyApNafmiIovaYltMQn-50" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="位置更新" vertex="1">
+          <mxGeometry relative="1" x="-0.0267" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-6" connectable="0" parent="VAyApNafmiIovaYltMQn-50" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="传出最终计算结果" vertex="1">
+          <mxGeometry relative="1" x="-0.5333" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-8" edge="1" parent="VAyApNafmiIovaYltMQn-37" source="VAyApNafmiIovaYltMQn-38" style="endArrow=classic;html=1;rounded=0;exitX=0.469;exitY=0.993;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.454;entryY=-0.014;entryDx=0;entryDy=0;entryPerimeter=0;" target="VAyApNafmiIovaYltMQn-45" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="110" y="180" as="sourcePoint" />
+            <mxPoint x="160" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-9" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="提供基本配置数据&lt;br&gt;供每帧重算快照" vertex="1">
+          <mxGeometry relative="1" x="-0.0173" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-39" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-31" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="VAyApNafmiIovaYltMQn-38" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-989.38" y="500" as="sourcePoint" />
+            <mxPoint x="-939.38" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-40" connectable="0" parent="VAyApNafmiIovaYltMQn-39" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="拖拽引用" vertex="1">
+          <mxGeometry relative="1" x="-0.516" y="3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-2" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-20" style="endArrow=classic;html=1;rounded=0;exitX=-0.013;exitY=0.585;exitDx=0;exitDy=0;entryX=0.321;entryY=0.014;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="PbKsRRfGalmAHyaCTJ3J-1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-780" y="910" as="sourcePoint" />
+            <mxPoint x="-820" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-4" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="瞬时动作" vertex="1">
+          <mxGeometry relative="1" x="0.1001" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-5" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="具体物理实现（受控角色）" vertex="1">
+          <mxGeometry height="290" width="280.62" x="-870" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-41" parent="PbKsRRfGalmAHyaCTJ3J-5" style="whiteSpace=wrap;html=1;aspect=fixed;" value="角色可执行动作引用" vertex="1">
+          <mxGeometry height="80" width="80" x="190" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-20" parent="PbKsRRfGalmAHyaCTJ3J-5" style="swimlane;whiteSpace=wrap;html=1;" value="可编程的关键帧更新逻辑方法体" vertex="1">
+          <mxGeometry height="160" width="260" x="10" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-17" parent="PbKsRRfGalmAHyaCTJ3J-20" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="事件消费的抽象实现" vertex="1">
+          <mxGeometry height="50" width="130" x="10" y="29.999999999999986" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-21" parent="PbKsRRfGalmAHyaCTJ3J-20" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="移动计算方法实现" vertex="1">
+          <mxGeometry height="50" width="120" x="140" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-26" parent="PbKsRRfGalmAHyaCTJ3J-20" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="特殊垂直受控运动的抽象逻辑&lt;br&gt;（max函数赋值操作）" vertex="1">
+          <mxGeometry height="60" width="226" x="24" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-24" edge="1" parent="PbKsRRfGalmAHyaCTJ3J-5" source="VAyApNafmiIovaYltMQn-41" style="endArrow=classic;html=1;rounded=0;entryX=0.839;entryY=0.033;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" target="PbKsRRfGalmAHyaCTJ3J-21" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="80" y="110" as="sourcePoint" />
+            <mxPoint x="130" y="60" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-25" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-24" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="代入计算" vertex="1">
+          <mxGeometry relative="1" x="-0.0316" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-33" parent="PbKsRRfGalmAHyaCTJ3J-5" style="whiteSpace=wrap;html=1;aspect=fixed;" value="内部具体&lt;div&gt;成员变量&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="70" x="60" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-35" edge="1" parent="PbKsRRfGalmAHyaCTJ3J-5" source="PbKsRRfGalmAHyaCTJ3J-33" style="endArrow=classic;html=1;rounded=0;exitX=0.492;exitY=0.997;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.549;entryY=0.002;entryDx=0;entryDy=0;entryPerimeter=0;" target="PbKsRRfGalmAHyaCTJ3J-20" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="150" y="70" as="sourcePoint" />
+            <mxPoint x="200" y="20" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-10" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.647;entryY=-0.001;entryDx=0;entryDy=0;entryPerimeter=0;" target="PbKsRRfGalmAHyaCTJ3J-5" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-689.38" y="800" as="sourcePoint" />
+            <mxPoint x="-619.38" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-12" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="继承并实现抽象方法" vertex="1">
+          <mxGeometry relative="1" x="-0.2269" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-14" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-1" style="endArrow=classic;html=1;rounded=0;exitX=0.462;exitY=0.976;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.451;entryY=0.024;entryDx=0;entryDy=0;entryPerimeter=0;" target="VAyApNafmiIovaYltMQn-18" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-880" y="520" as="sourcePoint" />
+            <mxPoint x="-830" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-15" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="依赖注入" vertex="1">
+          <mxGeometry relative="1" x="-0.5221" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-42" edge="1" parent="1" source="VAyApNafmiIovaYltMQn-29" style="endArrow=classic;html=1;rounded=0;entryX=-0.009;entryY=0.57;entryDx=0;entryDy=0;exitX=0.996;exitY=0.472;exitDx=0;exitDy=0;exitPerimeter=0;entryPerimeter=0;" target="VAyApNafmiIovaYltMQn-41" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-945" y="960" as="sourcePoint" />
+            <mxPoint x="-630" y="719.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VAyApNafmiIovaYltMQn-43" connectable="0" parent="VAyApNafmiIovaYltMQn-42" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="初始化传入&lt;div&gt;（避免每帧传参）&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0248" as="geometry">
+            <mxPoint x="-25" y="-15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-22" edge="1" parent="1" source="PbKsRRfGalmAHyaCTJ3J-1" style="endArrow=classic;html=1;rounded=0;exitX=0.437;exitY=0.985;exitDx=0;exitDy=0;exitPerimeter=0;" target="PbKsRRfGalmAHyaCTJ3J-17" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-790" y="950" as="sourcePoint" />
+            <mxPoint x="-740" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-23" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-22" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="布尔开关&lt;br&gt;（控制逻辑分支）" vertex="1">
+          <mxGeometry relative="1" x="-0.1458" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-27" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;" target="PbKsRRfGalmAHyaCTJ3J-28" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-600" y="1020" as="sourcePoint" />
+            <mxPoint x="-510" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-28" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" value="提供关键参数" vertex="1">
+          <mxGeometry height="80" width="80" x="-550" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-29" edge="1" parent="1" source="PbKsRRfGalmAHyaCTJ3J-28" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.906;entryY=0.444;entryDx=0;entryDy=0;entryPerimeter=0;" target="VAyApNafmiIovaYltMQn-45" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-470" y="680" as="sourcePoint" />
+            <mxPoint x="-420" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-30" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-29" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="时序由父类控制&lt;br&gt;代入计算实现底层运动学" vertex="1">
+          <mxGeometry relative="1" x="-0.2451" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-36" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" value="本地持久化文件" vertex="1">
+          <mxGeometry height="80" width="110" x="-1330" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-37" edge="1" parent="1" source="yxqoSszjdsdWdLF4y8KW-1" style="endArrow=classic;html=1;rounded=0;exitX=0.264;exitY=0.225;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.017;entryY=0.583;entryDx=0;entryDy=0;entryPerimeter=0;" target="PbKsRRfGalmAHyaCTJ3J-36" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-1010" y="290" as="sourcePoint" />
+            <mxPoint x="-960" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-38" connectable="0" parent="PbKsRRfGalmAHyaCTJ3J-37" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="读取并解析文件" vertex="1">
+          <mxGeometry relative="1" x="0.0151" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-39" parent="1" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;" value="中心调度确保出初始化的正确时序，并以二阶初始化传递各组件的必要引用（一阶初始化保证数据结构存在避免空引用）" vertex="1">
+          <mxGeometry height="71.11" width="350" x="-1380" y="388.89" as="geometry" />
+        </mxCell>
+        <mxCell id="PbKsRRfGalmAHyaCTJ3J-40" edge="1" parent="1" source="PbKsRRfGalmAHyaCTJ3J-39" style="endArrow=none;html=1;rounded=0;exitX=0.499;exitY=1.016;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.003;entryY=0.001;entryDx=0;entryDy=0;entryPerimeter=0;" target="VAyApNafmiIovaYltMQn-36" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-1120" y="530" as="sourcePoint" />
+            <mxPoint x="-1070" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="tYZgIV6oCInOiEYpHW5-" name="第 2 页">
+    <mxGraphModel dx="3003" dy="2070" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="BasicEntity（继承mono)&lt;div&gt;实体物理基类&lt;/div&gt;" vertex="1">
+          <mxGeometry height="330" width="380" x="120" y="422" as="geometry">
+            <mxRectangle height="40" width="110" x="224" y="10" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-2" parent="m3iPRyqmmV0amdPi3Ce3-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段:&lt;div&gt;&amp;nbsp;必要物理组件：刚体，碰撞器&lt;div&gt;&amp;nbsp;物理配置数据：几何检测中心，范围，重力，空气阻力，质量&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp;运行时数据：几何检测数据，物理职能数据，位移能力数据&lt;/div&gt;&lt;div&gt;&amp;nbsp;解算容器：粘滞力，时间速度，状态速度，动态力&lt;/div&gt;&lt;div&gt;&amp;nbsp;流程控制数据：脏标识&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="380" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-3" parent="m3iPRyqmmV0amdPi3Ce3-1" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="380" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-4" parent="m3iPRyqmmV0amdPi3Ce3-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="物理更新方法：（模板方法模式）&lt;div&gt;&amp;nbsp; 几何查询：抽象方法，子类实现检测逻辑，自身阻力赋值操作&lt;/div&gt;&lt;div&gt;&amp;nbsp; 职能更新：自身阻力的叠加操作，当前所在地面的状态生命周期管理&lt;/div&gt;&lt;div&gt;&amp;nbsp; 速度计算：计算速度约束，被动速度，主动速度（子类可重写）&lt;/div&gt;&lt;div&gt;&amp;nbsp; 位移运用：斜率修正，位移约束，受力复原，施力标注&lt;/div&gt;&lt;div&gt;&amp;nbsp; 二阶响应：更新施力效果并更新施力后的物理职能情况&lt;/div&gt;&lt;div&gt;继承接口：&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;受力接口&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;施力接口&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;物理引用接口（表示此物体属于此框架的物理世界）&lt;br&gt;&lt;/div&gt;&lt;div&gt;其他方法：&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;数据初始化方法（子类可重写，表示子类使用某数据类的子类）&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="182" width="380" y="148" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-5" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="BasePhysicsEntity&lt;div&gt;角色物理基类&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="220" x="120" y="802" as="geometry">
+            <mxRectangle height="40" width="140" x="224" y="390" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-6" parent="m3iPRyqmmV0amdPi3Ce3-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;几何数据包装&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;位移能力数据包装&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;自身特殊几何数据&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="220" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-7" parent="m3iPRyqmmV0amdPi3Ce3-5" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="26" width="220" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-8" parent="m3iPRyqmmV0amdPi3Ce3-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;几何检测的具体实现&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;水平主动位移实现：提供计算方式，并调用抽象方法：位移数据赋值，统一事件触发&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;竖直主动位移实现：调用特殊竖直特殊行为垂直变速的抽象方法&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="114" width="220" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-9" edge="1" parent="1" source="m3iPRyqmmV0amdPi3Ce3-5" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.482;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.545;exitY=0.05;exitDx=0;exitDy=0;exitPerimeter=0;" target="m3iPRyqmmV0amdPi3Ce3-4" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="308" y="802" as="sourcePoint" />
+            <mxPoint x="516" y="882" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-10" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="CharacterPhysics&lt;div&gt;玩家角色物理组件&lt;/div&gt;" vertex="1">
+          <mxGeometry height="190" width="220" x="120" y="1072" as="geometry">
+            <mxRectangle height="40" width="140" x="224" y="660" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-11" parent="m3iPRyqmmV0amdPi3Ce3-10" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;配置数据：移动速度，跳跃高度等&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;控制数据：事件开关&lt;br&gt;&lt;/div&gt;&lt;div&gt;接口属性：&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;移动方向/移动能力&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="220" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-12" parent="m3iPRyqmmV0amdPi3Ce3-10" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="220" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-13" parent="m3iPRyqmmV0amdPi3Ce3-10" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;水平速度赋值实现&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;物理事件触发逻辑&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;垂直速度主动位移逻辑&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="62" width="220" y="128" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-14" edge="1" parent="1" source="m3iPRyqmmV0amdPi3Ce3-10" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.511;entryY=1.015;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="m3iPRyqmmV0amdPi3Ce3-8" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="256" y="952" as="sourcePoint" />
+            <mxPoint x="416" y="952" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-15" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="BasicPhysicalObject&lt;div&gt;环境物理基类（继承mono)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="194" width="170" x="666" y="422" as="geometry">
+            <mxRectangle height="40" width="150" x="770" y="10" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-16" parent="m3iPRyqmmV0amdPi3Ce3-15" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;受控实体容器&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;粘滞力&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态速度&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="170" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-17" parent="m3iPRyqmmV0amdPi3Ce3-15" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="44" width="170" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-18" parent="m3iPRyqmmV0amdPi3Ce3-15" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="继承接口：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;施力动作&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;物理引用接口&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="170" y="144" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-19" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;span style=&quot;font-weight: 700;&quot;&gt;BaseGround&lt;/span&gt;&lt;div style=&quot;font-weight: 700;&quot;&gt;基础地面&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="140" x="696" y="672" as="geometry">
+            <mxRectangle height="40" width="110" x="800" y="290" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-20" parent="m3iPRyqmmV0amdPi3Ce3-19" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;减速影响因子&lt;br&gt;&lt;/div&gt;&lt;div&gt;跳跃高度影响程度&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;本帧位移&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m3iPRyqmmV0amdPi3Ce3-21" edge="1" parent="1" source="m3iPRyqmmV0amdPi3Ce3-19" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.491;entryY=1.021;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.39;exitY=0.024;exitDx=0;exitDy=0;exitPerimeter=0;" target="m3iPRyqmmV0amdPi3Ce3-18" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="756" y="672" as="sourcePoint" />
+            <mxPoint x="916" y="672" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QTnSLz7OvCPzISLmenq4-1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="PhysicalBox&lt;div&gt;可推动箱子&lt;/div&gt;" vertex="1">
+          <mxGeometry height="84" width="210" x="360" y="802" as="geometry" />
+        </mxCell>
+        <mxCell id="QTnSLz7OvCPzISLmenq4-3" parent="QTnSLz7OvCPzISLmenq4-1" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="210" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="QTnSLz7OvCPzISLmenq4-4" parent="QTnSLz7OvCPzISLmenq4-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;几何检测具体实现&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="36" width="210" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="QTnSLz7OvCPzISLmenq4-5" edge="1" parent="1" source="QTnSLz7OvCPzISLmenq4-1" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.734;entryY=1.009;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.473;exitY=-0.037;exitDx=0;exitDy=0;exitPerimeter=0;" target="m3iPRyqmmV0amdPi3Ce3-4" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="420" y="892" as="sourcePoint" />
+            <mxPoint x="580" y="892" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8jp2uzUghdjUPeAp2QZ-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="具体场景物体&lt;br&gt;（不受力影响）" vertex="1">
+          <mxGeometry height="60" width="120" x="706" y="832" as="geometry" />
+        </mxCell>
+        <mxCell id="d8jp2uzUghdjUPeAp2QZ-6" edge="1" parent="1" source="d8jp2uzUghdjUPeAp2QZ-5" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.485;entryY=1.024;entryDx=0;entryDy=0;entryPerimeter=0;" target="m3iPRyqmmV0amdPi3Ce3-20" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="670" y="912" as="sourcePoint" />
+            <mxPoint x="720" y="862" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8jp2uzUghdjUPeAp2QZ-8" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="物理部分类结构（继承关系）" vertex="1">
+          <mxGeometry height="938" width="830" x="50" y="362" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-5" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Player（继承mono)&lt;div&gt;中心调度（集中初始化保证时序正确）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="210" width="250" x="1040" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-6" parent="rTYdZy71tL_H7Ax6ghvK-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;物理组件&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;物理只读信息&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;玩家输入信息&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;玩家当前执行动作与公共只读包装&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;逻辑层状态机&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;表现层状态机&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="250" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-7" parent="rTYdZy71tL_H7Ax6ghvK-5" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="250" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-8" parent="rTYdZy71tL_H7Ax6ghvK-5" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;注入与注销玩家按键数据行为&lt;br&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="42" width="250" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-17" parent="1" style="html=1;whiteSpace=wrap;" value="IsOnGround&lt;div&gt;在地面状态&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="1040" y="1242" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-18" parent="1" style="html=1;whiteSpace=wrap;" value="IsInAir&lt;div&gt;在空中状态&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="1170" y="1242" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-19" parent="1" style="html=1;whiteSpace=wrap;" value="OnWallSliding&lt;div&gt;在贴墙状态&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="1300" y="1242" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-20" edge="1" parent="1" source="rTYdZy71tL_H7Ax6ghvK-17" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.225;entryY=1.034;entryDx=0;entryDy=0;entryPerimeter=0;" target="rTYdZy71tL_H7Ax6ghvK-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1540" y="1130" as="sourcePoint" />
+            <mxPoint x="1590" y="1080" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-21" edge="1" parent="1" source="rTYdZy71tL_H7Ax6ghvK-18" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.685;entryY=1.041;entryDx=0;entryDy=0;entryPerimeter=0;" target="rTYdZy71tL_H7Ax6ghvK-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1540" y="1130" as="sourcePoint" />
+            <mxPoint x="1590" y="1080" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-22" edge="1" parent="1" source="rTYdZy71tL_H7Ax6ghvK-19" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.888;entryY=1.02;entryDx=0;entryDy=0;entryPerimeter=0;edgeStyle=orthogonalEdgeStyle;" target="rTYdZy71tL_H7Ax6ghvK-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="1355" y="1230" />
+              <mxPoint x="1280" y="1230" />
+            </Array>
+            <mxPoint x="1540" y="1130" as="sourcePoint" />
+            <mxPoint x="1590" y="1080" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-28" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="逻辑层结构（层级关系）" vertex="1">
+          <mxGeometry height="938" width="730" x="940" y="362" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-9" parent="rTYdZy71tL_H7Ax6ghvK-28" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="PlayerStateMachine&lt;div&gt;玩家逻辑层状态机&lt;/div&gt;" vertex="1">
+          <mxGeometry height="270" width="270" x="100" y="278" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-10" parent="rTYdZy71tL_H7Ax6ghvK-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;内部事件系统&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;当前状态实例&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;当前动作&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;私有状态实例&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;配置数据&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;运行时数据&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="270" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-11" parent="rTYdZy71tL_H7Ax6ghvK-9" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="14" width="270" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-12" parent="rTYdZy71tL_H7Ax6ghvK-9" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;二阶初始化&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态改变&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态更新&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;重置可跳次数&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;执行跳跃并判断是否可跳跃&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="106" width="270" y="164" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-13" parent="rTYdZy71tL_H7Ax6ghvK-28" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="BasePlayerState&lt;div&gt;玩家状态行为基类&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="270" x="100" y="566" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-14" parent="rTYdZy71tL_H7Ax6ghvK-13" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;玩家物理状态/只读&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;原始输入/只读&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;过滤后的动作输出/读写&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;依附的逻辑状态机/调用&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;此状态机内部的事件系统&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="270" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-15" parent="rTYdZy71tL_H7Ax6ghvK-13" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="270" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-16" parent="rTYdZy71tL_H7Ax6ghvK-13" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="继承接口：IBehavioralState&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;（状态行为接口）&lt;br&gt;&lt;/div&gt;&lt;div&gt;接口方法：&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态进入&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态离开&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;状态更新&lt;br&gt;&lt;/div&gt;&lt;div&gt;方法：Init初始化&lt;/div&gt;" vertex="1">
+          <mxGeometry height="122" width="270" y="158" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-29" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="表现层结构" vertex="1">
+          <mxGeometry height="938" width="400" x="1730" y="362" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-23" parent="rTYdZy71tL_H7Ax6ghvK-29" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="PresentationLayer（继承mono)&lt;div&gt;表现层状态机&lt;/div&gt;" vertex="1">
+          <mxGeometry height="190" width="230" x="60" y="278" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-24" parent="rTYdZy71tL_H7Ax6ghvK-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="字段：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;角色动画状态机&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;角色图片&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;物理速度数据引用&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;物理几何数据引用&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;只读的可执行动作引用&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="230" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-25" parent="rTYdZy71tL_H7Ax6ghvK-23" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="230" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="rTYdZy71tL_H7Ax6ghvK-26" parent="rTYdZy71tL_H7Ax6ghvK-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="方法：&lt;div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;生命周期函数&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="42" width="230" y="148" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="Gh02OkHwyBXadjm4zCF2" name="第 3 页">
+    <mxGraphModel dx="2002" dy="1380" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="原始输入信息" vertex="1">
+          <mxGeometry height="60" width="120" x="250" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-2" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-1" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="600" y="700" as="sourcePoint" />
+            <mxPoint x="310" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;InputActionAsset&lt;/div&gt;输入配置信息" vertex="1">
+          <mxGeometry height="60" width="120" x="90" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="本地持久化文件" vertex="1">
+          <mxGeometry height="60" width="120" x="90" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-9" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-8" style="endArrow=classic;html=1;rounded=0;exitX=0.545;exitY=0.999;exitDx=0;exitDy=0;entryX=0.537;entryY=0.016;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="330" y="190" as="sourcePoint" />
+            <mxPoint x="154.44000000000005" y="140.96000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-10" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YwykHdzNu7MMcKEVBA_B-5" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="150" y="200" as="sourcePoint" />
+            <mxPoint x="380" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-12" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="&lt;div&gt;InputControlMgr&lt;/div&gt;输入管理器" vertex="1">
+          <mxGeometry height="60" width="120" x="250" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-13" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="&lt;div&gt;DataAndInitMgr&lt;/div&gt;数据管理器" vertex="1">
+          <mxGeometry height="70" width="120" x="90" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;PlayerInputData&lt;/div&gt;输入解析结果" vertex="1">
+          <mxGeometry height="60" width="120" x="250" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-15" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-12" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="YwykHdzNu7MMcKEVBA_B-14" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="580" y="740" as="sourcePoint" />
+            <mxPoint x="630" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-16" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-14" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="YwykHdzNu7MMcKEVBA_B-18" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="580" y="740" as="sourcePoint" />
+            <mxPoint x="630" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-18" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="PlayerStateMachine&lt;div&gt;角色逻辑层状态机&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="120" x="250" y="800.0000000000001" as="geometry" />
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-21" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-18" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" target="YwykHdzNu7MMcKEVBA_B-22" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="880" />
+            </Array>
+            <mxPoint x="580" y="890" as="sourcePoint" />
+            <mxPoint x="630" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="YwykHdzNu7MMcKEVBA_B-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="MovementData&lt;div&gt;状态行为数据&lt;/div&gt;&lt;div&gt;（持续行为）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="180" y="920.0000000000001" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-1" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-11" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="310" y="880" as="sourcePoint" />
+            <mxPoint x="350" y="910" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-11" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="LocalEventSystem&lt;div&gt;局部事件系统&lt;/div&gt;&lt;div&gt;（瞬时行为）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-17" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="初始化阶段" vertex="1">
+          <mxGeometry height="440" width="470" x="20" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-78" parent="_S_ofA1BoHecZbGN61qu-17" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="DataConfigurationMgr&lt;div&gt;配置数据管理器&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="140" x="280" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-79" parent="_S_ofA1BoHecZbGN61qu-17" style="rounded=0;whiteSpace=wrap;html=1;" value="SO文件" vertex="1">
+          <mxGeometry height="60" width="120" x="290" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-80" edge="1" parent="_S_ofA1BoHecZbGN61qu-17" source="_S_ofA1BoHecZbGN61qu-79" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="_S_ofA1BoHecZbGN61qu-78" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="480" y="130" as="sourcePoint" />
+            <mxPoint x="530" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-81" parent="_S_ofA1BoHecZbGN61qu-17" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;DataConfigurationMgr.playerModleName&lt;/div&gt;初始化可控角色文件名" vertex="1">
+          <mxGeometry height="60" width="230" x="230" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-82" edge="1" parent="_S_ofA1BoHecZbGN61qu-17" source="_S_ofA1BoHecZbGN61qu-78" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.526;entryY=-0.01;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-81" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="470" y="240" as="sourcePoint" />
+            <mxPoint x="520" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sjh0VN4tZdPFy2Mma63U-1" parent="_S_ofA1BoHecZbGN61qu-17" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="资源加载与场景管理器" vertex="1">
+          <mxGeometry height="80" width="180" x="255" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="sjh0VN4tZdPFy2Mma63U-2" edge="1" parent="_S_ofA1BoHecZbGN61qu-17" source="_S_ofA1BoHecZbGN61qu-81" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="sjh0VN4tZdPFy2Mma63U-1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="430" y="400" as="sourcePoint" />
+            <mxPoint x="480" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-18" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" value="Update阶段" vertex="1">
+          <mxGeometry height="1240" width="470" x="20" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-66" parent="_S_ofA1BoHecZbGN61qu-18" style="rounded=1;whiteSpace=wrap;html=1;" value="可接入动画曲线&lt;div&gt;优化例如行走效果&lt;/div&gt;&lt;div&gt;避免滑步等&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="10" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-69" parent="_S_ofA1BoHecZbGN61qu-18" style="rounded=0;whiteSpace=wrap;html=1;" value="ReadOnly_GeometryPhysicsData&lt;div&gt;只读几何查询结果&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="220" x="180" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-70" parent="_S_ofA1BoHecZbGN61qu-18" style="rounded=0;whiteSpace=wrap;html=1;" value="ReadOnly_PlayerPhysicsData&lt;div&gt;只读移动数据&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="220" x="180" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-72" parent="_S_ofA1BoHecZbGN61qu-18" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;" value="PresentationLayer&lt;div&gt;角色表现层状态机&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="120" x="30" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-73" edge="1" parent="_S_ofA1BoHecZbGN61qu-18" source="_S_ofA1BoHecZbGN61qu-69" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-72" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="300" y="470" as="sourcePoint" />
+            <mxPoint x="350" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-74" edge="1" parent="_S_ofA1BoHecZbGN61qu-18" source="_S_ofA1BoHecZbGN61qu-70" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="_S_ofA1BoHecZbGN61qu-72" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="310" y="570" as="sourcePoint" />
+            <mxPoint x="360" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-20" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="FixUpdate阶段" vertex="1">
+          <mxGeometry height="1240" width="550" x="590" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-21" parent="_S_ofA1BoHecZbGN61qu-20" style="rounded=0;whiteSpace=wrap;html=1;" value="布尔开关" vertex="1">
+          <mxGeometry height="60" width="120" x="70" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-25" parent="_S_ofA1BoHecZbGN61qu-20" style="rounded=0;whiteSpace=wrap;html=1;" value="ReadOnly_ActionData&lt;div&gt;只读包装类&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="215" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-28" parent="_S_ofA1BoHecZbGN61qu-20" style="swimlane;whiteSpace=wrap;html=1;" value="GeometricQuery（几何查询阶段）" vertex="1">
+          <mxGeometry height="130" width="235" x="315" y="150" as="geometry">
+            <mxRectangle height="30" width="220" x="15" y="160" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-30" parent="_S_ofA1BoHecZbGN61qu-28" style="rounded=0;whiteSpace=wrap;html=1;" value="GeometryPhysicsData&lt;div&gt;几何查询结果&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="35" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-29" parent="_S_ofA1BoHecZbGN61qu-20" style="swimlane;whiteSpace=wrap;html=1;" value="PhyFunUpdate（物理职能更新）" vertex="1">
+          <mxGeometry height="160" width="235" x="315" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-31" parent="_S_ofA1BoHecZbGN61qu-29" style="rounded=0;whiteSpace=wrap;html=1;" value="BasePhyFunData&lt;div&gt;物理职能数据&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="35" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-32" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-30" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="_S_ofA1BoHecZbGN61qu-31" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="600" y="240" as="sourcePoint" />
+            <mxPoint x="650" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-35" parent="_S_ofA1BoHecZbGN61qu-20" style="swimlane;whiteSpace=wrap;html=1;" value="SpeedCalculation（速度计算）" vertex="1">
+          <mxGeometry height="350" width="235" x="315" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-36" parent="_S_ofA1BoHecZbGN61qu-35" style="swimlane;whiteSpace=wrap;html=1;" value="环境影响" vertex="1">
+          <mxGeometry height="140" width="200" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-37" parent="_S_ofA1BoHecZbGN61qu-36" style="rounded=0;whiteSpace=wrap;html=1;" value="解算容器" vertex="1">
+          <mxGeometry height="60" width="75" x="5" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-40" parent="_S_ofA1BoHecZbGN61qu-35" style="swimlane;whiteSpace=wrap;html=1;" value="主动速度" vertex="1">
+          <mxGeometry height="120" width="200" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-42" parent="_S_ofA1BoHecZbGN61qu-40" style="rounded=0;whiteSpace=wrap;html=1;" value="PlayerPhysicsData&lt;div&gt;移动数据&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-43" edge="1" parent="_S_ofA1BoHecZbGN61qu-35" source="_S_ofA1BoHecZbGN61qu-37" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.307;entryY=0.022;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-42" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="295" y="120" as="sourcePoint" />
+            <mxPoint x="345" y="70" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-38" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-31" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-37" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="470" />
+              <mxPoint x="358" y="470" />
+            </Array>
+            <mxPoint x="610" y="590" as="sourcePoint" />
+            <mxPoint x="660" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-39" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-31" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="_S_ofA1BoHecZbGN61qu-42" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="610" y="490" as="sourcePoint" />
+            <mxPoint x="660" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-45" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-21" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-42" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="310" y="270" as="sourcePoint" />
+            <mxPoint x="360" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-46" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-25" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-42" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="310" y="190" as="sourcePoint" />
+            <mxPoint x="360" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-47" parent="_S_ofA1BoHecZbGN61qu-20" style="swimlane;whiteSpace=wrap;html=1;" value="DisplacementCorrection（最终位移）" vertex="1">
+          <mxGeometry height="200" width="235" x="315" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-48" parent="_S_ofA1BoHecZbGN61qu-47" style="rounded=0;whiteSpace=wrap;html=1;" value="moveDelta&lt;div&gt;移动结果&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="95" x="5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-49" parent="_S_ofA1BoHecZbGN61qu-47" style="rounded=0;whiteSpace=wrap;html=1;" value="platformDelta&lt;div&gt;位移补正&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="85" x="105" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-50" parent="_S_ofA1BoHecZbGN61qu-47" style="rounded=0;whiteSpace=wrap;html=1;" value="wordDelta&lt;div&gt;最终位移结果&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="180" x="10" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-51" edge="1" parent="_S_ofA1BoHecZbGN61qu-47" source="_S_ofA1BoHecZbGN61qu-48" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.229;entryY=0.041;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-50" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-75" y="-50" as="sourcePoint" />
+            <mxPoint x="-25" y="-100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-52" edge="1" parent="_S_ofA1BoHecZbGN61qu-47" source="_S_ofA1BoHecZbGN61qu-49" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.768;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-50" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-75" y="-50" as="sourcePoint" />
+            <mxPoint x="-25" y="-100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-53" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-42" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.637;entryY=0.072;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-48" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="240" y="740" as="sourcePoint" />
+            <mxPoint x="290" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-54" parent="_S_ofA1BoHecZbGN61qu-20" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" value="SecondOrderPhyFun（二阶响应）" vertex="1">
+          <mxGeometry height="90" width="235" x="315" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-61" parent="_S_ofA1BoHecZbGN61qu-54" style="rounded=0;whiteSpace=wrap;html=1;" value="BasePhyFunData&lt;div&gt;物理职能数据&lt;/div&gt;&lt;div&gt;（更新）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="57.5" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-55" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-31" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="370" />
+              <mxPoint x="220" y="1040" />
+              <mxPoint x="315" y="1040" />
+            </Array>
+            <mxPoint x="390" y="610" as="sourcePoint" />
+            <mxPoint x="315" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-62" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-54" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="1035" />
+              <mxPoint x="620" y="580" />
+              <mxPoint x="395" y="580" />
+            </Array>
+            <mxPoint x="580" y="630" as="sourcePoint" />
+            <mxPoint x="395" y="580" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-75" connectable="0" parent="_S_ofA1BoHecZbGN61qu-62" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="对其他实体施力&lt;div&gt;以及下一帧自身受力&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0499" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-64" parent="_S_ofA1BoHecZbGN61qu-20" style="rounded=1;whiteSpace=wrap;html=1;" value="可接入AI系统&lt;div&gt;并拓展环境感知字段&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="117" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-65" edge="1" parent="_S_ofA1BoHecZbGN61qu-20" source="_S_ofA1BoHecZbGN61qu-64" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=-0.013;entryY=0.418;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-30" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="580" y="420" as="sourcePoint" />
+            <mxPoint x="630" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-77" parent="_S_ofA1BoHecZbGN61qu-20" style="rounded=0;whiteSpace=wrap;html=1;" value="SO_CPhysics&lt;div&gt;物理配置数据&lt;/div&gt;&lt;div&gt;（几何检测范围层级等）&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="140" x="380" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-22" edge="1" parent="1" source="_S_ofA1BoHecZbGN61qu-11" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-21" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="710" y="780" as="sourcePoint" />
+            <mxPoint x="760" y="730" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-24" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-5" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="YwykHdzNu7MMcKEVBA_B-12" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="400" y="560" as="sourcePoint" />
+            <mxPoint x="450" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-26" edge="1" parent="1" source="YwykHdzNu7MMcKEVBA_B-22" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-25" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="990" />
+              <mxPoint x="540" y="990" />
+              <mxPoint x="540" y="550" />
+              <mxPoint x="865" y="550" />
+            </Array>
+            <mxPoint x="690" y="760" as="sourcePoint" />
+            <mxPoint x="740" y="710" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-67" edge="1" parent="1" source="_S_ofA1BoHecZbGN61qu-66" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="YwykHdzNu7MMcKEVBA_B-22" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="370" y="1050" as="sourcePoint" />
+            <mxPoint x="420" y="1000" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-68" edge="1" parent="1" source="_S_ofA1BoHecZbGN61qu-30" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" target="_S_ofA1BoHecZbGN61qu-69" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="770" />
+              <mxPoint x="640" y="770" />
+              <mxPoint x="640" y="1120" />
+            </Array>
+            <mxPoint x="730" y="960" as="sourcePoint" />
+            <mxPoint x="780" y="910" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-71" edge="1" parent="1" source="_S_ofA1BoHecZbGN61qu-42" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1.007;entryY=0.372;entryDx=0;entryDy=0;entryPerimeter=0;" target="_S_ofA1BoHecZbGN61qu-70" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="950" y="1250" as="sourcePoint" />
+            <mxPoint x="680" y="1310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_S_ofA1BoHecZbGN61qu-83" edge="1" parent="1" source="_S_ofA1BoHecZbGN61qu-77" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="990" y="770" as="sourcePoint" />
+            <mxPoint x="1040" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sjh0VN4tZdPFy2Mma63U-3" edge="1" parent="1" source="sjh0VN4tZdPFy2Mma63U-1" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="YwykHdzNu7MMcKEVBA_B-12" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="400" />
+              <mxPoint x="420" y="640" />
+            </Array>
+            <mxPoint x="450" y="420" as="sourcePoint" />
+            <mxPoint x="500" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

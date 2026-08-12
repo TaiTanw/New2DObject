@@ -29,9 +29,6 @@ public interface IBehavioralState
     /// <param name="p"></param>
     public void Update();
 
-
-    public void FixUpdate();
-
 }
 
 /// <summary>
@@ -75,10 +72,7 @@ public class BasePlayerState : IBehavioralState
         
     }
 
-    public virtual void FixUpdate()
-    {
-        
-    }
+
 }
 /// <summary>
 /// 是否在地面

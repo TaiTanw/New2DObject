@@ -188,7 +188,7 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
         //    }
         //};
         #endregion
-
+        //切换当前输入地图
         input.SwitchCurrentActionMap("player");
         //绑定后关闭输入响应，等待正式游戏后开启
         InputOpenOrClose(false);
