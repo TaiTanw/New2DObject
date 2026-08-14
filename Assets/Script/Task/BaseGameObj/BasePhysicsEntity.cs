@@ -34,7 +34,7 @@ public abstract class BasePhysicsEntity : BasicEntity
     #region 运行时数据
     //只读数据包装
     ReadOnly_GeometryPhysicsData readOnly_GeometryPhysicsData;
-    //自身特殊几何检测数据
+    //自身特殊物理职能数据
     protected PhysicalFunctionData playphyFunData;
     public ReadOnly_GeometryPhysicsData ReadOnly_GeometryPhysicsData => readOnly_GeometryPhysicsData;
 
@@ -52,8 +52,8 @@ public abstract class BasePhysicsEntity : BasicEntity
     }
     protected override void Init()
     {
-        nowPhyFun = new PhysicalFunctionData();
-        playphyFunData = nowPhyFun as PhysicalFunctionData;
+        playphyFunData = new PhysicalFunctionData();
+        nowPhyFun = playphyFunData;
         readOnly_GeometryPhysicsData = new(nowGemetry, playphyFunData);
         readOnly_PlayerPhysicsData = new(playerPhysicsData);
     }

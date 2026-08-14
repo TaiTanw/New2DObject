@@ -473,7 +473,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     }
 
     /// <summary>
-    /// 位移修正与应用
+    /// 位移修正与应用,挤压面检测
     /// </summary>
     void DisplacementCorrection()
     {

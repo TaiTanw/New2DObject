@@ -5,7 +5,7 @@ using UnityEngine;
 namespace PhyData
 {
     /// <summary>
-    /// 物理引用接口
+    /// 物理引用接口（属于EPhy物理世界）
     /// </summary>
     public interface IPhyBaseI { }
 
@@ -78,8 +78,8 @@ namespace PhyData
         /// <summary>
         /// 当类型为施加的物理帧更新逻辑
         /// </summary>
-        /// <param name="quality">受力物体质量</param>
-        /// <returns></returns>
+        /// <param name="quality">受力物体受环境影响程度（质量倒数）</param>
+        /// <returns>速度叠加</returns>
         public float FixUpdate(float quality)
         {
             speedStacking += Force * quality * Time.fixedDeltaTime;
