@@ -25,7 +25,7 @@ public class MonoPublicMgr : BaseAutoMonoMgr<MonoPublicMgr>
 
     }
 
-    public UnityAction[] actionsLen=new UnityAction[6];
+    public UnityAction[] actionsLen=new UnityAction[7];
     /// <summary>
     /// 添加物理时序更新
     /// </summary>

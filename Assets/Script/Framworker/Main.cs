@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 主入口
+/// </summary>
 public class Main : MonoBehaviour
 {
 

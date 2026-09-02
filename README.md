@@ -3,7 +3,10 @@
 基于 Unity 的自制 2D **运动学（Kinematics）** 框架：逻辑与 Mono 调度解耦，输入经状态机过滤后再进入物理执行层。适合平台跳跃、环境力场、可扩展角色/NPC 组装。
 
 > 结构示意（三页：概述流程 / 结构 / 数据流）：[`Docs/物理框架结构图.drawio`](Docs/物理框架结构图.drawio)  
-> 可用 [diagrams.net](https://app.diagrams.net/) 或 VS Code Draw.io 插件打开。
+> 可用 [diagrams.net](https://app.diagrams.net/) 或 VS Code Draw.io 插件打开。  
+> **开发设计文档索引：** [`Docs/README.md`](Docs/README.md)  
+> **物理接触与推箱（总目录）：** [`Docs/物理接触与推箱/README.md`](Docs/物理接触与推箱/README.md)  
+> 其中速度算法见 [`04-实体接触速度算法.md`](Docs/物理接触与推箱/04-实体接触速度算法.md)
 
 ---
 

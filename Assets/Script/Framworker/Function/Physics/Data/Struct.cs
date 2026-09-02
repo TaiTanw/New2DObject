@@ -37,7 +37,7 @@ namespace PhyData
     }
 
     /// <summary>
-    /// 状态受力数据
+    /// 动态受力数据
     /// </summary>
     public struct ForceData 
     {
@@ -130,7 +130,14 @@ namespace PhyData
         public float verticalSpeed;  //当前自身竖直速度（可主动影响
         public float phyHSpeed;//水平物理影响速度（被动位移
         public float phyVSpeed;//垂直物理影响速度（被动
-
+        /// <summary>
+        /// 位移偏置
+        /// </summary>
+        public float displacementBias;
+        /// <summary>
+        /// 位移嵌入
+        /// </summary>
+        public float positionalEmbedding;
         /// <summary>
         /// 当前环境物理约束数据,移动速度（粘滞力
         /// </summary>
@@ -234,4 +241,23 @@ namespace PhyData
 
 
     #endregion
+
+    /// <summary>
+    /// 物理范围框
+    /// </summary>
+    public struct PhysicalBoundingBox
+    {
+        /// <summary>
+        /// 位置
+        /// </summary>
+        public Vector2 point;
+        /// <summary>
+        /// 长宽（x,y）
+        /// </summary>
+        public Vector2 size;
+        /// <summary>
+        /// 此投射对应的物理引用
+        /// </summary>
+        public BasicEntity myPhyBox;
+    }
 }

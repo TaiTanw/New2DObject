@@ -80,6 +80,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     Dictionary<IDynamicAddForce, ForceData> dynamicForceDic = new Dictionary<IDynamicAddForce, ForceData>();
     /// <summary>
+    /// 二阶受力临时容器
+    /// </summary>
+    Dictionary<IDynamicAddForce, ForceData> secondaryPressureDic = new Dictionary<IDynamicAddForce, ForceData>();
+    /// <summary>
     /// 自身阻力系数
     /// </summary>
     protected float self_resistanceCoefficient = 3;
@@ -232,9 +236,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         //速度计算
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
         //最终位移
-        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 4);
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 5);
         //二阶响应
-        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SecondOrderPhyFun, 5);
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SecondOrderPhyFun, 6);
 
     }
 
@@ -285,6 +289,28 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         HorizontalSpeedCalculation();
         //竖直速度计算
         VerticalSpeedCalculation();
+        //二阶响应计算
+        PositionPrediction();
+    }
+
+    /// <summary>
+    /// 位置预测与二阶职能更新
+    /// </summary>
+    void PositionPrediction()
+    {
+        //投射获得嵌入深度（存入(考虑接口返回此数据供外部使用（打回，应该
+        //更新物理职能
+        //初步物理职能解析：（只看对方能不能受力），施力发出（新容器承载）
+    }
+
+    //新增相位
+    void NewUpdate()
+    {
+        //计算并应用速度（直接加回容器，下一帧真正使用）
+        //解析物理职能
+        //包括：受力速度计算/撞墙速度制零/撞物速度削弱
+        //计算出位移偏置数据
+
     }
 
     /// <summary>
@@ -570,6 +596,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             ForceData d =new ForceData();
             d.balanceSpeed = playerPhysicsData.phyHSpeed + playerPhysicsData.horizontalSpeed;
             d.Force = 10*d.balanceSpeed;
+            d.balanceSpeed=Mathf.Abs(d.balanceSpeed);
             nowPhyFun.nowForceThing?.AddForce(this,d );
             nowPhyFun.lastForceThing?.RemoveForce(this);
             //更新数据
