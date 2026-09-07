@@ -131,11 +131,11 @@ namespace PhyData
         public float phyHSpeed;//水平物理影响速度（被动位移
         public float phyVSpeed;//垂直物理影响速度（被动
         /// <summary>
-        /// 位移偏置
+        /// 位移偏置（旧草稿，正式管线改用 EntitySolutionResult.displacementOffset）
         /// </summary>
         public float displacementBias;
         /// <summary>
-        /// 位移嵌入
+        /// 位移嵌入（旧草稿，预测重叠在解算器内用 AABB v4 计算，不写回此字段）
         /// </summary>
         public float positionalEmbedding;
         /// <summary>
@@ -171,11 +171,17 @@ namespace PhyData
     public class BasePhyFunData
     {
         /// <summary>
-        /// 当前倚靠的墙
+        /// 当前倚靠的墙（静墙裁剪结果；可推体不再写入）
         /// </summary>
         public IPhyBaseI nowWall;
-        public IForceAction nowForceThing;  //当前施力物体
-        public IForceAction lastForceThing; //上一帧施力物体
+        /// <summary>
+        /// 已废弃：推墙/推箱不再用 Enter 边沿 AddForce（保留字段以免旧序列化/注释对照）
+        /// </summary>
+        public IForceAction nowForceThing;
+        /// <summary>
+        /// 已废弃：同上
+        /// </summary>
+        public IForceAction lastForceThing;
         public BaseGround nowGround;
         public BaseGround lastFrameGroundPlatform;//上一帧台阶
 
@@ -252,7 +258,7 @@ namespace PhyData
         /// </summary>
         public Vector2 point;
         /// <summary>
-        /// 长宽（x,y）
+        /// 长宽的一半（x,y）
         /// </summary>
         public Vector2 size;
         /// <summary>
@@ -262,17 +268,72 @@ namespace PhyData
     }
 
     /// <summary>
-    /// 实体解算结果
+    /// 实体解算结果（相位 4 写入；位移阶段用偏置，下一帧 PositionPrediction 用二阶速度）
     /// </summary>
     public struct EntitySolutionResult
     {
         /// <summary>
-        /// 位移偏置
+        /// 位移偏置（本帧 DisplacementCorrection 加到 wordDelta）
         /// </summary>
         public Vector2 displacementOffset;
         /// <summary>
-        /// 二阶速度叠加
+        /// 二阶速度叠加（下一帧相位 3 末 PositionPrediction 加到 phyH/VSpeed 后清零）
         /// </summary>
         public Vector2 secondOrderSpeed;
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// 仅供编辑器调试窗口读取的实体物理快照。
+    /// 快照不参与解算，也不向运行时逻辑回写数据。
+    /// </summary>
+    public struct EntityPhysicsDebugSnapshot
+    {
+        public int fixedTick;
+        public string entityName;
+        public RigidbodyType2D bodyType;
+        public Vector2 actualPosition;
+        public float rotation;
+        public float angularVelocity;
+
+        public Vector2 planarVelocity;
+        public Vector2 pendingSecondOrderSpeed;
+        public Vector2 predictedCenter;
+        public Vector2 predictedExtents;
+
+        public Vector2 integratedVelocityDelta;
+        public Vector2 motionDelta;
+        public Vector2 platformDelta;
+        public Vector2 solverOffset;
+        public Vector2 unconstrainedDelta;
+        public Vector2 requestedDelta;
+        public Vector2 requestedTarget;
+        public Vector2 engineCorrection;
+        public bool staticWallClamped;
+
+        public bool isGrounded;
+        public bool isTopBlocked;
+        public bool isOnLeftWall;
+        public bool isOnRightWall;
+        public Vector2 groundNormal;
+    }
+
+    /// <summary>
+    /// 仅供编辑器展示的预测接触对快照。
+    /// </summary>
+    public struct ContactPairDebugSnapshot
+    {
+        public BasicEntity entityA;
+        public BasicEntity entityB;
+        public Vector2 predictedCenterA;
+        public Vector2 predictedCenterB;
+        public bool separateOnX;
+        public Vector2 normalA;
+        public float depth;
+        public float weightA;
+        public float weightB;
+        public Vector2 offsetA;
+        public Vector2 offsetB;
+    }
+#endif
 }

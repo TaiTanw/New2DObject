@@ -80,10 +80,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     Dictionary<IDynamicAddForce, ForceData> dynamicForceDic = new Dictionary<IDynamicAddForce, ForceData>();
     /// <summary>
-    /// 二阶受力临时容器
-    /// </summary>
-    Dictionary<IDynamicAddForce, ForceData> secondaryPressureDic = new Dictionary<IDynamicAddForce, ForceData>();
-    /// <summary>
     /// 自身阻力系数
     /// </summary>
     protected float self_resistanceCoefficient = 3;
@@ -94,9 +90,94 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     bool isRecalculate;
 
     /// <summary>
-    /// 本帧实体解算结果
+    /// 实体解算结果：本帧 displacementOffset 供位移阶段；secondOrderSpeed 供下一帧 PositionPrediction
     /// </summary>
     protected EntitySolutionResult entitySolutionResult;
+
+#if UNITY_EDITOR
+    int debugFixedTick;
+    bool debugHasRequestedTarget;
+    Vector2 debugActualPosition;
+    Vector2 debugPredictedCenter;
+    Vector2 debugPredictedExtents;
+    Vector2 debugIntegratedVelocityDelta;
+    Vector2 debugMotionDelta;
+    Vector2 debugPlatformDelta;
+    Vector2 debugSolverOffset;
+    Vector2 debugUnconstrainedDelta;
+    Vector2 debugRequestedDelta;
+    Vector2 debugRequestedTarget;
+    Vector2 debugEngineCorrection;
+    bool debugStaticWallClamped;
+
+    /// <summary>
+    /// 编辑器只读观测入口。调试工具不得通过该快照改变物理解算。
+    /// </summary>
+    public EntityPhysicsDebugSnapshot DebugSnapshot
+    {
+        get
+        {
+            return new EntityPhysicsDebugSnapshot
+            {
+                fixedTick = debugFixedTick,
+                entityName = name,
+                bodyType = rb != null ? rb.bodyType : RigidbodyType2D.Static,
+                actualPosition = debugActualPosition,
+                rotation = rb != null ? rb.rotation : transform.eulerAngles.z,
+                angularVelocity = rb != null ? rb.angularVelocity : 0f,
+                planarVelocity = playerPhysicsData != null ? GetPlanarVelocity() : Vector2.zero,
+                pendingSecondOrderSpeed = entitySolutionResult.secondOrderSpeed,
+                predictedCenter = debugPredictedCenter,
+                predictedExtents = debugPredictedExtents,
+                integratedVelocityDelta = debugIntegratedVelocityDelta,
+                motionDelta = debugMotionDelta,
+                platformDelta = debugPlatformDelta,
+                solverOffset = debugSolverOffset,
+                unconstrainedDelta = debugUnconstrainedDelta,
+                requestedDelta = debugRequestedDelta,
+                requestedTarget = debugRequestedTarget,
+                engineCorrection = debugEngineCorrection,
+                staticWallClamped = debugStaticWallClamped,
+                isGrounded = nowGemetry != null && nowGemetry.isGrounded,
+                isTopBlocked = nowGemetry != null && nowGemetry.istop,
+                isOnLeftWall = nowGemetry != null && nowGemetry.onLeftWall,
+                isOnRightWall = nowGemetry != null && nowGemetry.onRightWall,
+                groundNormal = nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero
+            };
+        }
+    }
+#endif
+
+    /// <summary>
+    /// 受环境影响程度（质量倒数，接触挤出权重）
+    /// </summary>
+    public float EnvImpact => envImpact;
+
+    /// <summary>
+    /// 当前平面速度（主动 + 被动，含本帧已入账的上一帧接触速度）
+    /// </summary>
+    public Vector2 GetPlanarVelocity()
+    {
+        return new Vector2(
+            playerPhysicsData.horizontalSpeed + playerPhysicsData.phyHSpeed,
+            playerPhysicsData.verticalSpeed + playerPhysicsData.phyVSpeed);
+    }
+
+    /// <summary>
+    /// 累加本帧位移偏置（由 PhysicsSolverMgr 接触对写入）
+    /// </summary>
+    public void AccumulateDisplacementOffset(Vector2 offset)
+    {
+        entitySolutionResult.displacementOffset += offset;
+    }
+
+    /// <summary>
+    /// 累加下帧二阶速度（由 PhysicsSolverMgr 在 ICanMove 施力时写入，下一帧 PositionPrediction 应用）
+    /// </summary>
+    public void AccumulateSecondOrderSpeed(Vector2 speed)
+    {
+        entitySolutionResult.secondOrderSpeed += speed;
+    }
 
     /// <summary>
     /// 持续性移动受限开始
@@ -214,8 +295,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         //必要组件关联
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
-        //不使用刚体的重力
+        //重力由 EPhy 计算；当前保留 Dynamic，让 Unity 2D 负责静态世界的最终非穿透约束
         rb.gravityScale = 0;
+        //待静态扫掠、残嵌恢复和接触稳定闭环后，再评估是否切换为全 Kinematic
+        //rb.bodyType = RigidbodyType2D.Kinematic;
         //实时物理状态信息初始化
         playerPhysicsData = new PlayerPhysicsData();
         nowGemetry =new GeometryPhysicsData();
@@ -238,13 +321,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
         //物理职能更新
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(PhyFunUpdate, 2);
-        //速度计算
+        //速度计算（末尾 PositionPrediction 上报预测框）
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
-        //最终位移
+        // 相位 4：PhysicsSolverMgr.ContactForSolution（管理器注册）
+        //最终位移（消费本帧 displacementOffset）
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 5);
-        //二阶响应
-        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SecondOrderPhyFun, 6);
-
     }
 
     /// <summary>
@@ -290,33 +371,50 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     void SpeedCalculation()
     {
+#if UNITY_EDITOR
+        debugFixedTick++;
+        debugActualPosition = rb != null ? rb.position : (Vector2)transform.position;
+        debugEngineCorrection = debugHasRequestedTarget
+            ? debugActualPosition - debugRequestedTarget
+            : Vector2.zero;
+#endif
         //水平速度计算
         HorizontalSpeedCalculation();
         //竖直速度计算
         VerticalSpeedCalculation();
-        //二阶响应计算
+        // 应用上一帧接触速度，并上报本帧预测 AABB
         PositionPrediction();
     }
 
     /// <summary>
-    /// 位置预测与二阶职能更新
+    /// 位置预测：入账上一帧解算速度，按当前速度投射 AABB 到管理器
     /// </summary>
     void PositionPrediction()
     {
-        //更新实体速度解算结果（速度附加结果值）
-        //投射获得嵌入深度（存入(考虑接口返回此数据供外部使用（打回，应该
-        //更新物理职能（待定，部分物理职能可能无需
+        //更新实体速度解算结果（水平和垂直速度加上实体解算结果）—— 此为上一帧 ContactForSolution 写入的 secondOrderSpeed
+        playerPhysicsData.phyHSpeed += entitySolutionResult.secondOrderSpeed.x;
+        playerPhysicsData.phyVSpeed += entitySolutionResult.secondOrderSpeed.y;
+        entitySolutionResult.secondOrderSpeed = Vector2.zero;
+        // 本帧偏置由相位 4 重新累加，先清零避免无接触时沿用旧值
+        entitySolutionResult.displacementOffset = Vector2.zero;
+
+        //投射获得嵌入深度（存入，考虑接口返回此数据供外部使用）
+        //更新物理职能（待定，部分物理职能可能无需）
         //初步物理职能解析：（只看对方能不能受力），施力发出（新容器承载）
-    }
+        // → 施力改由管理器按 ICanMove 写入 EntitySolutionResult，不再在实体内对对方发力
+        if (boxCollider == null || rb == null)
+            return;
 
-    //新增相位
-    void NewUpdate()
-    {
-        //计算并应用速度（直接加回容器，下一帧真正使用）
-        //解析物理职能
-        //包括：受力速度计算/撞墙速度制零/撞物速度削弱
-        //计算出位移偏置数据
-
+        Vector2 vel = GetPlanarVelocity();
+        PhysicalBoundingBox box = new PhysicalBoundingBox();
+        box.point = (Vector2)boxCollider.bounds.center + vel * Time.fixedDeltaTime;
+        box.size = boxCollider.bounds.extents; // 半长宽，与解算器 v3=a.size+b.size 一致
+        box.myPhyBox = this;
+#if UNITY_EDITOR
+        debugPredictedCenter = box.point;
+        debugPredictedExtents = box.size;
+#endif
+        PhysicsSolverMgr.Instance.AddPhyBoX(box);
     }
 
     /// <summary>
@@ -514,7 +612,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         Vector2 velocity = new Vector2(nowHSpeed,
                                         playerPhysicsData.verticalSpeed + playerPhysicsData.phyVSpeed);
 
-        Vector2 moveDelta = velocity * Time.fixedDeltaTime;             //计算相对位移
+        Vector2 integratedVelocityDelta = velocity * Time.fixedDeltaTime;
+        Vector2 moveDelta = integratedVelocityDelta;             //计算相对位移
         //计算平台补偿位移
         Vector2 platformDelta = Vector2.zero;
         //使用于斜率位移修正
@@ -540,10 +639,17 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             moveDelta += slopeMove;
         }
 
-        Vector2 wordDelta = moveDelta + platformDelta;      //计算世界绝对位移
-        //计算世界物理位移受限(防止过度挤压出现奇怪问题,此处只考虑了左右贴墙，后续考虑逻辑收束（上下处理
-        if (wordDelta.x < 0 && nowGemetry.onLeftWall)
+        Vector2 solverOffset = entitySolutionResult.displacementOffset;
+        Vector2 wordDelta = moveDelta + platformDelta + solverOffset;      //计算世界绝对位移（含本帧接触挤出偏置）
+        Vector2 unconstrainedDelta = wordDelta;
+        bool staticWallClamped = false;
+        //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
+        //无脚本的墙层碰撞体同样视为静墙
+        bool staticLeft = nowGemetry.onLeftWall && nowGemetry.canLeftWall is not BasicEntity;
+        bool staticRight = nowGemetry.onRightWall && nowGemetry.canRightWall is not BasicEntity;
+        if (wordDelta.x < 0 && staticLeft)
         {
+            staticWallClamped = true;
             //横向速度制0
             wordDelta.x = 0;
             //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题,而附加力则清空速度但不移除受力影响
@@ -560,8 +666,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
             nowPhyFun.nowWall = nowGemetry.canLeftWall;
         }
-        else if (wordDelta.x > 0 && nowGemetry.onRightWall)
+        else if (wordDelta.x > 0 && staticRight)
         {
+            staticWallClamped = true;
             wordDelta.x = 0;
             if (playerPhysicsData.phyHSpeed > 0)
             {
@@ -582,33 +689,28 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             //离开墙面后重置
             nowPhyFun.nowWall = null;
         }
+#if UNITY_EDITOR
+        debugIntegratedVelocityDelta = integratedVelocityDelta;
+        debugMotionDelta = moveDelta;
+        debugPlatformDelta = platformDelta;
+        debugSolverOffset = solverOffset;
+        debugUnconstrainedDelta = unconstrainedDelta;
+        debugRequestedDelta = wordDelta;
+        debugRequestedTarget = rb.position + wordDelta;
+        debugStaticWallClamped = staticWallClamped;
+        debugHasRequestedTarget = true;
+#endif
         //  一次性统一移动
         rb.MovePosition(rb.position + wordDelta);
+        // 墙滑快照：仅静态 Wall，供下帧竖直钳制（不再走推墙 AddForce）
+        RefreshWallSlideSnapshot();
     }
+
     /// <summary>
-    /// 二阶物理职能更新与应用
+    /// 位移后刷新贴墙下滑所用墙引用（子类角色覆盖）
     /// </summary>
-    protected virtual void SecondOrderPhyFun()
+    protected virtual void RefreshWallSlideSnapshot()
     {
-        nowPhyFun.nowForceThing = null;
-        if(nowPhyFun.nowWall != null && nowPhyFun.nowWall is IForceAction)
-        {
-            nowPhyFun.nowForceThing = nowPhyFun.nowWall as IForceAction;
-        }
-
-        if(nowPhyFun.nowForceThing!=nowPhyFun.lastForceThing)
-        {
-            //Debug.Log("AddForce");
-            ForceData d =new ForceData();
-            d.balanceSpeed = playerPhysicsData.phyHSpeed + playerPhysicsData.horizontalSpeed;
-            d.Force = 10*d.balanceSpeed;
-            d.balanceSpeed=Mathf.Abs(d.balanceSpeed);
-            nowPhyFun.nowForceThing?.AddForce(this,d );
-            nowPhyFun.lastForceThing?.RemoveForce(this);
-            //更新数据
-            nowPhyFun.lastForceThing = nowPhyFun.nowForceThing;
-        }
-
     }
 
     protected virtual void OnDisable()
@@ -619,8 +721,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(GeometricQuery, 1);
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(PhyFunUpdate, 2);
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(SpeedCalculation, 3);
-            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(DisplacementCorrection, 4);
-            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(SecondOrderPhyFun, 5);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(DisplacementCorrection, 5);
         }
 
         nowPhyFun.nowGround?.OnPhyExit(this);

@@ -5,10 +5,20 @@ using UnityEngine;
 
 public class PhysicalBox : BasicEntity
 {
+    protected override void Awake()
+    {
+        base.Awake();
+        // 当前推箱解算只处理平移。冻结物理根节点旋转；表现子节点仍可独立旋转。
+        rb.freezeRotation = true;
+        rb.angularVelocity = 0f;
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        if (cPhysics == null) return;
         if (groundV == null) return;
+        if (upV == null) return;
         if (leftV == null) return;
         if (rightV == null) return;
         // 设置颜色：绿色半透明，便于观察
@@ -26,16 +36,17 @@ public class PhysicalBox : BasicEntity
         float a = Vector2.SignedAngle(Vector2.up,transform.up);
         RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, a, -transform.up, 0f, cPhysics.groundLayer);
         //判断是否顶头
-        nowGemetry.istop = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, a, transform.up, 0f, cPhysics.groundLayer);
-        //缓存贴地法线（因为此物体可旋转，此时贴地法线等于自身上向量
-        nowGemetry.groundNormal = transform.up;
+        RaycastHit2D topHit = Physics2D.BoxCast(upV.position, cPhysics.boxCastH, a, transform.up, 0f, cPhysics.groundLayer);
+        nowGemetry.istop = topHit.collider != null;
+        //缓存真实命中法线；斜坡位移与着地判定必须使用表面信息
+        nowGemetry.groundNormal = hit.normal;
         //默认数据声明
         IPhyBaseI currentGroundPlatform = null;
         bool onGroundNow = false;
         //默认的空中阻力系数
         self_resistanceCoefficient = 1;
         //一定角度内正对碰撞才算着地
-        if (hit.collider != null && Vector2.Dot(transform.up, Vector2.up) > 0.7f)
+        if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
         {
             onGroundNow = true;
             //在地面，则自身阻力增大
@@ -50,7 +61,7 @@ public class PhysicalBox : BasicEntity
         nowGemetry.isGrounded = onGroundNow;
         //检测左右靠墙
         RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, a, -transform.right, 0f, cPhysics.wallLayer);
-        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, transform.right, 0f, cPhysics.wallLayer);
+        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, a, transform.right, 0f, cPhysics.wallLayer);
         //检测墙是否有物理逻辑
         nowGemetry.onLeftWall = false;
         nowGemetry.canLeftWall = null;
@@ -71,4 +82,3 @@ public class PhysicalBox : BasicEntity
     }
 
 }
- 

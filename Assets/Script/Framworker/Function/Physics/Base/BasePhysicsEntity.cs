@@ -121,13 +121,14 @@ public abstract class BasePhysicsEntity : BasicEntity
 
         
     }
-    protected override void SecondOrderPhyFun()
+    /// <summary>
+    /// 位移后刷新墙滑快照（不再使用 SecondOrderPhyFun 对墙/箱 AddForce）
+    /// </summary>
+    protected override void RefreshWallSlideSnapshot()
     {
-        base.SecondOrderPhyFun();
-        //获取自身物理环境可用快照
-        if ((playphyFunData.canRightWall || playphyFunData.canLeftWall) && playphyFunData.nowWall != null && playphyFunData.nowWall is Wall)
+        if (nowPhyFun.nowWall is Wall wall)
         {
-            playphyFunData.nowWallt = playphyFunData.nowWall as Wall;
+            playphyFunData.nowWallt = wall;
         }
         else
         {

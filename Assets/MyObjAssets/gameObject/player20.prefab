@@ -59,8 +59,8 @@ Transform:
   m_GameObject: {fileID: 5010558951558207905}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0486, y: -0.6851, z: 0}
-  m_LocalScale: {x: 0.859576, y: 2.068064, z: 1}
+  m_LocalPosition: {x: -0.06, y: -0.78, z: 0}
+  m_LocalScale: {x: 0.85957587, y: 0.899401, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 574536237119771430}
@@ -106,12 +106,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 2caa734781735ae448cd0c6e1ff0769e, type: 3}
+  m_Sprite: {fileID: -205356604, guid: 0b8e00c746e5cfd49899dd097f287948, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.11, y: 0.82}
+  m_Size: {x: 1.88, y: 2.95}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -127,7 +127,7 @@ Animator:
   m_GameObject: {fileID: 5010558951558207905}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 38f975a59a50d784faefb9d0b5c80daf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -233,18 +233,18 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.67}
+  m_Offset: {x: 0, y: -0.83}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2.31, y: 4.49}
-    newSize: {x: 1.11, y: 0.82}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 1.94, y: 2.97}
+    newSize: {x: 1.94, y: 2.97}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.31, y: 3.21}
+  m_Size: {x: 1.31, y: 2.78}
   m_EdgeRadius: 0
 --- !u!50 &3971303127042905834
 Rigidbody2D:
@@ -289,6 +289,12 @@ MonoBehaviour:
   groundV: {fileID: 4291362845084649304}
   leftV: {fileID: 5839553184409024121}
   rightV: {fileID: 2014545192126681972}
+  upV: {fileID: 0}
+  gravity: -35
+  airResistance: 1
+  envImpact: 1
+  speed: 15
+  upSpeed: 15
 --- !u!1 &7743792163046834635
 GameObject:
   m_ObjectHideFlags: 0
