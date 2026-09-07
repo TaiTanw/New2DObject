@@ -260,4 +260,19 @@ namespace PhyData
         /// </summary>
         public BasicEntity myPhyBox;
     }
+
+    /// <summary>
+    /// 实体解算结果
+    /// </summary>
+    public struct EntitySolutionResult
+    {
+        /// <summary>
+        /// 位移偏置
+        /// </summary>
+        public Vector2 displacementOffset;
+        /// <summary>
+        /// 二阶速度叠加
+        /// </summary>
+        public Vector2 secondOrderSpeed;
+    }
 }

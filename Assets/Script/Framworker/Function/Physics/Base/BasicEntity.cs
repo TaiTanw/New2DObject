@@ -94,6 +94,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     bool isRecalculate;
 
     /// <summary>
+    /// 本帧实体解算结果
+    /// </summary>
+    protected EntitySolutionResult entitySolutionResult;
+
+    /// <summary>
     /// 持续性移动受限开始
     /// </summary>
     /// <param name="iD">唯一标识</param>
@@ -298,8 +303,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     void PositionPrediction()
     {
+        //更新实体速度解算结果（速度附加结果值）
         //投射获得嵌入深度（存入(考虑接口返回此数据供外部使用（打回，应该
-        //更新物理职能
+        //更新物理职能（待定，部分物理职能可能无需
         //初步物理职能解析：（只看对方能不能受力），施力发出（新容器承载）
     }
 
