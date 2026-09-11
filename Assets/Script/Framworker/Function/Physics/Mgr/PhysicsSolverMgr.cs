@@ -1,18 +1,35 @@
 ﻿using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using PhyData;
 
 /// <summary>
-/// 物理解算器（预测 AABB 接触对：本帧位移偏置 + 下帧速度意图）
-/// 相位 4：全员 PositionPrediction 上报完毕后统一解算，保证顺序无关（N=1 冻快照累加）
+/// 物理解算器（预测 AABB 接触对：本帧位移偏置 + 跨帧动态受力）。
+/// 相位 4：全员 PositionPrediction 上报完毕后统一解算，保证顺序无关（N=1 冻结快照累加）。
 /// </summary>
 public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
 {
+    // 允许保留的微小重叠。偏置只修正 rawDepth - ContactSlop，避免在零重叠附近反复成立/失效。
+    const float ContactSlop = 0.002f;
+    // 低于该值视为没有新的迎面挤压；低速重叠仍由位移偏置处理。
+    const float ClosingSpeedEpsilon = 0.01f;
+    // 沿用旧推箱原型的力/目标速度比例；最终速度仍由 ForceData.balanceSpeed 截止。
+    const float ContactForceGain = 10f;
+    const float MinEnvironmentSum = 0.0001f;
+
     /// <summary>
-    /// 投射数组（本帧预测世界快照，仅可推实体，不含静态墙）
+    /// 本帧预测世界快照。相位 3 由实体上报，相位 4 消费后清空。
     /// </summary>
-    List<PhysicalBoundingBox> projectingArray = new List<PhysicalBoundingBox>();
+    readonly List<PhysicalBoundingBox> projectingArray = new List<PhysicalBoundingBox>();
+
+    // 接触力是有方向的：A 推 B 与 B 推 A 是两条不同的数据链路。
+    // previous 用于在本帧扫描结束后找出退出的链路，并让对应动态力进入 fadeAway。
+    HashSet<ContactForceLink> previousContactForceLinks = new HashSet<ContactForceLink>();//旧接触
+    HashSet<ContactForceLink> currentContactForceLinks = new HashSet<ContactForceLink>();//本帧接触（每帧清空，帧状态快照
+
+    // 同一实体同一挤出方向一帧只衰减一次；多个接触请求取最小保留率（最强阻挡）。
+    readonly Dictionary<ContactAttenuationKey, float> pendingAttenuations = new Dictionary<ContactAttenuationKey, float>();//（每帧清空
 
 #if UNITY_EDITOR
     readonly List<ContactPairDebugSnapshot> debugContacts = new List<ContactPairDebugSnapshot>();
@@ -38,10 +55,13 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
     }
 
     /// <summary>
-    /// 接触对解算
+    /// 数据链路：预测重叠 → 当帧 slop 位移偏置 → 水平闭合判断 → 跨帧动态力；
+    /// 扫描结束后统一处理瞬时速度衰减，并把已经退出的旧接触力切换为 fadeAway。
     /// </summary>
     void ContactForSolution()
     {
+        currentContactForceLinks.Clear();
+        pendingAttenuations.Clear();
 #if UNITY_EDITOR
         debugContacts.Clear();
 #endif
@@ -51,53 +71,54 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
 
             for (int j = i + 1; j < projectingArray.Count; j++)
             {
-                //当此循环无法进入，则代表外循环已经到最后一个元素，同时也表示结束
-                //因此循环后不宜有逻辑
                 PhysicalBoundingBox b = projectingArray[j];
                 if (a.myPhyBox == null || b.myPhyBox == null)
                     continue;
-                //此处正式开始实体物理算法
-                //先算是否重叠
-                //计算位置向量差（v1在后续作方位判断，计算自己是否施力，和是否受力）
+                // v1 同时提供双方方位；v4 是预测 AABB 在 X/Y 轴上的原始重叠深度。
                 Vector2 v1 = a.point - b.point;
-                //计算绝对距离
                 Vector2 v2 = new Vector2(Mathf.Abs(v1.x), Mathf.Abs(v1.y));
-                //计算框选范围和（size 为半长宽，两半宽之和即中心距阈值）
                 Vector2 v3 = a.size + b.size;
-                //计算重叠程度
                 Vector2 v4 = v3 - v2;
-                //均大于0才能表示重合
+
                 if (v4.x > 0 && v4.y > 0)
                 {
-                    //v4表示重叠程度：比较xy大小，小的作为挤出方向
-                    float dl = Mathf.Min(v4.x, v4.y);
                     bool separateOnX = v4.x <= v4.y;
-                    //计算二者受环境影响程度
-                    float envA = a.myPhyBox.EnvImpact;
-                    float envB = b.myPhyBox.EnvImpact;
-                    float envSum = envA + envB;
-                    if (envSum < 0.0001f)
-                        envSum = 0.0001f;
-                    //a/(a+b),计算权重（envImpact 大 → 被挤出更多，近似质量倒数）
+                    float rawDepth = separateOnX ? v4.x : v4.y;
+                    //小于某值时忽略嵌入深度
+                    // slop 留在每个接触对内部；不能在最终 displacementOffset 上统一忽略小值。
+                    float correctionDepth = Mathf.Max(rawDepth - ContactSlop, 0f);
+                    //计算权重
+                    float envA = Mathf.Max(0f, a.myPhyBox.EnvImpact);
+                    float envB = Mathf.Max(0f, b.myPhyBox.EnvImpact);
+                    float envSum = Mathf.Max(envA + envB, MinEnvironmentSum);
                     float weightA = envA / envSum;
                     float weightB = envB / envSum;
-                    //赋值位移偏置（X/Y轴) —— 本帧位移阶段消费
+
+                    // 位移偏置与速度响应相互独立：只要重叠就恢复几何有效状态。
                     Vector2 offsetA = Vector2.zero;
                     Vector2 offsetB = Vector2.zero;
                     if (separateOnX)
                     {
-                        float sign = v1.x >= 0f ? 1f : -1f; // a 在 b 的右侧为正，a 沿 +X 挤出
-                        offsetA.x = sign * dl * weightA;
-                        offsetB.x = -sign * dl * weightB;
+                        float sign = v1.x >= 0f ? 1f : -1f;
+                        offsetA.x = sign * correctionDepth * weightA;
+                        offsetB.x = -sign * correctionDepth * weightB;
                     }
                     else
                     {
                         float sign = v1.y >= 0f ? 1f : -1f;
-                        offsetA.y = sign * dl * weightA;
-                        offsetB.y = -sign * dl * weightB;
+                        offsetA.y = sign * correctionDepth * weightA;
+                        offsetB.y = -sign * correctionDepth * weightB;
                     }
                     a.myPhyBox.AccumulateDisplacementOffset(offsetA);
                     b.myPhyBox.AccumulateDisplacementOffset(offsetB);
+
+                    // 当前最小实现只传播水平接触力；Y 轴只承担几何挤出。
+                    ContactSpeedResolution speedResolution = TryApplyHorizontalContactForce(
+                        a.myPhyBox,
+                        b.myPhyBox,
+                        v1,
+                        separateOnX,
+                        envSum);
 
 #if UNITY_EDITOR
                     Vector2 normalA = separateOnX
@@ -111,69 +132,234 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
                         predictedCenterB = b.point,
                         separateOnX = separateOnX,
                         normalA = normalA,
-                        depth = dl,
+                        depth = rawDepth,
+                        correctionDepth = correctionDepth,
+                        closingSpeed = speedResolution.closingSpeed,
+                        aAppliedForce = speedResolution.aAppliedForce,
+                        bAppliedForce = speedResolution.bAppliedForce,
+                        targetSpeedAToB = speedResolution.targetSpeedAToB,
+                        targetSpeedBToA = speedResolution.targetSpeedBToA,
                         weightA = weightA,
                         weightB = weightB,
                         offsetA = offsetA,
                         offsetB = offsetB
                     });
 #endif
-
-                    //计算可能的施力
-                    //只有可移动物体可施力（因为依据大小速度判断施力过于复杂，用可移动物体结合施力物体被动速度计算实际施力）
-                    //施力物体的被动速度作为施力的叠加速度，随后结合受环境影响程度计算实际速度影响（使用专属容器，每次清空）
-                    //（只有时间和动态力(type为fadeAway)可致速度叠加，状态速度作为接触所致的持续性影响，在瞬间作为计算参数不太合适，因为清空施力者状态速度后还会再复原）
-                    //探讨是否确实需要存储引用？（似乎不太必要，每帧重算即可）
-                    // → 不存长期施力引用；速度写入 EntitySolutionResult.secondOrderSpeed，下一帧 PositionPrediction 入账
-                    TryApplyContactSpeed(a, b, v1, separateOnX, envSum);
                 }
             }
         }
+        //调用实体方法衰减要求的被动速度
+        ApplyPendingAttenuations();
+        ReconcileContactForceLinks();
 
-        // 本帧快照用完即清，避免跨帧污染（下一帧由各实体重新上报）
+        // 本帧预测快照用完即清；下一帧由各实体重新上报。
         projectingArray.Clear();
     }
 
     /// <summary>
-    /// 可移动体沿挤出轴朝对方闭合时，把自身平面速度按对方权重写入对方的下帧二阶速度
-    /// 施力源用 GetPlanarVelocity（主动+被动）：玩家推箱主要靠主动速度；不含单独拆状态速度（传送带推箱为 MVP 可接受偏差）
+    /// 水平接触速度解算。
+    /// separateSign 表示物体远离接触面的挤出方向；速度与它异号才表示朝接触面运动。
+    /// 总速度负责判断和计算传递目标，实际速度通过接收者的动态力容器跨帧累计。
     /// </summary>
-    void TryApplyContactSpeed(PhysicalBoundingBox a, PhysicalBoundingBox b, Vector2 v1, bool separateOnX, float envSum)
+    ContactSpeedResolution TryApplyHorizontalContactForce(
+        BasicEntity entityA,
+        BasicEntity entityB,
+        Vector2 centerDelta,
+        bool separateOnX,
+        float envSum)
     {
-        Vector2 velA = a.myPhyBox.GetPlanarVelocity();
-        Vector2 velB = b.myPhyBox.GetPlanarVelocity();
-        bool aCanMove = a.myPhyBox is ICanMove;
-        bool bCanMove = b.myPhyBox is ICanMove;
-        if (!aCanMove && !bCanMove)
-            return;
+        ContactSpeedResolution result = new ContactSpeedResolution();
+        //暂留缺口，不处理垂直方向
+        if (!separateOnX)
+            return result;
+        //得到总速度
+        Vector2 velocityA = entityA.GetPlanarVelocity();
+        Vector2 velocityB = entityB.GetPlanarVelocity();
+        float separateSignA = centerDelta.x >= 0f ? 1f : -1f;
+        float separateSignB = -separateSignA;
 
-        if (separateOnX)
+        // 仅看单体方向会把两个同速同行的贴合物误判为继续挤压；相对闭合速度先排除该情况。*
+        result.closingSpeed = -(velocityA.x - velocityB.x) * separateSignA;
+        if (result.closingSpeed <= ClosingSpeedEpsilon)
+            return result;
+
+        if (velocityA.x * separateSignA < -ClosingSpeedEpsilon)
         {
-            float sign = v1.x >= 0f ? 1f : -1f; // a 在右侧为正
-            // a 在左侧(sign<0)且 vx>0，或 a 在右侧且 vx<0 → a 朝 b 闭合
-            if (aCanMove && ((sign < 0f && velA.x > 0f) || (sign > 0f && velA.x < 0f)))
+            result.targetSpeedAToB = RegisterDirectedContactForce(
+                entityA,
+                entityB,
+                velocityA.x,
+                separateSignA,
+                envSum);
+            result.aAppliedForce = true;
+        }
+
+        if (velocityB.x * separateSignB < -ClosingSpeedEpsilon)
+        {
+            result.targetSpeedBToA = RegisterDirectedContactForce(
+                entityB,
+                entityA,
+                velocityB.x,
+                separateSignB,
+                envSum);
+            result.bAppliedForce = true;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 注册 source → receiver 的本帧接触力。
+    /// receiverWeight 决定当前最小模型中的目标被动速度；动态力刷新时保留 receiver 已累计的 speedStacking。
+    /// </summary>
+    float RegisterDirectedContactForce(
+        BasicEntity source,
+        BasicEntity receiver,
+        float sourceAxisSpeed,
+        float sourceSeparateSign,
+        float envSum)
+    {
+        ContactForceLink link = new ContactForceLink(source, receiver);
+        currentContactForceLinks.Add(link);
+
+        float receiverWeight = Mathf.Clamp01(Mathf.Max(0f, receiver.EnvImpact) / envSum);
+        float targetSpeed = sourceAxisSpeed * receiverWeight;
+        receiver.SetOrUpdateDynamicForce(
+            source,
+            targetSpeed * ContactForceGain,
+            Mathf.Abs(targetSpeed),
+            0f);
+
+        // 百分比削弱只发生在有向接触刚成立时；保持接触不会逐帧相乘而指数缩小。
+        if (!previousContactForceLinks.Contains(link))
+            QueueContactAttenuation(source, sourceSeparateSign, receiverWeight);
+
+        return targetSpeed;
+    }
+
+    /// <summary>
+    /// 汇总本帧新接触对施力者的瞬时速度衰减请求。
+    /// key 使用实体 + 挤出方向，保证同一方向一帧只执行一次。
+    /// </summary>
+    void QueueContactAttenuation(BasicEntity entity, float separateSign, float retainRatio)
+    {
+        ContactAttenuationKey key = new ContactAttenuationKey(entity, separateSign);
+        retainRatio = Mathf.Clamp01(retainRatio);
+        if (pendingAttenuations.TryGetValue(key, out float oldRetainRatio))
+            pendingAttenuations[key] = Mathf.Min(oldRetainRatio, retainRatio);
+        else
+            pendingAttenuations.Add(key, retainRatio);
+    }
+    /// <summary>
+    /// 应用待处理施力物速度衰减
+    /// </summary>
+    void ApplyPendingAttenuations()
+    {
+        foreach (KeyValuePair<ContactAttenuationKey, float> pair in pendingAttenuations)
+        {
+            if (pair.Key.entity != null)
             {
-                float recv = velA.x * (b.myPhyBox.EnvImpact / envSum);
-                b.myPhyBox.AccumulateSecondOrderSpeed(new Vector2(recv, 0f));
-            }
-            if (bCanMove && ((sign > 0f && velB.x > 0f) || (sign < 0f && velB.x < 0f)))
-            {
-                float recv = velB.x * (a.myPhyBox.EnvImpact / envSum);
-                a.myPhyBox.AccumulateSecondOrderSpeed(new Vector2(recv, 0f));
+                // 容器在相位 4 被修改；phyHSpeed 会在下一帧相位 3 重算时反映该变化。
+                pair.Key.entity.AttenuateTransientContactSpeed(
+                    pair.Key.separateSign,
+                    pair.Value);
             }
         }
-        else
+    }
+
+    /// <summary>
+    /// 本帧未重新成立的旧有向关系已退出：接收者不再被持续加速，旧累计速度改走 fadeAway。
+    /// </summary>
+    void ReconcileContactForceLinks()
+    {
+        foreach (ContactForceLink oldLink in previousContactForceLinks)
         {
-            float sign = v1.y >= 0f ? 1f : -1f;
-            if (aCanMove && ((sign < 0f && velA.y > 0f) || (sign > 0f && velA.y < 0f)))
+            if (!currentContactForceLinks.Contains(oldLink) &&
+                oldLink.source != null && oldLink.receiver != null)
             {
-                float recv = velA.y * (b.myPhyBox.EnvImpact / envSum);
-                b.myPhyBox.AccumulateSecondOrderSpeed(new Vector2(0f, recv));
+                oldLink.receiver.RemoveForce(oldLink.source);
             }
-            if (bCanMove && ((sign > 0f && velB.y > 0f) || (sign < 0f && velB.y < 0f)))
+        }
+
+        HashSet<ContactForceLink> temp = previousContactForceLinks;
+        previousContactForceLinks = currentContactForceLinks;
+        currentContactForceLinks = temp;
+        currentContactForceLinks.Clear();
+    }
+
+    struct ContactSpeedResolution
+    {
+        public float closingSpeed;
+        public bool aAppliedForce;
+        public bool bAppliedForce;
+        public float targetSpeedAToB;
+        public float targetSpeedBToA;
+    }
+
+    struct ContactForceLink : IEquatable<ContactForceLink>
+    {
+        public readonly BasicEntity source;
+        public readonly BasicEntity receiver;
+        readonly int sourceId;
+        readonly int receiverId;
+
+        public ContactForceLink(BasicEntity source, BasicEntity receiver)
+        {
+            this.source = source;
+            this.receiver = receiver;
+            sourceId = source != null ? source.GetInstanceID() : 0;
+            receiverId = receiver != null ? receiver.GetInstanceID() : 0;
+        }
+
+        public bool Equals(ContactForceLink other)
+        {
+            return sourceId == other.sourceId && receiverId == other.receiverId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ContactForceLink && Equals((ContactForceLink)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
             {
-                float recv = velB.y * (a.myPhyBox.EnvImpact / envSum);
-                a.myPhyBox.AccumulateSecondOrderSpeed(new Vector2(0f, recv));
+                return (sourceId * 397) ^ receiverId;
+            }
+        }
+    }
+
+    struct ContactAttenuationKey : IEquatable<ContactAttenuationKey>
+    {
+        public readonly BasicEntity entity;
+        public readonly float separateSign;
+        readonly int entityId;
+        readonly int direction;
+
+        public ContactAttenuationKey(BasicEntity entity, float separateSign)
+        {
+            this.entity = entity;
+            direction = separateSign >= 0f ? 1 : -1;
+            this.separateSign = direction;
+            entityId = entity != null ? entity.GetInstanceID() : 0;
+        }
+
+        public bool Equals(ContactAttenuationKey other)
+        {
+            return entityId == other.entityId && direction == other.direction;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ContactAttenuationKey && Equals((ContactAttenuationKey)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (entityId * 397) ^ direction;
             }
         }
     }

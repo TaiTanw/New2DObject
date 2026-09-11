@@ -111,10 +111,10 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: -5326098106380249552}
-    m_Position: {x: 373.65088, y: 1.2223969, z: 0}
+    m_Position: {x: 440, y: 120, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4888296852372387141}
-    m_Position: {x: 480.34253, y: 73.88309, z: 0}
+    m_Position: {x: 440, y: 190, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5107772040554505854}
     m_Position: {x: 480, y: -70, z: 0}
@@ -123,10 +123,13 @@ AnimatorStateMachine:
     m_Position: {x: 475.74377, y: -98.11121, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -8128144772334378771}
-    m_Position: {x: 308.34827, y: -97.19146, z: 0}
+    m_Position: {x: 450, y: -160, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1183501804302623455}
     m_Position: {x: 214.53319, y: -70.51854, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 3546465523704865063}
+    m_Position: {x: 210, y: -150, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -137,6 +140,32 @@ AnimatorStateMachine:
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
   m_DefaultState: {fileID: 4888296852372387141}
+--- !u!1102 &3546465523704865063
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: OnAir_Down
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: b5956abd9c5f880479e0f2828ea48124, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
 --- !u!1102 &4888296852372387141
 AnimatorState:
   serializedVersion: 6

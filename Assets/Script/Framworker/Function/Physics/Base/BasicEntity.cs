@@ -90,7 +90,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     bool isRecalculate;
 
     /// <summary>
-    /// 实体解算结果：本帧 displacementOffset 供位移阶段；secondOrderSpeed 供下一帧 PositionPrediction
+    /// 实体解算结果：相位 4 累加 displacementOffset，相位 5 在同一物理帧消费。
     /// </summary>
     protected EntitySolutionResult entitySolutionResult;
 
@@ -126,7 +126,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
                 rotation = rb != null ? rb.rotation : transform.eulerAngles.z,
                 angularVelocity = rb != null ? rb.angularVelocity : 0f,
                 planarVelocity = playerPhysicsData != null ? GetPlanarVelocity() : Vector2.zero,
-                pendingSecondOrderSpeed = entitySolutionResult.secondOrderSpeed,
                 predictedCenter = debugPredictedCenter,
                 predictedExtents = debugPredictedExtents,
                 integratedVelocityDelta = debugIntegratedVelocityDelta,
@@ -154,7 +153,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     public float EnvImpact => envImpact;
 
     /// <summary>
-    /// 当前平面速度（主动 + 被动，含本帧已入账的上一帧接触速度）
+    /// 当前平面速度（主动 + 被动；动态接触力在相位 3 从容器累计到被动速度）
     /// </summary>
     public Vector2 GetPlanarVelocity()
     {
@@ -169,14 +168,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     public void AccumulateDisplacementOffset(Vector2 offset)
     {
         entitySolutionResult.displacementOffset += offset;
-    }
-
-    /// <summary>
-    /// 累加下帧二阶速度（由 PhysicsSolverMgr 在 ICanMove 施力时写入，下一帧 PositionPrediction 应用）
-    /// </summary>
-    public void AccumulateSecondOrderSpeed(Vector2 speed)
-    {
-        entitySolutionResult.secondOrderSpeed += speed;
     }
 
     /// <summary>
@@ -250,6 +241,69 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         //只有未找到此影响，则新增赋值
         dynamicForceDic[iD] = force;
         //否则按照原有数据继续计算
+    }
+
+    /// <summary>
+    /// 新增或刷新动态力控制参数，同时保留已经跨帧累计的 speedStacking。
+    /// 接触数据链路：管理器相位 4 调用 → 下一帧 HUnderForce/FixUpdate 累计 → phyHSpeed 参与位移预测。
+    /// 此方法不加入 IForceAction，避免改变冰面、力场等现有通用施力接口的约定。
+    /// </summary>
+    public void SetOrUpdateDynamicForce(
+        IDynamicAddForce source,
+        float force,
+        float balanceSpeed,
+        float recoverySpeed = 0f)
+    {
+        if (dynamicForceDic.TryGetValue(source, out ForceData data))
+        {
+            data.Force = force;
+            data.balanceSpeed = Mathf.Abs(balanceSpeed);
+            data.recoverySpeed = recoverySpeed;
+            data.type = E_PhyForceType.apply;
+            dynamicForceDic[source] = data;
+            objectApplyingForce.Add(source);
+            return;
+        }
+
+        ForceData newData = new ForceData();
+        newData.Init(force, recoverySpeed, balanceSpeed);
+        dynamicForceDic[source] = newData;
+        objectApplyingForce.Add(source);
+    }
+
+    /// <summary>
+    /// 接触刚成立时，按挤出方向一次性削弱会继续进入接触面的非持续速度来源。
+    /// 只改限时速度与 fadeAway 动态力；主动速度、状态速度和仍在 apply 的持续力不属于本次碰撞消耗。
+    /// </summary>
+    public void AttenuateTransientContactSpeed(float separateSign, float retainRatio)
+    {
+        if (Mathf.Approximately(separateSign, 0f))
+            return;
+
+        separateSign = separateSign >= 0f ? 1f : -1f;
+        retainRatio = Mathf.Clamp01(retainRatio);
+        //时间力衰减
+        for (int i = 0; i < UnderForceList.Count; i++)
+        {
+            SpeedStackData data = UnderForceList[i];
+            // 速度与挤出方向异号，表示该速度分量仍朝接触面运动。
+            if (data.hspeed * separateSign < 0f)
+            {
+                data.hspeed *= retainRatio;
+                UnderForceList[i] = data;
+            }
+        }
+        //动态（fadeAway状态）力衰减
+        foreach (IDynamicAddForce source in objectApplyingForce)
+        {
+            ForceData data = dynamicForceDic[source];
+            if (data.type == E_PhyForceType.fadeAway &&
+                data.speedStacking * separateSign < 0f)
+            {
+                data.speedStacking *= retainRatio;
+                dynamicForceDic[source] = data;
+            }
+        }
     }
     /// <summary>
     /// 改变受力
@@ -391,11 +445,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     void PositionPrediction()
     {
-        //更新实体速度解算结果（水平和垂直速度加上实体解算结果）—— 此为上一帧 ContactForSolution 写入的 secondOrderSpeed
-        playerPhysicsData.phyHSpeed += entitySolutionResult.secondOrderSpeed.x;
-        playerPhysicsData.phyVSpeed += entitySolutionResult.secondOrderSpeed.y;
-        entitySolutionResult.secondOrderSpeed = Vector2.zero;
-        // 本帧偏置由相位 4 重新累加，先清零避免无接触时沿用旧值
+        // 相位 4 会重新累加本帧偏置，先清零避免无接触时沿用旧结果。
+        // 接触速度不再写入解算结果，而由 dynamicForceDic 在下一帧相位 3 跨帧累计。
         entitySolutionResult.displacementOffset = Vector2.zero;
 
         //投射获得嵌入深度（存入，考虑接口返回此数据供外部使用）
@@ -638,7 +689,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
             moveDelta += slopeMove;
         }
-
         Vector2 solverOffset = entitySolutionResult.displacementOffset;
         Vector2 wordDelta = moveDelta + platformDelta + solverOffset;      //计算世界绝对位移（含本帧接触挤出偏置）
         Vector2 unconstrainedDelta = wordDelta;
@@ -733,6 +783,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
     public virtual void ForceCalculation(IForceAction IF)
     {
-        
+        // 实体接触力由 PhysicsSolverMgr 在相位 4 统一刷新。
+        // HUnderForce 在下一帧相位 3 回调到这里时不重复推导，直接使用容器内上一相位 4 的参数。
     }
 }

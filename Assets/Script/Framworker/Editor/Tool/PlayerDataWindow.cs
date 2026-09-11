@@ -100,7 +100,6 @@ public class PlayerDataWindow : EditorWindow
         EditorGUILayout.Space();
         GUILayout.Label("运动与解算", EditorStyles.boldLabel);
         DrawVector("平面总速度", snapshot.planarVelocity);
-        DrawVector("待下帧接触速度", snapshot.pendingSecondOrderSpeed);
         DrawVector("速度积分位移", snapshot.integratedVelocityDelta);
         DrawVector("斜坡修正后位移", snapshot.motionDelta);
         DrawVector("平台位移", snapshot.platformDelta);
@@ -143,11 +142,31 @@ public class PlayerDataWindow : EditorWindow
             BasicEntity other = pair.entityA == target ? pair.entityB : pair.entityA;
             Vector2 ownOffset = pair.entityA == target ? pair.offsetA : pair.offsetB;
             Vector2 ownNormal = pair.entityA == target ? pair.normalA : -pair.normalA;
+            bool ownAppliedForce = pair.entityA == target
+                ? pair.aAppliedForce
+                : pair.bAppliedForce;
+            bool otherAppliedForce = pair.entityA == target
+                ? pair.bAppliedForce
+                : pair.aAppliedForce;
+            float ownTargetSpeed = pair.entityA == target
+                ? pair.targetSpeedAToB
+                : pair.targetSpeedBToA;
+            float otherTargetSpeed = pair.entityA == target
+                ? pair.targetSpeedBToA
+                : pair.targetSpeedAToB;
 
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("对方", other != null ? other.name : "<Missing>");
             EditorGUILayout.LabelField("挤出轴", pair.separateOnX ? "X" : "Y");
-            EditorGUILayout.LabelField("重叠深度", pair.depth.ToString("F5"));
+            EditorGUILayout.LabelField("原始重叠深度", pair.depth.ToString("F5"));
+            EditorGUILayout.LabelField("实际修正深度", pair.correctionDepth.ToString("F5"));
+            EditorGUILayout.LabelField("相对闭合速度", pair.closingSpeed.ToString("F5"));
+            EditorGUILayout.LabelField(
+                "本方 / 对方施力",
+                $"{ownAppliedForce} / {otherAppliedForce}");
+            EditorGUILayout.LabelField(
+                "本方 / 对方目标速度",
+                $"{ownTargetSpeed:F5} / {otherTargetSpeed:F5}");
             DrawVector("本方分离法线", ownNormal);
             DrawVector("本方偏置", ownOffset);
             EditorGUILayout.LabelField(

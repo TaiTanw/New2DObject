@@ -46,7 +46,7 @@ namespace PhyData
         /// </summary>
         public float Force;
         /// <summary>
-        /// 受控复原速度
+        /// 受控复原速度（阻滞速度叠加时的施力大小
         /// </summary>
         public float recoverySpeed;
         /// <summary>
@@ -97,7 +97,11 @@ namespace PhyData
 
             return speedStacking;
         }
-
+        /// <summary>
+        /// 受控速度恢复
+        /// </summary>
+        /// <param name="quality">质量倒数</param>
+        /// <returns></returns>
         public float ControlledSpeedRecovery(float quality)
         {
             if (speedStacking > 0.2)
@@ -122,22 +126,34 @@ namespace PhyData
     #region 物理实时数据
 
     /// <summary>
-    /// 速度实时物理数据
+    /// 实时物理移动效应数据
     /// </summary>
     public class PlayerPhysicsData
     {
-        public float horizontalSpeed;   //当前自身水平速度（主动位移
-        public float verticalSpeed;  //当前自身竖直速度（可主动影响
-        public float phyHSpeed;//水平物理影响速度（被动位移
-        public float phyVSpeed;//垂直物理影响速度（被动
+        /// <summary>
+        /// 当前自身水平速度（主动位移
+        /// </summary>
+        public float horizontalSpeed;
+        /// <summary>
+        /// 当前自身竖直速度（可主动影响
+        /// </summary>
+        public float verticalSpeed;
+        /// <summary>
+        /// 水平物理影响速度（被动位移
+        /// </summary>
+        public float phyHSpeed;
+        /// <summary>
+        /// 垂直物理影响速度（被动
+        /// </summary>
+        public float phyVSpeed;
         /// <summary>
         /// 位移偏置（旧草稿，正式管线改用 EntitySolutionResult.displacementOffset）
         /// </summary>
-        public float displacementBias;
+        //public float displacementBias;
         /// <summary>
         /// 位移嵌入（旧草稿，预测重叠在解算器内用 AABB v4 计算，不写回此字段）
         /// </summary>
-        public float positionalEmbedding;
+        //public float positionalEmbedding;
         /// <summary>
         /// 当前环境物理约束数据,移动速度（粘滞力
         /// </summary>
@@ -268,7 +284,7 @@ namespace PhyData
     }
 
     /// <summary>
-    /// 实体解算结果（相位 4 写入；位移阶段用偏置，下一帧 PositionPrediction 用二阶速度）
+    /// 实体接触解算结果。相位 4 写入，相位 5 在同一物理帧消费；跨帧速度由动态力容器维护。
     /// </summary>
     public struct EntitySolutionResult
     {
@@ -276,10 +292,6 @@ namespace PhyData
         /// 位移偏置（本帧 DisplacementCorrection 加到 wordDelta）
         /// </summary>
         public Vector2 displacementOffset;
-        /// <summary>
-        /// 二阶速度叠加（下一帧相位 3 末 PositionPrediction 加到 phyH/VSpeed 后清零）
-        /// </summary>
-        public Vector2 secondOrderSpeed;
     }
 
 #if UNITY_EDITOR
@@ -297,7 +309,6 @@ namespace PhyData
         public float angularVelocity;
 
         public Vector2 planarVelocity;
-        public Vector2 pendingSecondOrderSpeed;
         public Vector2 predictedCenter;
         public Vector2 predictedExtents;
 
@@ -329,7 +340,16 @@ namespace PhyData
         public Vector2 predictedCenterB;
         public bool separateOnX;
         public Vector2 normalA;
+        /// <summary>预测框原始重叠深度。</summary>
         public float depth;
+        /// <summary>扣除 slop 后实际分配给双方的修正深度。</summary>
+        public float correctionDepth;
+        /// <summary>双方沿 X 轴的相对闭合速度；Y 轴接触为 0。</summary>
+        public float closingSpeed;
+        public bool aAppliedForce;
+        public bool bAppliedForce;
+        public float targetSpeedAToB;
+        public float targetSpeedBToA;
         public float weightA;
         public float weightB;
         public Vector2 offsetA;
