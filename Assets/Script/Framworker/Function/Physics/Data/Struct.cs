@@ -265,12 +265,45 @@ namespace PhyData
     #endregion
 
     /// <summary>
-    /// 物理范围框
+    /// 实体本帧的未约束运动快照。BasicEntity 在相位 3 生成一次，预测与相位 5 提交复用。
+    /// 使用只读值字段避免后续相位改写其中的分量；每帧整体替换，不保存跨帧惯性。
+    /// 与 EntitySolutionResult 分工：本结构保存基础运动，后者保存相位 4 新产生的接触纠偏。
+    /// </summary>
+    public readonly struct EntityMotionFrame
+    {
+        /// <summary>速度结算后的主动/被动合量；尚未经过地面位移处理，也不是最终实际速度。</summary>
+        public readonly Vector2 freeVelocity;
+        /// <summary>原始 freeVelocity * dt，保留它用于核对地面处理前后的差异。</summary>
+        public readonly Vector2 integratedVelocityDelta;
+        /// <summary>经过当前地面规则处理的实体运动，不含平台补偿及接触纠偏。</summary>
+        public readonly Vector2 motionDelta;
+        /// <summary>本帧着地平台的带动位移；离地时为零，只在构建快照时采样。</summary>
+        public readonly Vector2 platformDelta;
+        /// <summary>motionDelta + platformDelta；预测与提交的共同基础，不含接触/静墙/引擎修正。</summary>
+        public readonly Vector2 plannedWorldDelta;
+
+        public EntityMotionFrame(
+            Vector2 freeVelocity,
+            Vector2 integratedVelocityDelta,
+            Vector2 motionDelta,
+            Vector2 platformDelta)
+        {
+            this.freeVelocity = freeVelocity;
+            this.integratedVelocityDelta = integratedVelocityDelta;
+            this.motionDelta = motionDelta;
+            this.platformDelta = platformDelta;
+            plannedWorldDelta = motionDelta + platformDelta;
+        }
+    }
+
+    /// <summary>
+    /// 提供给管理器的预测 AABB 样本；几何来自 Collider，平移来自 EntityMotionFrame。
+    /// 不持有完整运动状态，接触速度读取仍沿用现有 BasicEntity.GetPlanarVelocity 接口。
     /// </summary>
     public struct PhysicalBoundingBox
     {
         /// <summary>
-        /// 位置
+        /// 世界预测中心：本帧 Collider 中心 + plannedWorldDelta；已包含地面处理和平台补偿。
         /// </summary>
         public Vector2 point;
         /// <summary>
@@ -285,11 +318,12 @@ namespace PhyData
 
     /// <summary>
     /// 实体接触解算结果。相位 4 写入，相位 5 在同一物理帧消费；跨帧速度由动态力容器维护。
+    /// 本阶段结构不变：只承载接触纠偏，不重复保存 EntityMotionFrame 的基础运动。
     /// </summary>
     public struct EntitySolutionResult
     {
         /// <summary>
-        /// 位移偏置（本帧 DisplacementCorrection 加到 wordDelta）
+        /// 位移偏置（本帧 DisplacementCorrection 加到 motionFrame.plannedWorldDelta）
         /// </summary>
         public Vector2 displacementOffset;
     }
@@ -315,6 +349,8 @@ namespace PhyData
         public Vector2 integratedVelocityDelta;
         public Vector2 motionDelta;
         public Vector2 platformDelta;
+        /// <summary>复制运行时运动快照的共同基础位移，只用于观察预测与提交的数据流。</summary>
+        public Vector2 plannedWorldDelta;
         public Vector2 solverOffset;
         public Vector2 unconstrainedDelta;
         public Vector2 requestedDelta;

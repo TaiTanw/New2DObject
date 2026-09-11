@@ -99,10 +99,12 @@ public class PlayerDataWindow : EditorWindow
     {
         EditorGUILayout.Space();
         GUILayout.Label("运动与解算", EditorStyles.boldLabel);
-        DrawVector("平面总速度", snapshot.planarVelocity);
+        DrawVector("未约束总速度（相位 3）", snapshot.planarVelocity);
         DrawVector("速度积分位移", snapshot.integratedVelocityDelta);
         DrawVector("斜坡修正后位移", snapshot.motionDelta);
         DrawVector("平台位移", snapshot.platformDelta);
+        // 来自实体相位 3 的运动快照；窗口只展示，不通过各分量另算一份运行时输入。
+        DrawVector("预测/提交共用基础位移", snapshot.plannedWorldDelta);
         DrawVector("接触对偏置", snapshot.solverOffset);
         DrawVector("静墙裁剪前位移", snapshot.unconstrainedDelta);
         DrawVector("最终请求位移", snapshot.requestedDelta);

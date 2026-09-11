@@ -90,6 +90,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     bool isRecalculate;
 
     /// <summary>
+    /// 本帧未约束运动快照：相位 3 在速度结算后整体替换，预测和相位 5 提交共同读取。
+    /// 已包含现有地面运动规则与平台补偿；不保存接触偏置，也不承担跨帧速度累计。
+    /// </summary>
+    private EntityMotionFrame motionFrame;
+
+    /// <summary>
     /// 实体解算结果：相位 4 累加 displacementOffset，相位 5 在同一物理帧消费。
     /// </summary>
     protected EntitySolutionResult entitySolutionResult;
@@ -100,9 +106,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     Vector2 debugActualPosition;
     Vector2 debugPredictedCenter;
     Vector2 debugPredictedExtents;
-    Vector2 debugIntegratedVelocityDelta;
-    Vector2 debugMotionDelta;
-    Vector2 debugPlatformDelta;
     Vector2 debugSolverOffset;
     Vector2 debugUnconstrainedDelta;
     Vector2 debugRequestedDelta;
@@ -125,12 +128,13 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
                 actualPosition = debugActualPosition,
                 rotation = rb != null ? rb.rotation : transform.eulerAngles.z,
                 angularVelocity = rb != null ? rb.angularVelocity : 0f,
-                planarVelocity = playerPhysicsData != null ? GetPlanarVelocity() : Vector2.zero,
+                planarVelocity = motionFrame.freeVelocity,
                 predictedCenter = debugPredictedCenter,
                 predictedExtents = debugPredictedExtents,
-                integratedVelocityDelta = debugIntegratedVelocityDelta,
-                motionDelta = debugMotionDelta,
-                platformDelta = debugPlatformDelta,
+                integratedVelocityDelta = motionFrame.integratedVelocityDelta,
+                motionDelta = motionFrame.motionDelta,
+                platformDelta = motionFrame.platformDelta,
+                plannedWorldDelta = motionFrame.plannedWorldDelta,
                 solverOffset = debugSolverOffset,
                 unconstrainedDelta = debugUnconstrainedDelta,
                 requestedDelta = debugRequestedDelta,
@@ -154,6 +158,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
     /// <summary>
     /// 当前平面速度（主动 + 被动；动态接触力在相位 3 从容器累计到被动速度）
+    /// 保留现有接触施力的读口；该值尚未经过地面位移处理，不等于最终世界位移除以 dt。
     /// </summary>
     public Vector2 GetPlanarVelocity()
     {
@@ -375,10 +380,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
         //物理职能更新
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(PhyFunUpdate, 2);
-        //速度计算（末尾 PositionPrediction 上报预测框）
+        //速度计算 → 构建本帧运动快照 → PositionPrediction 上报预测框
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
         // 相位 4：PhysicsSolverMgr.ContactForSolution（管理器注册）
-        //最终位移（消费本帧 displacementOffset）
+        //最终位移（复用本帧运动快照，叠加相位 4 的 displacementOffset）
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 5);
     }
 
@@ -436,12 +441,64 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         HorizontalSpeedCalculation();
         //竖直速度计算
         VerticalSpeedCalculation();
-        // 应用上一帧接触速度，并上报本帧预测 AABB
+        // 上一帧接触动态力已由上面的速度计算入账。本帧仅在这里采样地面/平台并构建一次快照，
+        // 相位 4 仍只累计偏置及刷新下帧动态力，相位 5 不再重算基础位移。
+        Vector2 platformDelta = nowGemetry.isGrounded && nowPhyFun.nowGround != null
+            ? nowPhyFun.nowGround.Delta
+            : Vector2.zero;
+        motionFrame = BuildMotionFrame(
+            GetPlanarVelocity(),
+            playerPhysicsData.verticalSpeed,
+            nowGemetry.isGrounded,
+            nowGemetry.groundNormal,
+            platformDelta,
+            Time.fixedDeltaTime);
         PositionPrediction();
     }
 
     /// <summary>
-    /// 位置预测：入账上一帧解算速度，按当前速度投射 AABB 到管理器
+    /// 把速度、几何和平台的本帧采样转换为未约束运动快照。
+    /// 从旧相位 5 提取原有位移公式；只计算值，不积分额外力、不读写实体或 Unity 世界。
+    /// fixedDeltaTime 显式传入，确保各分量使用同一物理步长。
+    /// </summary>
+    private static EntityMotionFrame BuildMotionFrame(
+        Vector2 freeVelocity,
+        float verticalSpeed,
+        bool isGrounded,
+        Vector2 groundNormal,
+        Vector2 platformDelta,
+        float fixedDeltaTime)
+    {
+        Vector2 integratedVelocityDelta = freeVelocity * fixedDeltaTime;
+        Vector2 moveDelta = integratedVelocityDelta;
+        if (isGrounded)
+        {
+            // TODO（竖直环境速度语义，另案核对）：保留旧着地分支的提交规则。
+            // freeVelocity.y 包含 verticalSpeed + phyVSpeed，但这里重建位移时只保留 verticalSpeed，
+            // 因此着地时 phyVSpeed 不进入 motionDelta；verticalSpeed 本身还含重力/跳跃，并非纯主动速度。
+            // 平台的 platformDelta.y 会单独相加，它与 phyVSpeed 是不同来源，不能互相替代。
+            // 本次仅让预测与提交共同遵循现状，不在提取函数时补加或清零 phyVSpeed。
+            // 后续应分别验证正/负竖直环境速度、起跳首帧及移动平台后，再确定地面处理规则。
+            moveDelta = new Vector2(0, verticalSpeed * fixedDeltaTime);
+            float moveAmount = freeVelocity.x * fixedDeltaTime;
+            Vector2 tangent = new Vector2(groundNormal.y, -groundNormal.x);
+            if (Mathf.Sign(tangent.x) != Mathf.Sign(freeVelocity.x))
+                tangent *= -1;
+
+            // 沿用原规则：总水平速度的大小作为沿地面切线的运动速度。
+            moveDelta += tangent.normalized * Mathf.Abs(moveAmount);
+        }
+
+        return new EntityMotionFrame(
+            freeVelocity,
+            integratedVelocityDelta,
+            moveDelta,
+            isGrounded ? platformDelta : Vector2.zero);
+    }
+
+    /// <summary>
+    /// 位置预测：按本帧运动快照投射 AABB 到管理器，不再单独使用速度乘 dt。
+    /// 预测形状包含地面运动和平台补偿，但尚不包含相位 4 偏置、相位 5 静墙裁剪或 Unity 修正。
     /// </summary>
     void PositionPrediction()
     {
@@ -449,16 +506,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         // 接触速度不再写入解算结果，而由 dynamicForceDic 在下一帧相位 3 跨帧累计。
         entitySolutionResult.displacementOffset = Vector2.zero;
 
-        //投射获得嵌入深度（存入，考虑接口返回此数据供外部使用）
-        //更新物理职能（待定，部分物理职能可能无需）
-        //初步物理职能解析：（只看对方能不能受力），施力发出（新容器承载）
-        // → 施力改由管理器按 ICanMove 写入 EntitySolutionResult，不再在实体内对对方发力
         if (boxCollider == null || rb == null)
             return;
 
-        Vector2 vel = GetPlanarVelocity();
         PhysicalBoundingBox box = new PhysicalBoundingBox();
-        box.point = (Vector2)boxCollider.bounds.center + vel * Time.fixedDeltaTime;
+        box.point = (Vector2)boxCollider.bounds.center + motionFrame.plannedWorldDelta;
         box.size = boxCollider.bounds.extents; // 半长宽，与解算器 v3=a.size+b.size 一致
         box.myPhyBox = this;
 #if UNITY_EDITOR
@@ -654,43 +706,13 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     }
 
     /// <summary>
-    /// 位移修正与应用,挤压面检测
+    /// 消费相位 3 的基础运动快照及相位 4 的接触结果，再执行原有静墙裁剪与一次 MovePosition。
+    /// 基础位移已包含平台补偿，此处不再读地面/平台重算，避免预测与提交采用两套位移。
     /// </summary>
     void DisplacementCorrection()
     {
-        //计算当前速度向量与移动距离
-        float nowHSpeed = playerPhysicsData.horizontalSpeed + playerPhysicsData.phyHSpeed;
-        Vector2 velocity = new Vector2(nowHSpeed,
-                                        playerPhysicsData.verticalSpeed + playerPhysicsData.phyVSpeed);
-
-        Vector2 integratedVelocityDelta = velocity * Time.fixedDeltaTime;
-        Vector2 moveDelta = integratedVelocityDelta;             //计算相对位移
-        //计算平台补偿位移
-        Vector2 platformDelta = Vector2.zero;
-        //使用于斜率位移修正
-        if (nowGemetry.isGrounded)
-        {
-            //若有地面脚本，则获取位移修正
-            if (nowPhyFun.nowGround)
-                platformDelta = nowPhyFun.nowGround.Delta;
-            //此处斜率补正
-            moveDelta = new Vector2(0, playerPhysicsData.verticalSpeed * Time.fixedDeltaTime);
-            //使用总速度
-            float moveAmount = nowHSpeed * Time.fixedDeltaTime;
-            //碰撞法线的垂线
-            Vector2 tangent = new Vector2(nowGemetry.groundNormal.y, -nowGemetry.groundNormal.x);
-            //判断方向是否一致（sign返回正负性
-            if (Mathf.Sign(tangent.x) != Mathf.Sign(nowHSpeed))
-                tangent *= -1;
-
-            //Debug.Log(tangent);
-            //此处表示，沿斜坡移动的速度和水平速度一致
-            Vector2 slopeMove = tangent.normalized * Mathf.Abs(moveAmount);
-
-            moveDelta += slopeMove;
-        }
         Vector2 solverOffset = entitySolutionResult.displacementOffset;
-        Vector2 wordDelta = moveDelta + platformDelta + solverOffset;      //计算世界绝对位移（含本帧接触挤出偏置）
+        Vector2 wordDelta = motionFrame.plannedWorldDelta + solverOffset;
         Vector2 unconstrainedDelta = wordDelta;
         bool staticWallClamped = false;
         //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
@@ -740,9 +762,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             nowPhyFun.nowWall = null;
         }
 #if UNITY_EDITOR
-        debugIntegratedVelocityDelta = integratedVelocityDelta;
-        debugMotionDelta = moveDelta;
-        debugPlatformDelta = platformDelta;
         debugSolverOffset = solverOffset;
         debugUnconstrainedDelta = unconstrainedDelta;
         debugRequestedDelta = wordDelta;
