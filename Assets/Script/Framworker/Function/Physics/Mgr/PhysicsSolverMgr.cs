@@ -32,9 +32,10 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
     readonly Dictionary<ContactAttenuationKey, float> pendingAttenuations = new Dictionary<ContactAttenuationKey, float>();//（每帧清空
 
 #if UNITY_EDITOR
+    // [EditorOnly] 接触观测缓存，运行时解算不读取此列表。
     readonly List<ContactPairDebugSnapshot> debugContacts = new List<ContactPairDebugSnapshot>();
     /// <summary>
-    /// 编辑器只读接触快照；每个物理帧在解算开始时刷新。
+    /// [EditorOnly] 编辑器只读接触快照；每个物理帧在解算开始时刷新。
     /// </summary>
     public IReadOnlyList<ContactPairDebugSnapshot> DebugContacts => debugContacts;
 #endif
@@ -113,6 +114,7 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
                     b.myPhyBox.AccumulateDisplacementOffset(offsetB);
 
                     // 当前最小实现只传播水平接触力；Y 轴只承担几何挤出。
+                    // 此调用会登记实际接触力，即使返回值仅供下方调试展示，也必须在正式运行中执行。
                     ContactSpeedResolution speedResolution = TryApplyHorizontalContactForce(
                         a.myPhyBox,
                         b.myPhyBox,
@@ -121,7 +123,8 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
                         envSum);
 
 #if UNITY_EDITOR
-                    Vector2 normalA = separateOnX
+                    // [EditorOnly] 这里的法线副本只用于接触详情展示。
+                    Vector2 debugNormalA = separateOnX
                         ? new Vector2(v1.x >= 0f ? 1f : -1f, 0f)
                         : new Vector2(0f, v1.y >= 0f ? 1f : -1f);
                     debugContacts.Add(new ContactPairDebugSnapshot
@@ -131,7 +134,7 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
                         predictedCenterA = a.point,
                         predictedCenterB = b.point,
                         separateOnX = separateOnX,
-                        normalA = normalA,
+                        normalA = debugNormalA,
                         depth = rawDepth,
                         correctionDepth = correctionDepth,
                         closingSpeed = speedResolution.closingSpeed,

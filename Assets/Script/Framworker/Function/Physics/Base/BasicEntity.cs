@@ -101,6 +101,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     protected EntitySolutionResult entitySolutionResult;
 
 #if UNITY_EDITOR
+    // [EditorOnly] 观测缓存统一使用 debug 前缀；只向 DebugSnapshot 输出，不作为运行时解算输入。
     int debugFixedTick;
     bool debugHasRequestedTarget;
     Vector2 debugActualPosition;
@@ -114,7 +115,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     bool debugStaticWallClamped;
 
     /// <summary>
-    /// 编辑器只读观测入口。调试工具不得通过该快照改变物理解算。
+    /// [EditorOnly] 编辑器只读观测入口。调试工具不得通过该快照改变物理解算。
     /// </summary>
     public EntityPhysicsDebugSnapshot DebugSnapshot
     {
@@ -128,12 +129,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
                 actualPosition = debugActualPosition,
                 rotation = rb != null ? rb.rotation : transform.eulerAngles.z,
                 angularVelocity = rb != null ? rb.angularVelocity : 0f,
-                planarVelocity = motionFrame.freeVelocity,
+                planarVelocity = motionFrame.debugFreeVelocity,
                 predictedCenter = debugPredictedCenter,
                 predictedExtents = debugPredictedExtents,
-                integratedVelocityDelta = motionFrame.integratedVelocityDelta,
-                motionDelta = motionFrame.motionDelta,
-                platformDelta = motionFrame.platformDelta,
+                integratedVelocityDelta = motionFrame.debugIntegratedVelocityDelta,
+                motionDelta = motionFrame.debugMotionDelta,
+                platformDelta = motionFrame.debugPlatformDelta,
                 plannedWorldDelta = motionFrame.plannedWorldDelta,
                 solverOffset = debugSolverOffset,
                 unconstrainedDelta = debugUnconstrainedDelta,
@@ -713,15 +714,21 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     {
         Vector2 solverOffset = entitySolutionResult.displacementOffset;
         Vector2 wordDelta = motionFrame.plannedWorldDelta + solverOffset;
-        Vector2 unconstrainedDelta = wordDelta;
-        bool staticWallClamped = false;
+#if UNITY_EDITOR
+        // [EditorOnly] 裁剪前位移和“本帧发生裁剪”仅用于观测，直接写调试缓存。
+        // 正式运行仅使用下方的 wordDelta/墙面状态，不保留额外观测局部变量。
+        debugUnconstrainedDelta = wordDelta;
+        debugStaticWallClamped = false;
+#endif
         //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
         //无脚本的墙层碰撞体同样视为静墙
         bool staticLeft = nowGemetry.onLeftWall && nowGemetry.canLeftWall is not BasicEntity;
         bool staticRight = nowGemetry.onRightWall && nowGemetry.canRightWall is not BasicEntity;
         if (wordDelta.x < 0 && staticLeft)
         {
-            staticWallClamped = true;
+#if UNITY_EDITOR
+            debugStaticWallClamped = true;
+#endif
             //横向速度制0
             wordDelta.x = 0;
             //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题,而附加力则清空速度但不移除受力影响
@@ -740,7 +747,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         }
         else if (wordDelta.x > 0 && staticRight)
         {
-            staticWallClamped = true;
+#if UNITY_EDITOR
+            debugStaticWallClamped = true;
+#endif
             wordDelta.x = 0;
             if (playerPhysicsData.phyHSpeed > 0)
             {
@@ -761,22 +770,22 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             //离开墙面后重置
             nowPhyFun.nowWall = null;
         }
+        // 由已解析的静墙状态刷新下一帧墙滑引用；不读取移动后的接触结果，故在最终位移提交前完成。
+        RefreshWallSlideSnapshot();
 #if UNITY_EDITOR
+        // [EditorOnly] 提交前记录请求结果，下一物理帧再观察 Unity 的实际位置修正。
         debugSolverOffset = solverOffset;
-        debugUnconstrainedDelta = unconstrainedDelta;
         debugRequestedDelta = wordDelta;
         debugRequestedTarget = rb.position + wordDelta;
-        debugStaticWallClamped = staticWallClamped;
         debugHasRequestedTarget = true;
 #endif
-        //  一次性统一移动
+        // 相位 5 的最后一步：所有状态更新和观测采样完成后，仅提交一次位移。
         rb.MovePosition(rb.position + wordDelta);
-        // 墙滑快照：仅静态 Wall，供下帧竖直钳制（不再走推墙 AddForce）
-        RefreshWallSlideSnapshot();
     }
 
     /// <summary>
-    /// 位移后刷新贴墙下滑所用墙引用（子类角色覆盖）
+    /// 位移提交前，依据本帧已解析的墙面状态刷新墙滑引用（子类角色覆盖）。
+    /// 不依赖 Unity 在 MovePosition 之后的真实接触结果；最终位移提交保持在相位 5 末尾。
     /// </summary>
     protected virtual void RefreshWallSlideSnapshot()
     {

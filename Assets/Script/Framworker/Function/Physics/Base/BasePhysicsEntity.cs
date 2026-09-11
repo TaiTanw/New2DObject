@@ -122,7 +122,7 @@ public abstract class BasePhysicsEntity : BasicEntity
         
     }
     /// <summary>
-    /// 位移后刷新墙滑快照（不再使用 SecondOrderPhyFun 对墙/箱 AddForce）
+    /// 位移提交前，根据已解析的静墙引用刷新墙滑快照；不读取移动后的几何结果。
     /// </summary>
     protected override void RefreshWallSlideSnapshot()
     {
