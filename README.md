@@ -5,8 +5,9 @@
 > 结构示意（三页：概述流程 / 结构 / 数据流）：[`Docs/物理框架结构图.drawio`](Docs/物理框架结构图.drawio)  
 > 可用 [diagrams.net](https://app.diagrams.net/) 或 VS Code Draw.io 插件打开。  
 > **开发设计文档索引：** [`Docs/README.md`](Docs/README.md)  
-> **物理接触与推箱（总目录）：** [`Docs/物理接触与推箱/README.md`](Docs/物理接触与推箱/README.md)  
-> 其中速度算法见 [`04-实体接触速度算法.md`](Docs/物理接触与推箱/04-实体接触速度算法.md)
+> **漏洞与功能安排：** [`Docs/漏洞与功能安排.md`](Docs/漏洞与功能安排.md)  
+> **事务具体安排与评估：** [`Docs/事务具体安排与评估/README.md`](Docs/事务具体安排与评估/README.md)  
+> 接触速度算法（历史回顾）见 [`04-实体接触速度算法.md`](Docs/事务具体安排与评估/04-实体接触速度算法.md)
 
 ---
 
@@ -15,60 +16,62 @@
 | # | 原则 | 落地方式 |
 |---|------|----------|
 | 1 | **逻辑脱离 Mono** | `PlayerStateMachine` 等为纯 C#；`MonoBehaviour` 只做容器、调度与生命周期 |
-| 2 | **单向数据管线** | `Input → FSM → ActionData → Physics → Movement`，禁止反向污染 |
-| 3 | **行为 vs 运动学** | FSM 只决定「能否做 / 做什么」；Physics 只算速度与位移 |
+| 2 | **单向数据管线** | 外来输入 → 实际类别调度 → 行为策略 → 执行 → 表现；下层只读快照，禁止回写 |
+| 3 | **行为 vs 执行** | 行为策略只决定「能否做 / 做什么」；执行层只算速度、位移或其它效果 |
 | 4 | **几何 vs 实体职能** | `GeometryPhysicsData` 只描述碰撞感知；环境逻辑走接口（`IForceAction` 等） |
 | 5 | **环境力 Enter/Exit** | 平台/冰面/力场统一注册粘滞力、状态速度、动态力，避免每帧硬编码 |
 | 6 | **接口扩展** | 新增环境类型优先实现接口，少改底层几何查询 |
-| 7 | **组件组装** | `Player` = `CharacterPhysics` + FSM + `PresentationLayer` + 输入绑定 |
+| 7 | **角色对象四层组装** | 一层一个挂载脚本：实际类别 / 行为策略 / 执行 / 表现；输入绑定不是角色层 |
 | 8 | **配置外置** | 检测层、盒尺寸等走 `SO_CPhysics` / ScriptableObject |
 
 ---
 
 ## 层级架构
 
-整体自上而下分为五层。上层只写「意图」，下层只读快照执行。
+公共调度不算角色层。一个实际角色（玩家或怪物）由四层组成：实际类别、行为策略、执行、表现。一层对应一个挂载的自定义脚本，该脚本管理同层级其它脚本。上层只写意图，下层只读快照；上一层不宜知晓下一层内部有什么。
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  L0  引导 / 管理器层                                         │
+│  公共调度                                                     │
 │  Main → DataConfigurationMgr / DataAndInitMgr /             │
 │         MonoPublicMgr / InputControlMgr / UIMgr …           │
 └────────────────────────────┬────────────────────────────────┘
-                             │ 注入 InputActionAsset、SO、时序槽
+                             │ 注入 InputActionAsset、SO、时序槽；输入是外来数据
 ┌────────────────────────────▼────────────────────────────────┐
-│  L1  编排层（Player）                                         │
-│  绑定输入 · 初始化 FSM / 物理 / 表现 · 保证时序正确            │
+│  实际类别（Player）                                           │
+│  回答此角色是谁 · 找到组件并初始化 · 接入该角色需要的外来输入     │
 └──────────┬─────────────────┬─────────────────┬──────────────┘
            │                 │                 │
 ┌──────────▼──────┐ ┌────────▼────────┐ ┌──────▼──────────────┐
-│ L2 行为层        │ │ L3 运动学层      │ │ L4 表现层            │
+│ 行为策略         │ │ 执行             │ │ 表现                │
 │ PlayerStateMachine│ │ BasicEntity →   │ │ PresentationLayer   │
 │ IsOnGround/Air/  │ │ BasePhysicsEntity│ │ Animator / Flip     │
-│ WallSliding      │ │ CharacterPhysics │ │ （只读速度/动作）    │
+│ WallSliding      │ │ CharacterPhysics │ │ 只读速度/动作        │
 │ LocalEventSystem │ │ + 环境施力体     │ │                     │
 └────────┬─────────┘ └────────┬────────┘ └─────────────────────┘
          │ ActionData / Event  │ Geometry + Velocity
          └──────────►──────────┘
 ```
 
-### L0 — 引导与公共调度
+输入绑定由 `InputControlMgr` 处理，不是角色上单独一层。一层内多种效果在该层做数据组织，不把编排脚本或表现脚本膨胀成全能类。其它角色声明专属「实际类别」脚本，按需关联 AI 等。
+
+### 公共调度
 
 - **`Main`**：DontDestroyOnLoad 入口，按序 `Init` 各管理器。
 - **`MonoPublicMgr`**：在 `FixedUpdate` 中按 **时序槽 0→5** 驱动全部物理回调（见下文「物理帧管线」）。
 - **`InputControlMgr`**：持有唯一 `PlayerInputData`，由玩家 `BindPlayer` 拉取，保证控制权唯一。
 - **`DataAndInitMgr` / `DataConfigurationMgr`**：按键资源、开场 SO（如角色模型名）等。
 
-### L1 — 编排（`Player`）
+### 实际类别（`Player`）
 
-`Player` 不写具体物理公式，只负责：
+`Player` 回答此角色是谁，不写具体物理公式，只负责：
 
 1. `InputControlMgr.BindPlayer(this)` → 注入 `PlayerInputData`
 2. 构造 `PlayerStateMachine`、拿到 `CharacterPhysics` / `PresentationLayer`
 3. `Start` 时单向注入只读包装：几何、速度、动作数据
 4. 每帧 `Update`：仅调用 `fsm.Update(inputData)`
 
-### L2 — 行为层（FSM）
+### 行为策略（FSM）
 
 | 类型 | 职责 |
 |------|------|
@@ -77,9 +80,9 @@
 | `MovementData` / `ReadOnly_ActionData` | 持续意图：`onMove`、`nowState` |
 | `E_playEvent` | `jump` / `jumpRelease` / `wallJump`（物理侧订阅后消费） |
 
-**关键边界**：FSM **不写** `Rigidbody2D`、不算重力；只产出「可执行动作」与事件。
+**关键边界**：行为策略 **不写** `Rigidbody2D`、不算重力；只产出「可执行动作」与事件。输入数据由本层处理，输入管理器本身不属于本层。
 
-### L3 — 运动学层
+### 执行（运动学）
 
 继承链：
 
@@ -101,14 +104,14 @@ PhysicalBox                 可移动箱体：复用 BasicEntity 几何查询
 - **`IDynamicAddForce`**：每物理帧可改力类型/大小（如冰面滑行）
 - **`ICanMove`**：暴露 `MovingDirection` / `Mobility` 给环境（冰面用移动意图算加速方向）
 
-### L4 — 表现层
+### 表现
 
 `PresentationLayer` 只读：
 
 - `ReadOnly_ActionData`（朝向、状态）
 - `ReadOnly_PlayerPhysicsData` / `ReadOnly_GeometryPhysicsData`
 
-当前实现：左右翻转 + 按状态分支占位。**不回写**物理，保持管线单向。
+当前实现：按只读快照选择待机、地面移动、起跳、上升、下落、落地与贴墙，并做左右翻转。**不回写**逻辑或物理。局部说明见 [`Assets/Script/Framworker/Function/Performance/README.md`](Assets/Script/Framworker/Function/Performance/README.md)。
 
 ---
 
@@ -139,8 +142,8 @@ flowchart LR
     PF[2 PhyFunUpdate]
     SC[3 SpeedCalculation]
     DC[4 DisplacementCorrection]
-    SO2[5 SecondOrderPhyFun]
-    GQ --> PF --> SC --> DC --> SO2
+    SUB[5 Submit]
+    GQ --> PF --> SC --> DC --> SUB
     MD -.->|ReadOnly_ActionData| SC
     EV -.->|jump / wallJump| SC
   end
@@ -161,8 +164,8 @@ flowchart LR
 | 几何查询 | `BasePhysicsEntity` | Collider / Layer | `isGrounded`、墙、法线 |
 | 职能更新 | `BasicEntity` | 几何结果 | 进出地面、`nowGround` / 墙引用 |
 | 速度 | `CharacterPhysics` + 环境力 | ActionData / 事件 | `horizontalSpeed` + `phyHSpeed` 等 |
-| 位移 | `BasicEntity` | 速度 + 平台 Delta | `rb.MovePosition` |
-| 二阶 | 贴墙对墙施力等 | 上一帧职能 | 动态力闭环 |
+| 运动快照 | `BasicEntity` | 速度 + 地面规则 + 平台 Delta | `EntityMotionFrame.plannedWorldDelta` |
+| 位移 | `BasicEntity` | 快照基础位移 + 接触偏置 | `rb.MovePosition` |
 
 瞬时按键由 FSM 消费后清零（`jumpPressed = false`），避免 FixedUpdate 丢帧或多吃。
 
@@ -175,9 +178,9 @@ flowchart LR
 | 0 | 如 `Taijie.FixFun` | 平台自位移，先算 `Delta` |
 | 1 | `GeometricQuery` | BoxCast 地面/墙，写几何快照 |
 | 2 | `PhyFunUpdate` | 地面 Enter/Exit、墙职能解析 |
-| 3 | `SpeedCalculation` | 粘滞 → 被动力 → 主动速度 → 重力/跳跃 |
-| 4 | `DisplacementCorrection` | 斜坡切向、平台补偿、贴墙清零、MovePosition |
-| 5 | `SecondOrderPhyFun` | 靠墙对墙体反向施力等二阶响应 |
+| 3 | `SpeedCalculation` | 粘滞 → 被动力 → 主动速度 → 重力/跳跃；构建 `EntityMotionFrame`，预测与提交共用 `plannedWorldDelta`（见 `08`） |
+| 4 | `DisplacementCorrection` | 实体接触等位置偏置 |
+| 5 | 提交 | 基础位移 + 偏置 → 静墙裁剪 → `MovePosition` |
 
 水平速度公式（概念上）：
 
@@ -284,21 +287,22 @@ PlayerPhysicsData / Geometry / ActionData
 
 ```text
 Assets/Script/
-├── Main.cs                          # 入口
 ├── Framworker/
-│   ├── Base/                        # 单例基类、面板、局部事件
-│   ├── DataStructure/
-│   │   ├── FSM/                     # PlayerStateMachine、BehavioralState
-│   │   ├── Struct.cs                # PhyData 运行时数据结构
-│   │   └── interface/               # 受力 / 拖拽接口
-│   ├── Manger/                      # Input / Mono 时序 / UI / 场景 / 数据 …
+│   ├── Main.cs                      # 入口
+│   ├── AOTSystem/                   # 基类、公共 Mgr、事件、对象池
+│   ├── Function/
+│   │   ├── Physics/                 # Base / Component / Data / Interface / Mgr
+│   │   ├── Player/                  # Player、FSM、输入
+│   │   └── Performance/             # PresentationLayer
+│   ├── UISystem/
+│   ├── MusicSystem/
 │   └── Editor/Tool/                 # Excel、调试窗
-├── Data/                            # SO、表生成数据
-└── Task/
-    ├── Component/                   # Player、CharacterPhysics、PresentationLayer
-    ├── BaseGameObj/                 # BasicEntity、BasePhysicsEntity、地面基类
-    └── gameOBJ/                     # 箱体、墙、冰面、台阶、力场、相机 …
+├── Data/                            # SO、表数据
+└── Task/                            # 场景流程、相机等，不是物理框架主干
 Docs/
+├── README.md                        # 文档索引
+├── 漏洞与功能安排.md                 # V_/F_ 执行入口
+├── 事务具体安排与评估/               # 历史回顾与按问题评估
 └── 物理框架结构图.drawio            # 概述 / 继承结构 / 数据流（三页）
 ```
 
@@ -307,20 +311,22 @@ Docs/
 ## 快速对照：谁依赖谁
 
 ```text
-InputControlMgr ──写入──► PlayerInputData
+InputControlMgr ──写入──► PlayerInputData     （外来数据，不是角色层）
                               │
-Player.Update ──► FSM ──写入──► MovementData / Events
+                    Player（实际类别：调度 / 初始化）
+                              │
+              Player.Update ──► FSM ──写入──► MovementData / Events
                               │
               ┌───────────────┼───────────────┐
               ▼               ▼               ▼
-     CharacterPhysics   PresentationLayer   （未来 AI）
+     CharacterPhysics   PresentationLayer   （其它角色可接 AI）
               │
          BasicEntity 物理时序
               │
          环境 IApplyingForceAction / IDynamicAddForce
 ```
 
-只读包装保证：**行为层与表现层不能直接改内部可变字段**，修改必须走 FSM 写口或物理自身方法。
+只读包装保证：**行为策略与表现不能直接改内部可变字段**，修改必须走 FSM 写口或执行层自身方法。
 
 ---
 
@@ -329,7 +335,7 @@ Player.Update ──► FSM ──写入──► MovementData / Events
 - Unity 2D + **新 Input System**（`PlayerInput` + `InputActionAsset`）
 - 物理位移使用 `Rigidbody2D.MovePosition`，`gravityScale = 0`（重力自管）
 - 检测尺寸 / Layer 配置在 **`SO_CPhysics`**，场景中挂到实体上
-- 角色组装：同一套运动学栈可换皮/换 FSM 策略做 NPC（组件模式）
+- 角色组装：实际类别脚本 + 行为策略 + 执行 + 表现；输入来自管理器，不单独占一层
 
 ---
 
@@ -338,8 +344,8 @@ Player.Update ──► FSM ──写入──► MovementData / Events
 打开 [`Docs/物理框架结构图.drawio`](Docs/物理框架结构图.drawio)：
 
 1. **第 1 页 — 概述流程**：数据管理器 → 输入管理器 → 逻辑状态机 → 物理组件 → 位移；含 SO 配置与事件瞬时动作。
-2. **第 2 页 — 结构**：实体继承树（`BasicEntity` → … → `CharacterPhysics`）、FSM 层级、`Player` 编排中心、表现层。
-3. **第 3 页 — 数据流**：Init / Update / FixedUpdate 三阶段；`GeometricQuery` → … → `SecondOrderPhyFun` 与各 `ReadOnly_*` 快照。
+2. **第 2 页 — 结构**：实体继承树（`BasicEntity` → … → `CharacterPhysics`）、行为策略、`Player` 实际类别、表现层。
+3. **第 3 页 — 数据流**：Init / Update / FixedUpdate 三阶段；几何查询 → 职能 → 速度/运动快照 → 位移提交与各 `ReadOnly_*` 快照。
 
 ---
 

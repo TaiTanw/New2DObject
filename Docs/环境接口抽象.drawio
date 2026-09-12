@@ -1,0 +1,523 @@
+<mxfile host="Electron" pages="5" compressed="false">
+  <diagram id="classes" name="01 结构事实：实际继承关系">
+    <mxGraphModel dx="1800" dy="1270" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1270" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="环境接口抽象  /  第一阶段第二步 · 当前代码结构" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="24" width="1650" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="01 先认清：项目里现在有哪些类" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="60" width="1710" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="本页只看“谁继承谁”。箭头指向父类；沿箭头往上找，就能知道公共代码从哪里继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="47" y="121" width="1700" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#254E67;strokeColor=#254E67;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="171" width="1710" height="3" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="01 / 05    01 结构事实：实际继承关系     ·     实线箭头上的文字说明关系；只有空心三角表示继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=13;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1227" width="1710" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FAFCFB;strokeColor=#D8E4DE;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="205" width="1110" height="805" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FAFBFD;strokeColor=#D9E2EF;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="205" width="580" height="805" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="环境来源侧：地面、冰面、力场、平台与墙" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="65" y="218" width="1060" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="受影响的实体侧：角色与箱子" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1205" y="218" width="530" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="unitySource" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;MonoBehaviour&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;Unity 场景组件&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="405" y="270" width="320" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="source" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;BasicPhysicalObject&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;旧环境组件的公共外壳&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;保留旧参数 speedChangeNum、phySpeed。&lt;br&gt;统一承接启用、禁用和兼容的进入 / 退出入口。&lt;br&gt;实际登记工作交给 EnvironmentRegistration。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="300" y="405" width="520" height="174" as="geometry" />
+        </mxCell>
+        <mxCell id="ground" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;BaseGround&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;地面参数兼容层&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;提供地面阻力、跳跃加成。&lt;br&gt;允许通过“脚下支撑”接入效果。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="75" y="640" width="330" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="field" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;ForceField&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;力场：区域内持续施力&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;提供 add、maxSpeed 初始化规则。&lt;br&gt;区域关系由公共逻辑管理。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="450" y="640" width="330" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="pond" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;pond&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;水域：区域状态效果&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;沿用公共移速修饰、持续速度。&lt;br&gt;类名小写是当前代码事实。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="825" y="640" width="280" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="ice" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;IceGround&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;冰面&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;按受力者初始化动态力；&lt;br&gt;根据移动输入更新控制参数。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="75" y="855" width="300" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="platform" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Taijie&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;移动平台&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;相位 0 更新自身位置；&lt;br&gt;提供本帧位移 Delta。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="435" y="855" width="300" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="wall" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Wall&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;可墙滑的墙&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;提供墙滑能力与倍率。&lt;br&gt;普通无脚本墙仍可阻挡。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="795" y="855" width="300" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="source" target="unitySource">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.18;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="ground" target="source">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.55;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="field" target="source">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.87;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="pond" target="source">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="ice" target="ground">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="225" y="817" />
+              <mxPoint x="141.0" y="817" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="platform" target="ground">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="585" y="817" />
+              <mxPoint x="240.0" y="817" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="wall" target="ground">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="945" y="817" />
+              <mxPoint x="339.0" y="817" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="unityEntity" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;MonoBehaviour&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;Unity 场景组件&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="270" width="340" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="entity" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;物理实体的公共基类&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;持有环境关系和原有速度容器。&lt;br&gt;执行速度计算、运动预测与最终位移提交。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="405" width="500" height="158" as="geometry" />
+        </mxCell>
+        <mxCell id="characterBase" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;BasePhysicsEntity&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;角色物理公共层&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;读取动作输入；&lt;br&gt;解析地面和墙滑能力。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="640" width="280" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="box" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;PhysicalBox&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;箱体物理组件&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;继承实体的环境接入；&lt;br&gt;无主动移动接口 ICanMove。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1520" y="640" width="220" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="character" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;CharacterPhysics&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;角色物理组件&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;实现 ICanMove，提供移动方向与移动能力。&lt;br&gt;处理跳跃、墙跳和墙滑速度。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="855" width="530" height="143" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="entity" target="unityEntity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="characterBase" target="entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="box" target="entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;strokeColor=#8294A5;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.27;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="character" target="characterBase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="remember1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;本次改变的重点&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;冰面不再自己维护三套清理流程&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;IceGround 保留“怎么计算参数”，公共逻辑负责“怎么登记、怎么解除”。&lt;br&gt;现有继承链仍在，旧子类也仍继承公共状态参数；能力接口本身不要求这条继承链。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1030" width="1060" height="151" as="geometry" />
+        </mxCell>
+        <mxCell id="remember2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;继续阅读&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;下一页看：对象是谁持有的&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;继承回答“公共代码来自哪里”。&lt;br&gt;持有关系回答“运行时数据放在哪里”。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="1030" width="615" height="151" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="ownership" name="02 结构事实：对象与数据归属">
+    <mxGraphModel dx="1800" dy="1390" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1390" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="环境接口抽象  /  第一阶段第二步 · 当前代码结构" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="24" width="1650" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="02 再看清：谁持有谁，数据究竟存在哪里" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="60" width="1710" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="这里的方框表示运行时对象或数据。每个环境源有自己的辅助对象，每个实体有自己的环境 Context。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="47" y="121" width="1700" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#254E67;strokeColor=#254E67;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="171" width="1710" height="3" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="02 / 05    02 结构事实：对象与数据归属     ·     实线箭头上的文字说明关系；只有空心三角表示继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=13;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1347" width="1710" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="环境源对象" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="70" y="207" width="450" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="受影响的实体对象" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="660" y="207" width="480" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="实体已经存在的数值存储" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="207" width="480" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="source" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;BasicPhysicalObject&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;例如：场景中的一块冰面&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;通过 IEnvironmentSource 暴露接入辅助对象。&lt;br&gt;参数、特殊计算规则保留在具体组件上。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="70" y="260" width="450" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="entity" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;例如：角色或某一个箱子&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;通过 IEnvironmentReceiver 暴露环境 Context。&lt;br&gt;一个实体一份关系记录；各实体互不混存。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="660" y="260" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="registration" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;EnvironmentRegistration&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;源端的登记辅助对象&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;Provider：指向实际能力提供者。&lt;br&gt;receivers：受影响 Context 的反向索引。&lt;br&gt;区域查询缓存：上次 / 本次重叠实体集合。&lt;br&gt;状态修饰与持续速度用它作为稳定来源键。&lt;br&gt;这里不保存累计速度，也不积分力。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="70" y="510" width="450" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;EntityEnvironmentContext&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;实体拥有的环境关系账本&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;bindings：按来源保存 Binding。&lt;br&gt;SetAccess：记录接入依据，按能力登记效果。&lt;br&gt;Detach / ReleaseAll：统一解除已登记效果。&lt;br&gt;RefreshGround：核对支撑并更新环境帧。&lt;br&gt;通过 IForceAction 操作实体原有容器。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="660" y="510" width="480" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="stores" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity 中的原有容器&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;力与速度数值仍存放在这里&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;phyStateDic&lt;br&gt;  主动移速修饰，来源键是 Registration。&lt;br&gt;startSpeedDic&lt;br&gt;  持续速度，来源键也是 Registration。&lt;br&gt;dynamicForceDic&lt;br&gt;  ForceData：参数、类型、累计速度。&lt;br&gt;  动态来源键仍是冰面 / 力场等动态施力接口。&lt;br&gt;objectApplyingForce&lt;br&gt;  动态来源的遍历索引，不是第二份数值。&lt;br&gt;UnderForceList&lt;br&gt;  限时速度；仍按原有链路计算。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="260" width="480" height="475" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="持有 1 个" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="source" target="registration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="持有 1 个" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="entity" target="context">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="区域 / 显式入口&lt;br&gt;调用 SetAccess" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.32;exitDx=0;exitDy=0;entryX=0;entryY=0.32;entryDx=0;entryDy=0;" edge="1" parent="1" source="registration" target="context">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" value="Track / Untrack&lt;br&gt;维护反向索引" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=1;exitX=0;exitY=0.77;exitDx=0;exitDy=0;entryX=1;entryY=0.77;entryDx=0;entryDy=0;" edge="1" parent="1" source="context" target="registration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="调用登记 / 撤销&lt;br&gt;更新原容器" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.77;entryDx=0;entryDy=0;" edge="1" parent="1" source="context" target="stores">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n19" value="Context 内部的两种记录" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="70" y="805" width="1070" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="n20" value="关键区别：关系结束，速度不一定归零" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="805" width="480" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="binding" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;Binding（Context 私有类）&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;一份来源关系的登记记录&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;access：Ground / Region / Explicit 位标记。&lt;br&gt;一个来源可以同时有多种接入依据。&lt;br&gt;hasMovement、hasStateVelocity：登记过什么。&lt;br&gt;dynamicForce：已登记的动态施力来源。&lt;br&gt;只有最后一个接入依据消失，才统一撤销。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="70" y="860" width="505" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="frame" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;EntityEnvironmentFrame&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;本帧支撑面的三个采样值&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;slowingMultiplier：消退阻力倍率。&lt;br&gt;jumpHeightOffset：跳跃高度加成。&lt;br&gt;platformDelta：平台本帧世界位移。&lt;br&gt;由 Context 在相位 2 整体更新。&lt;br&gt;它不是“全部环境速度”的另一份容器。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="630" y="860" width="510" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="tail" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;ForceData.speedStacking&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;已经取得的速度属于实体状态&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;解除环境绑定时调用 RemoveForce。&lt;br&gt;该调用把动态力切换为 fadeAway。&lt;br&gt;累计速度留在 dynamicForceDic 中继续衰减。&lt;br&gt;尾效归零后，再由实体原循环移除。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="860" width="480" height="228" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="内部持有" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="context" target="binding">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="780" />
+              <mxPoint x="499.25" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e25" value="更新本帧采样" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.72;exitY=1;exitDx=0;exitDy=0;entryX=0.72;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="context" target="frame">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oneTruth" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;不要把两份“名单”误认为两份物理状态&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;Context 是关系的权威记录；Registration 是清理用的反向索引&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;源禁用时，可以从反向索引找到所有受影响实体并解除绑定；实体退出时，也会同步从源端索引中移除自己。&lt;br&gt;两边没有各算一次速度。数字仍由实体原有容器保存，Context 负责统一接入、采样和清理。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1140" width="1670" height="153" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="lifecycle" name="03 运行事实：进入、保持与退出">
+    <mxGraphModel dx="1800" dy="1440" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1440" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="环境接口抽象  /  第一阶段第二步 · 当前代码结构" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="24" width="1650" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="03 沿着一次作用看：它怎样开始，又怎样结束" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="60" width="1710" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="进入环境，不等于每帧重新加一份力。接入关系负责保留一份效果，原速度算法负责逐帧计算。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="47" y="121" width="1700" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#254E67;strokeColor=#254E67;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="171" width="1710" height="3" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="03 / 05    03 运行事实：进入、保持与退出     ·     实线箭头上的文字说明关系；只有空心三角表示继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=13;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1397" width="1710" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="三个入口：发现“这个来源目前对这个实体有效”" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="207" width="1700" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="groundIn" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Ground · 脚下支撑&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;由实体相位 2 主动核对&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;BasicEntity.PhyFunUpdate&lt;br&gt;→ Context.RefreshGround(groundCollider)&lt;br&gt;找有效 IEnvironmentSource，且允许地面接入。&lt;br&gt;也在这里采样支撑参数；无需调用冰面 OnPhyEnter。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="260" width="535" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="regionIn" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Region · 区域重叠&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;由区域源相位 2 主动采样&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;BasicPhysicalObject.RefreshRegion&lt;br&gt;→ Registration.RefreshTriggerRegion()&lt;br&gt;多个源 / 接收 Collider 按实体取并集。&lt;br&gt;相位 2 查询替代各子类的 Enter / Exit 回调。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="633" y="260" width="535" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="explicitIn" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Explicit · 显式进入 / 退出&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;保留给外部调用的兼容入口&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;OnPhyEnter / OnPhyExit&lt;br&gt;→ Registration 的显式接入依据&lt;br&gt;只影响 Explicit 标记，不误删 Ground / Region。&lt;br&gt;重新接入时，由显式调用方再次通知进入。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1216" y="260" width="535" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="access" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;Context.SetAccess&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;先看这个来源有没有登记过&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;已有 Binding：只合并接入依据，不重复登记。&lt;br&gt;第一次进入：创建 Binding，记录来源。&lt;br&gt;随后按该来源实际实现的接口登记效果。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="535" width="535" height="168" as="geometry" />
+        </mxCell>
+        <mxCell id="apply" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IForceAction · 实体写入入口&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;三类效果写入原有容器&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;移速修饰 → StatePowerRegistration&lt;br&gt;持续速度 → AddSpeedStatus&lt;br&gt;动态施力 → CreateEnvironmentForce → AddForce&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="633" y="535" width="535" height="168" as="geometry" />
+        </mxCell>
+        <mxCell id="calculate" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity · 相位 3&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;这时才按原算法算速度&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;PhyStateCalculate：合并主动移速修饰。&lt;br&gt;HUnderForce：限时、动态和持续速度合成。&lt;br&gt;动态源回调 ForceCalculation，再更新 ForceData。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1216" y="535" width="535" height="168" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="groundIn" target="access">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="regionIn" target="access">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="900.5" y="490" />
+              <mxPoint x="317.5" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="explicitIn" target="access">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1483.5" y="475" />
+              <mxPoint x="478" y="475" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" value="首次登记" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="access" target="apply">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0" y="-22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" value="相位 3 消费" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="apply" target="calculate">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0" y="-22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n18" value="保持与退出：登记关系和累计速度分别处理" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="758" width="1700" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="stay" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;仍在作用范围内&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;重复确认关系，持续计算效果&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;Ground / Region 每次采样都会确认接入。&lt;br&gt;因此原地重启后，也能重新建立已清理的绑定。&lt;br&gt;同一来源仍只登记一次。&lt;br&gt;重新进入动态环境：沿用旧 AddForce 规则，&lt;br&gt;保留累计速度和旧初始化参数，仅恢复 apply。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="813" width="535" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="exit" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;最后一个接入依据消失&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;Context.Detach 统一撤销&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;主动移速修饰 → 删除该来源。&lt;br&gt;持续速度 → 删除该来源。&lt;br&gt;动态施力 → RemoveForce → fadeAway。&lt;br&gt;Binding 删除，同时执行 Untrack。&lt;br&gt;已经取得的动态速度仍留在实体里衰减。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="633" y="813" width="535" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="disabled" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;来源或实体被禁用&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;双方都能发起完整清理&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;源 OnDisable → Registration.ReleaseAll。&lt;br&gt;实体 OnDisable → Context.ReleaseAll。&lt;br&gt;重复清理安全；来源销毁也会核对失效关系。&lt;br&gt;区域只剩一个 Collider 重叠时仍保持作用；&lt;br&gt;最后一个离开或删除，才解除区域依据。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1216" y="813" width="535" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="n22" value="放回整条物理管线：数字是实际物理相位" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1090" width="1700" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="phase0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;0 · 平台运动&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;Taijie 更新自身位置&lt;br&gt;产出本帧 Delta&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;1 · 几何查询&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;真实 Collider / 法线&lt;br&gt;重置自身基础阻力&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="337" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="phase0" target="phase1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="phase2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;2 · 环境接入&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;支撑 / 区域关系核对&lt;br&gt;采样支撑环境帧&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="624" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="phase1" target="phase2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="phase3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;3 · 速度与预测&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;原速度计算&lt;br&gt;生成运动快照与预测框&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="911" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="phase2" target="phase3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="phase4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;4 · 实体接触&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;当帧位移偏置&lt;br&gt;刷新 T+1 接触动态力&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1198" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="phase3" target="phase4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="phase5" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;5 · 最终提交&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;静墙裁剪、墙滑引用&lt;br&gt;最后调用 MovePosition&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1485" y="1145" width="263" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=blockThin;endFill=1;strokeColor=#607B90;strokeWidth=1.7;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#3E586B;labelBackgroundColor=#FFFFFF;dashed=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="phase4" target="phase5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n34" value="所有相位 2 回调执行完，才进入相位 3。相位 4 的接触动态力仍在下一帧相位 3 入账；本次没有替换接触速度算法。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1310" width="1695" height="42" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="interfaces" name="04 接口事实：提供方与读取方">
+    <mxGraphModel dx="1800" dy="1550" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1550" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="环境接口抽象  /  第一阶段第二步 · 当前代码结构" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="24" width="1650" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="04 接口不神秘：它只是约定“能读到什么”" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="60" width="1710" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="每一行都对应现有代码。没有能力，就不实现对应接口；零也可以是有效参数，不能用零来代表“没有接口”。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="47" y="121" width="1700" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#254E67;strokeColor=#254E67;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="171" width="1710" height="3" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="04 / 05    04 接口事实：提供方与读取方     ·     实线箭头上的文字说明关系；只有空心三角表示继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=13;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1507" width="1710" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="sourceAccess" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;IEnvironmentSource&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;环境源的接入协议&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;暴露 EnvironmentRegistration 属性。&lt;br&gt;当前 BasicPhysicalObject 实现；其他组件也可独立实现。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="220" width="825" height="133" as="geometry" />
+        </mxCell>
+        <mxCell id="receiverAccess" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;IEnvironmentReceiver&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;实体的接收协议&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;暴露 EntityEnvironmentContext 属性。&lt;br&gt;当前由 BasicEntity 实现；进入关系管理需要此入口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="920" y="220" width="825" height="133" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="能力接口：类名 + 中文含义" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=20;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="65" y="386" width="430" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="n9" value="当前提供方（包括继承）" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=20;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="585" y="386" width="380" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="n10" value="实际读取位置，以及最后影响什么" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=20;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="386" width="680" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cap0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IMovementSpeedModifier&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;主动移速修饰&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;MovementSpeedOffset：加性修饰量。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="432" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicPhysicalObject&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;所有旧环境子类继承这项能力。&lt;br&gt;读取旧字段 speedChangeNum。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="432" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;Context.SetAccess → StatePowerRegistration&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;登记到 BasicEntity.phyStateDic。&lt;br&gt;相位 3 求和、限幅，再用 1 + nowPhyNum 修饰主动速度。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="432" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="cap1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IStateVelocitySource&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;持续速度来源&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;StateVelocity：持续附加的二维速度。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="579" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicPhysicalObject&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;所有旧环境子类继承这项能力。&lt;br&gt;读取旧字段 phySpeed。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="579" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;Context.SetAccess → AddSpeedStatus&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;登记到 BasicEntity.startSpeedDic。&lt;br&gt;HUnderForce 按来源相加；这一项不乘 EnvImpact。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="579" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="cap2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IDynamicEnvironmentForce&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;动态施力的初始化能力&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;继承旧 IDynamicAddForce 接口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="726" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IceGround / ForceField&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;CreateEnvironmentForce(receiver)&lt;br&gt;按具体规则产生 ForceData 初值。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="726" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;进入时初始化；相位 3 持续控制与计算&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;Context 调用 AddForce，累计速度保存在实体。&lt;br&gt;ForceCalculation 更新控制参数，随后实体执行 ForceData 算法。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="726" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="cap3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IGroundResponse&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;支撑表面的响应参数&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;SlowingEffect、JumpHeightNum。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="873" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BaseGround&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;IceGround、Taijie、Wall 继承。&lt;br&gt;地面阻力倍率与跳跃加成。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="873" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;Context.RefreshGround → EntityEnvironmentFrame&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;slowingMultiplier 用于实体消退阻力。&lt;br&gt;jumpHeightOffset 由 CharacterPhysics 在跳跃时读取。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="873" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="cap4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IPlatformMotion&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;支撑物本帧位移&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;Delta：世界位移，不是速度。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1020" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;Taijie&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;沿用基类中的 Delta 存储。&lt;br&gt;相位 0 更新，支撑时读取。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="1020" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;Context.RefreshGround → 环境帧 → 运动快照&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;platformDelta 在相位 2 采样。&lt;br&gt;相位 3 加入 EntityMotionFrame，一次计入预测与基础提交。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="1020" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="cap5" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;IWallSlideSurface&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;墙滑能力与倍率&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;WallSlideMultiplier：下滑倍率。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1167" width="490" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="provider5" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;Wall&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;接口存在且组件有效，才有墙滑能力。&lt;br&gt;无脚本墙仍可作为几何障碍。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="575" y="1167" width="410" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="reader5" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;EnvironmentCapabilities.Find → 角色物理层&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;BasePhysicsEntity 保存有效墙滑引用；CharacterPhysics 读取倍率。&lt;br&gt;逻辑层只读属性返回是否具有有效能力的布尔事实。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="1167" width="725" height="131" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;仍保留的旧协议&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;新接入层继续复用已有速度系统&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;IForceAction：实体登记、撤销与更新效果的写入方法。&lt;br&gt;IApplyingForceAction：旧显式进入 / 退出协议；Registration 也实现它。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1352" width="825" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="legacy2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;两个容易混淆的接口&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;能力和几何身份分别判断&lt;/div&gt;&lt;div style=&quot;font-size:15px;color:#344F62;margin-top:10px;&quot;&gt;ICanMove：移动方向 / 移动能力，供冰面按受力者计算参数。&lt;br&gt;IPhyBaseI：旧物理标记；不能代替真实 Collider 或具体能力。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=15;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1352" width="825" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="layers" name="05 抽象架构：职责层次与扩展">
+    <mxGraphModel dx="1800" dy="1490" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1490" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n1" value="环境接口抽象  /  第一阶段第二步 · 当前代码结构" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="24" width="1650" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="05 最后抽象：把具体代码按职责分层" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="60" width="1710" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="下面是“职责分组”，不是每帧必须从上到下调用的顺序。实际执行相位请看第 3 页。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=17;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="47" y="121" width="1700" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="" style="rounded=1;absoluteArcSize=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#254E67;strokeColor=#254E67;strokeWidth=1;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="171" width="1710" height="3" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="05 / 05    05 抽象架构：职责层次与扩展     ·     实线箭头上的文字说明关系；只有空心三角表示继承。" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=13;fontColor=#546B7D;fontStyle=0;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1447" width="1710" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="这一层回答什么问题" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="209" width="410" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="当前代码落在哪里" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="530" y="209" width="590" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="用通俗的话理解它的边界" style="text;html=1;whiteSpace=wrap;overflow=fill;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=21;fontColor=#19354B;fontStyle=1;spacing=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="209" width="535" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="role0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#19354B;&quot;&gt;01  场景实现与 Unity 接入&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#344F62;margin-top:10px;&quot;&gt;它具体是什么，何时启停？&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=17;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="274" width="425" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="code0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicPhysicalObject + 具体环境组件&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;IceGround / ForceField / pond / Taijie / Wall&lt;br&gt;保留参数和特殊规则，承接组件启停或自身运动。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#EAF6F2;strokeColor=#87B7A7;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="274" width="630" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary0" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;职责解释&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;例如“这是一块冰面”，知道自己的加速参数。&lt;br&gt;公共外壳转发生命周期；&lt;br&gt;具体冰面不再复制登记与清理算法。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="274" width="560" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="role1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#19354B;&quot;&gt;02  能力约定&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#344F62;margin-top:10px;&quot;&gt;外部允许向它读取什么？&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=17;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="463" width="425" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="code1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;环境能力接口 + EnvironmentCapabilities&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;接口列出可读取的值或初始化方法。&lt;br&gt;查询工具从实际 Collider 找有效能力，单独识别实体身份。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F1F5FA;strokeColor=#9DB0C6;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="463" width="630" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary1" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;职责解释&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;只需平台位移的组件可以只提供 IPlatformMotion。&lt;br&gt;接口是协议，本身不会接收 Unity 消息，&lt;br&gt;也不会自动完成注册。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="463" width="560" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="role2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#19354B;&quot;&gt;03  作用关系管理&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#344F62;margin-top:10px;&quot;&gt;当前哪些来源正在影响谁？&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=17;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="652" width="425" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="code2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;EnvironmentRegistration + EntityEnvironmentContext&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;源端辅助对象负责接入通知和清理索引。&lt;br&gt;实体 Context 内的 Binding 持有接入依据和登记清单。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F2EFFA;strokeColor=#B0A0D0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="652" width="630" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary2" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;职责解释&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;回答“这份环境作用现在是否有效”。&lt;br&gt;不把“仍然登记着”当成“必须持续加速”，&lt;br&gt;也不在这里决定阻挡、反弹或碰撞强度。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="652" width="560" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="role3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#19354B;&quot;&gt;04  实体状态与阶段结果&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#344F62;margin-top:10px;&quot;&gt;哪些数值需要保留，哪些是本帧结果？&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=17;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="841" width="425" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="code3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity 容器 + 各阶段结果结构&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;跨帧状态：原有速度容器 / ForceData。&lt;br&gt;支撑采样：EntityEnvironmentFrame；运动快照：EntityMotionFrame；&lt;br&gt;接触结果：EntitySolutionResult。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF5E6;strokeColor=#D8B579;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="841" width="630" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary3" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;职责解释&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;Binding 记录关系，ForceData 保存累计速度。&lt;br&gt;环境帧保存支撑参数；运动帧保存基础运动；&lt;br&gt;接触结果保存本帧位移偏置，三者职责不同。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="841" width="560" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="role4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#19354B;&quot;&gt;05  计算与最终提交&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#344F62;margin-top:10px;&quot;&gt;这些数据怎样变成实际运动？&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=17;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1030" width="425" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="code4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:19px;font-weight:bold;color:#19354B;&quot;&gt;BasicEntity 计算 + PhysicsSolverMgr&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;实体积分速度、构建预测；管理器处理实体接触。&lt;br&gt;DisplacementCorrection 合成与裁剪，最后 MovePosition。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#ECF3FC;strokeColor=#8DAED4;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="1030" width="630" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary4" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;&quot;&gt;职责解释&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;接口化不会自动产生新的物理算法。&lt;br&gt;新的阻挡、缓降、反弹或平台联合受力，&lt;br&gt;仍需要在相应计算环节实现并验证。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#F8FAFC;strokeColor=#CDD7E0;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="1185" y="1030" width="560" height="164" as="geometry" />
+        </mxCell>
+        <mxCell id="boundaryScope" value="&lt;div style=&quot;font-family:Microsoft YaHei;line-height:1.4;text-align:left;box-sizing:border-box;width:100%;padding:12px 14px;&quot;&gt;&lt;div style=&quot;font-size:20px;font-weight:bold;color:#19354B;&quot;&gt;当前范围：接口与关系已经整理，接触算法没有随之扩张&lt;/div&gt;&lt;div style=&quot;font-size:18px;font-weight:bold;color:#19354B;margin-top:3px;&quot;&gt;没有新增全局环境管理器，也没有 EnvironmentEffectSpec 公开类型&lt;/div&gt;&lt;div style=&quot;font-size:16px;color:#344F62;margin-top:10px;&quot;&gt;新增物块可以按需组合现有能力；有持续作用时接入 Registration / Context，只有表面读值时无需创建环境绑定。&lt;br&gt;未来云朵缓降、弹力反弹、跷跷板受力，需要对应几何 / 响应 / 平台计算；目前没有为这些例子建立专用接口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;fillColor=#FFF4EB;strokeColor=#D5AA80;strokeWidth=1.3;fontFamily=Microsoft YaHei;fontColor=#19354B;fontSize=16;align=left;verticalAlign=top;spacing=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1268" width="1695" height="145" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
