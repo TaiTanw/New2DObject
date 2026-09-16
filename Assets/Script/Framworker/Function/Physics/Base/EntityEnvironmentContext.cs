@@ -34,11 +34,8 @@ public sealed class EntityEnvironmentContext
     private readonly Dictionary<EnvironmentRegistration, Binding> bindings = new Dictionary<EnvironmentRegistration, Binding>();
     // 以下均为可复用工作缓存；不是另一份关系或物理状态。
     private readonly List<EnvironmentRegistration> removalBuffer = new List<EnvironmentRegistration>();
-    /// <summary>
-    /// 地面缓存，容器变化：从对象为单位转为以事实为单位
-    /// </summary>
-    private readonly HashSet<EnvironmentRegistration> groundSources = new HashSet<EnvironmentRegistration>();
-    private readonly List<MonoBehaviour> componentBuffer = new List<MonoBehaviour>();
+    // 本次相位 2 采样到的唯一脚下来源；实体整体的多来源关系仍在 bindings 中。
+    private EnvironmentRegistration groundSource;
 
     public EntityEnvironmentContext(IForceAction receiver, Behaviour owner)
     {
@@ -141,21 +138,15 @@ public sealed class EntityEnvironmentContext
         SampleGroundFrame(ground);
     }
 
-    /// <summary>核对事实，找来源：只收集当前脚下、处于启用状态且允许支撑接入的环境源。</summary>
+    /// <summary>核对事实，找来源：唯一环境宿主若允许脚下接入，就成为本次 Ground 来源。</summary>
     private void CollectGroundSources(Collider2D ground)
     {
-        groundSources.Clear();
-        // 几何有效性：没有有效脚下 Collider 时留下空集合，让下一步移除旧 Ground 依据。
-        if (ground != null && ground.enabled && ground.gameObject.activeInHierarchy)
-        {
-            ground.GetComponents(componentBuffer);
-            foreach (MonoBehaviour component in componentBuffer)
-                // 能力与接入策略：组件有效 + 是环境源 + 明确允许脚下支撑接入。
-                if (EnvironmentCapabilities.IsActive(component) && component is IEnvironmentSource source &&
-                    source.EnvironmentRegistration.AcceptsGroundContact)
-                    groundSources.Add(source.EnvironmentRegistration);
-        }
-
+        groundSource = null;
+        // 几何有效性：没有有效脚下 Collider 时留下空来源，让下一步移除旧 Ground 依据。
+        BasicPhysicalObject host = EnvironmentCapabilities.FindHost(ground);
+        // 单入口约束：只从唯一宿主取得 Registration，不再遍历同物体的多个 MonoBehaviour。
+        if (host is IEnvironmentSource source && source.EnvironmentRegistration.AcceptsGroundContact)
+            groundSource = source.EnvironmentRegistration;
     }
 
     /// <summary>核对关系：失效源完全解除；换地只移除 Ground；本次来源逐个确认接入。</summary>
@@ -166,7 +157,7 @@ public sealed class EntityEnvironmentContext
         foreach (var entry in bindings)
             // 两类待处理项：任何已失效的来源，或已不在脚下的旧支撑来源（属于地面类型）。
             if (!entry.Key.IsActive ||
-                ((entry.Value.access & Access.Ground) != 0 && !groundSources.Contains(entry.Key)))
+                ((entry.Value.access & Access.Ground) != 0 && entry.Key != groundSource))
                 removalBuffer.Add(entry.Key);
         foreach (EnvironmentRegistration source in removalBuffer)
         {
@@ -174,15 +165,16 @@ public sealed class EntityEnvironmentContext
             if (!source.IsActive) Detach(source);
             else SetAccess(source, Access.Ground, false);
         }
-        foreach (EnvironmentRegistration source in groundSources) SetAccess(source, Access.Ground, true);
+        if (groundSource != null) SetAccess(groundSource, Access.Ground, true);
     }
 
     /// <summary>采样参数：表面读值不要求建立持续效果绑定，写成一帧只读结果供原消费点使用。</summary>
     private void SampleGroundFrame(Collider2D ground)
     {
-        IGroundResponse response = EnvironmentCapabilities.Find<IGroundResponse>(ground, componentBuffer);
-        IPlatformMotion platform = EnvironmentCapabilities.Find<IPlatformMotion>(ground, componentBuffer);
-        // 同一支撑面每类参数取首个有效提供者；多个环境的持续效果则仍按来源分别登记。
+        // 先找一次宿主，再读取它的多个接口；不从同物体的不同组件分别拼装参数。
+        BasicPhysicalObject host = EnvironmentCapabilities.FindHost(ground);
+        IGroundResponse response = host as IGroundResponse;
+        IPlatformMotion platform = host as IPlatformMotion;
         Frame = new EntityEnvironmentFrame(response?.SlowingEffect ?? 1f, response?.JumpHeightNum ?? 0f,
             platform?.Delta ?? Vector2.zero);
     }
@@ -194,7 +186,7 @@ public sealed class EntityEnvironmentContext
         removalBuffer.AddRange(bindings.Keys);
         foreach (EnvironmentRegistration source in removalBuffer) Detach(source);
         removalBuffer.Clear();
-        groundSources.Clear();
+        groundSource = null;
         Frame = EntityEnvironmentFrame.Empty;
     }
 }

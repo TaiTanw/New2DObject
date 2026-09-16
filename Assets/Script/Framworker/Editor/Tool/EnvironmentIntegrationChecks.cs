@@ -211,10 +211,10 @@ public static class EnvironmentIntegrationChecks
         Check(body.EnvironmentContext.DebugSourceCount == 0, "普通无脚本地面无需效果登记");
         Near(body.Frame.slowingMultiplier, 1, "普通地面默认阻力倍率");
         Near(body.Frame.jumpHeightOffset, 0, "普通地面默认跳跃加成");
-        EnvironmentCheckPlatform platform = surface.AddComponent<EnvironmentCheckPlatform>();
+        EnvironmentCheckSurface platform = surface.AddComponent<EnvironmentCheckSurface>();
         body.RefreshSupport(collider);
-        Check(body.Frame.platformDelta == platform.Delta && body.EnvironmentContext.DebugSourceCount == 0,
-            "独立平台位移能力不要求施力或继承 BaseGround");
+        Check(body.Frame.platformDelta == platform.Delta && body.EnvironmentContext.DebugSourceCount == 1,
+            $"单一环境宿主提供平台能力并建立一份来源关系 [{body.Frame.platformDelta} / {platform.Delta}, sources={body.EnvironmentContext.DebugSourceCount}]");
         MethodInfo build = typeof(BasicEntity).GetMethod("BuildMotionFrame", BindingFlags.Static | BindingFlags.NonPublic);
         EntityMotionFrame motion = (EntityMotionFrame)build.Invoke(null, new object[]
             { new Vector2(2, 0), 0f, true, Vector2.up, body.Frame.platformDelta, .02f });
@@ -226,23 +226,22 @@ public static class EnvironmentIntegrationChecks
         body.RefreshSupport(null);
         Check(body.Frame.platformDelta == Vector2.zero, "离地清除平台采样");
 
-        EnvironmentCheckVelocity source = surface.AddComponent<EnvironmentCheckVelocity>();
+        platform.enabled = true;
         body.RefreshSupport(collider);
-        Check(body.DebugSnapshot.stateVelocityCount == 1 && body.DebugSnapshot.movementModifierCount == 0 &&
-            body.DebugSnapshot.dynamicForceCount == 0, "独立持续速度能力不被迫提供移速修饰或动态施力");
+        Check(body.DebugSnapshot.stateVelocityCount == 1 && body.DebugSnapshot.movementModifierCount == 1 &&
+            body.DebugSnapshot.dynamicForceCount == 0, "同一宿主可单独提供持续速度能力");
         body.envImpact = .25f;
         body.RunForces();
-        Check(body.PassiveVelocity == source.StateVelocity, "持续速度不乘质量影响系数");
-        EnvironmentCheckWall wall = surface.AddComponent<EnvironmentCheckWall>();
-        var buffer = new List<MonoBehaviour>();
-        Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider, buffer), wall),
-            "墙滑能力不要求继承 Wall");
-        var function = new PhysicalFunctionData { canLeftWall = wall, nowWallt = wall };
+        Check(body.PassiveVelocity == platform.StateVelocity,
+            $"同一环境宿主提供的持续速度不乘质量影响系数 [{body.PassiveVelocity} / {platform.StateVelocity}]");
+        Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider), platform),
+            "同一环境宿主可以提供墙滑能力");
+        var function = new PhysicalFunctionData { canLeftWall = platform, nowWallt = platform };
         var read = new ReadOnly_GeometryPhysicsData(new GeometryPhysicsData(), function);
         Check(read.canLeftWall && read.nowKWall, "逻辑层读取墙滑能力布尔事实");
-        wall.enabled = false;
+        platform.enabled = false;
         Check(!read.canLeftWall && !read.nowKWall, "接口引用能识别 Unity 组件禁用");
-        Object.DestroyImmediate(wall);
+        Object.DestroyImmediate(platform);
         Check(!read.nowKWall, "接口引用能识别 Unity 对象销毁");
     }
 
@@ -347,20 +346,12 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
     }
 }
 
-public sealed class EnvironmentCheckPlatform : MonoBehaviour, IPlatformMotion
+public sealed class EnvironmentCheckSurface : BasicPhysicalObject, IPlatformMotion, IWallSlideSurface
 {
+    private void Awake() => phySpeed = new Vector2(3, 2);
     public Vector2 Delta => new Vector2(.3f, -.2f);
-}
-public sealed class EnvironmentCheckWall : MonoBehaviour, IWallSlideSurface
-{
     public float WallSlideMultiplier => .5f;
-}
-public sealed class EnvironmentCheckVelocity : MonoBehaviour, IEnvironmentSource, IStateVelocitySource
-{
-    private EnvironmentRegistration registration;
-    public EnvironmentRegistration EnvironmentRegistration => registration ??= new EnvironmentRegistration(this, this, true);
-    public Vector2 StateVelocity => new Vector2(3, 2);
-    private void OnDisable() => registration?.ReleaseAll();
+    protected override bool AppliesOnGround => true;
 }
 public sealed class EnvironmentCheckReceiver : MonoBehaviour, IForceAction
 {

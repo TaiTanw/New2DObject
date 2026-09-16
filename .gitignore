@@ -3,7 +3,14 @@
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
 .utmp/
-/.agents/
+
+# Local AI / agent / editor tooling (skills, MCP, Serena, etc.)
+.agents/
+.cursor/
+.serena/
+.codex/
+.claude/
+.skills/
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/

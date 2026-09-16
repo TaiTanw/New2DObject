@@ -36,7 +36,6 @@ public abstract class BasePhysicsEntity : BasicEntity
     ReadOnly_GeometryPhysicsData readOnly_GeometryPhysicsData;
     //自身特殊物理职能数据
     protected PhysicalFunctionData playphyFunData;
-    private readonly List<MonoBehaviour> surfaceBuffer = new List<MonoBehaviour>();
     public ReadOnly_GeometryPhysicsData ReadOnly_GeometryPhysicsData => readOnly_GeometryPhysicsData;
 
     ReadOnly_PlayerPhysicsData readOnly_PlayerPhysicsData;
@@ -114,15 +113,15 @@ public abstract class BasePhysicsEntity : BasicEntity
     {
         base.PhyFunUpdate();
 
-        playphyFunData.canLeftWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.leftWallCollider, surfaceBuffer);
-        playphyFunData.canRightWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.rightWallCollider, surfaceBuffer);
+        playphyFunData.canLeftWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.leftWallCollider);
+        playphyFunData.canRightWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.rightWallCollider);
     }
     /// <summary>
     /// 位移提交前，根据已解析的静墙引用刷新墙滑快照；不读取移动后的几何结果。
     /// </summary>
     protected override void RefreshWallSlideSnapshot()
     {
-        playphyFunData.nowWallt = EnvironmentCapabilities.Find<IWallSlideSurface>(nowPhyFun.wallCollider, surfaceBuffer);
+        playphyFunData.nowWallt = EnvironmentCapabilities.Find<IWallSlideSurface>(nowPhyFun.wallCollider);
     }
     protected override void HActiveSpeedOperation()
     {

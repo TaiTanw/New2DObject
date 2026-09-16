@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace PhyData
@@ -27,7 +26,7 @@ namespace PhyData
 
 /// <summary>
 /// 从实际碰到的 Collider 查“有没有墙滑/支撑参数”等能力；没有脚本的墙仍然是几何障碍。
-/// 职能：查询工具，不保存接入关系。能力只查 Collider 同物体；实体身份另可从 attachedRigidbody 找。
+/// 职能：查询工具，不保存接入关系。表面能力统一取自 Collider 同物体的环境入口；实体身份另可从 attachedRigidbody 找。
 /// 第一遍主线可跳过本工具；需要理解 ENV-S1 的默认值或复合碰撞体时再读。
 /// </summary>
 public static class EnvironmentCapabilities
@@ -42,16 +41,18 @@ public static class EnvironmentCapabilities
         return true;
     }
 
-    public static T Find<T>(Collider2D collider, List<MonoBehaviour> buffer) where T : class
+    /// <summary>先确定唯一环境宿主；没有入口或入口失活时，不从其它组件拼装能力。</summary>
+    public static BasicPhysicalObject FindHost(Collider2D collider)
     {
         // 有效性保护：无有效几何命中时没有能力，调用者使用默认参数。
         if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy) return null;
-        collider.GetComponents(buffer);
-        foreach (MonoBehaviour component in buffer)
-            // 选择规则：当前同物体上第一个有效的对应能力，不在这里混合多个表面参数。
-            if (IsActive(component) && component is T capability) return capability;
-        return null;
+        // 入口家族的唯一性由基类挂载约束及配置校验负责；禁用入口不提供表面能力。
+        BasicPhysicalObject host = collider.GetComponent<BasicPhysicalObject>();
+        return IsActive(host) ? host : null;
     }
+
+    /// <summary>只询问唯一宿主是否实现该能力；接口缺席时返回 null，由消费方使用默认规则。</summary>
+    public static T Find<T>(Collider2D collider) where T : class => FindHost(collider) as T;
 
     public static BasicEntity FindEntity(Collider2D collider)
     {
