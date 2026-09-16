@@ -77,6 +77,7 @@ public class PlayerDataWindow : EditorWindow
             DrawIdentity(snapshot);
             DrawMotion(snapshot);
             DrawGeometry(snapshot);
+            DrawEnvironment(snapshot);
         }
         DrawContactPairs(targetEntity);
 
@@ -127,6 +128,18 @@ public class PlayerDataWindow : EditorWindow
         EditorGUILayout.Toggle("左墙", snapshot.isOnLeftWall);
         EditorGUILayout.Toggle("右墙", snapshot.isOnRightWall);
         DrawVector("地面法线", snapshot.groundNormal);
+    }
+
+    static void DrawEnvironment(EntityPhysicsDebugSnapshot snapshot)
+    {
+        EditorGUILayout.Space();
+        GUILayout.Label("环境接入（只读）", EditorStyles.boldLabel);
+        EditorGUILayout.IntField("有效环境来源", snapshot.environmentSourceCount);
+        EditorGUILayout.IntField("主动移速修饰项", snapshot.movementModifierCount);
+        EditorGUILayout.IntField("持续速度项", snapshot.stateVelocityCount);
+        EditorGUILayout.IntField("动态力项（含接触及消退）", snapshot.dynamicForceCount);
+        EditorGUILayout.FloatField("支撑面消退阻力倍率", snapshot.environmentSlowingMultiplier);
+        EditorGUILayout.FloatField("支撑面跳跃加成", snapshot.environmentJumpHeightOffset);
     }
 
     static void DrawContactPairs(BasicEntity target)

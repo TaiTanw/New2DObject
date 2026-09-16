@@ -1,24 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿/// <summary>区域状态效果；旧组件名称保留，接入生命周期由公共外壳转发。</summary>
 public class pond : BasicPhysicalObject
 {
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<IForceAction>(out IForceAction entity))
-        {
-            OnPhyEnter(entity);
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<IForceAction>(out IForceAction entity))
-        {
-            OnPhyExit(entity);
-        }
-    }
-
+    protected override bool UsesTriggerRegion => true;
 }

@@ -1,66 +1,26 @@
 ﻿using PhyData;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class ForceField : BasicPhysicalObject,IDynamicAddForce
+/// <summary>
+/// 实体进入力场区域时，用 add / maxSpeed 给出动态力初值；后续每帧沿用这组参数。
+/// 职能：具体区域算法提供者；接入从公共 ENV-R1 汇入 ENV-03，不自行登记或清理实体。
+/// </summary>
+public class ForceField : BasicPhysicalObject, IDynamicEnvironmentForce
 {
-    /// <summary>
-    /// 最大速度
-    /// </summary>
-    [SerializeField]
-    protected float maxSpeed;
+    [SerializeField] protected float maxSpeed;
+    [SerializeField] protected float add;
 
-    /// <summary>
-    /// 加速程度
-    /// </summary>
-    [SerializeField]
-    protected float add;
+    protected override bool UsesTriggerRegion => true;
 
-    public void ForceCalculation(IForceAction IF)
+    public ForceData CreateEnvironmentForce(IForceAction receiver)
     {
-        
+        ForceData force = new ForceData();
+        force.Init(add, 0, maxSpeed);
+        return force;
     }
 
-    public override void OnPhyEnter(IForceAction obj)
+    public void ForceCalculation(IForceAction receiver)
     {
-        //不重复则进入
-        if (!objIPhyHas.Contains(obj))
-        {
-            objIPhyHas.Add(obj);
-            obj.StatePowerRegistration(this, speedChangeNum);
-            obj.AddSpeedStatus(this, phySpeed);
-            ForceData force = new ForceData();
-            force.Init(add, 0, maxSpeed);
-            obj.AddForce(this, force);
-        }
-    }
-
-    public override void OnPhyExit(IForceAction obj)
-    {
-        if (objIPhyHas.TryGetValue(obj, out var theo))
-        {
-            theo.RemoveForce(this);
-            theo.StatePowerCancellation(this);
-            theo.RemoveSpeedStatus(this);
-            objIPhyHas.Remove(obj);
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<IForceAction>(out IForceAction entity))
-        {
-            OnPhyEnter(entity);
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent<IForceAction>(out IForceAction entity))
-        {
-            OnPhyExit(entity);
-        }
+        // 固定施力参数沿用进入时的值；不在每帧重新初始化实体的累计速度。
     }
 }

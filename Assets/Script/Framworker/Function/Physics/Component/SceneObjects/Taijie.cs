@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public class Taijie : BaseGround
+/// <summary>
+/// 移动平台在相位 0 更新位置并记录 delta；实体踩在上面时，经 ENV-S1 读到该帧位移。
+/// 职能：平台自身运动与位移能力提供者；启停钩子只管理自身回调，环境解除由旧基类统一处理。
+/// </summary>
+public class Taijie : BaseGround, IPlatformMotion
 {
     /// <summary>
     /// 平台效应器
@@ -39,7 +43,7 @@ public class Taijie : BaseGround
     /// </summary>
     Vector3 startPos;
 
-    void Start()
+    protected override void OnSourceEnabled()
     {
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(FixFun, 0);
     }
@@ -93,8 +97,9 @@ public class Taijie : BaseGround
         //lastT = t;
     }
 
-    private void OnDestroy()
+    protected override void OnSourceDisabled()
     {
+        delta = Vector2.zero;
         if (!MonoPublicMgr.IsQuitting)
         {
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(FixFun, 0);

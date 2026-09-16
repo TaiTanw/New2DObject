@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 实体基类
+/// 角色与箱子共用的物理执行主体：按相位读取环境、计算速度、预测并提交位移。
+/// 环境关系由每个实体自己的 EnvironmentContext 管理，力和速度仍放在本类原有容器中。
+/// 职能：实体物理执行与数值状态归属。通读本次环境接入先搜 ENV-01，再沿编号读到 ENV-07。
 /// </summary>
-public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDynamicAddForce
+public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDynamicAddForce, IEnvironmentReceiver
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
@@ -57,6 +59,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// 当前移动属性
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
+
+    // 环境关系由实体持有；原有速度容器仍是数值状态的唯一存储，不在 Context 中重复累计。
+    private EntityEnvironmentContext environmentContext;
+    public EntityEnvironmentContext EnvironmentContext => environmentContext ??= new EntityEnvironmentContext(this, this);
+    protected EntityEnvironmentFrame EnvironmentFrame => EnvironmentContext.Frame;
 
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
@@ -146,7 +153,13 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
                 isTopBlocked = nowGemetry != null && nowGemetry.istop,
                 isOnLeftWall = nowGemetry != null && nowGemetry.onLeftWall,
                 isOnRightWall = nowGemetry != null && nowGemetry.onRightWall,
-                groundNormal = nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero
+                groundNormal = nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero,
+                environmentSourceCount = environmentContext?.DebugSourceCount ?? 0,
+                movementModifierCount = phyStateDic.Count,
+                stateVelocityCount = startSpeedDic.Count,
+                dynamicForceCount = dynamicForceDic.Count,
+                environmentSlowingMultiplier = environmentContext?.Frame.slowingMultiplier ?? 1f,
+                environmentJumpHeightOffset = environmentContext?.Frame.jumpHeightOffset ?? 0f
             };
         }
     }
@@ -177,7 +190,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     }
 
     /// <summary>
-    /// 持续性移动受限开始
+    /// 写入主动移速修饰；ENV-04 以 Registration 为环境来源键，PhyStateCalculate 在相位 3 消费。
     /// </summary>
     /// <param name="iD">唯一标识</param>
     /// <param name="num">影响程度</param>
@@ -188,10 +201,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         isRecalculate = true;
     }
     /// <summary>
-    /// 持续性移动受限取消
+    /// 撤销该来源的主动移速修饰，标记下一速度阶段重新汇总。
     /// </summary>
     /// <param name="iD"></param>
-    /// <param name="Isdelayed">是否延迟</param>
     public void StatePowerCancellation(IApplyingForceAction iD)
     {
         phyStateDic.Remove(iD);
@@ -211,9 +223,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         UnderForceList.Add(data);
     }
     /// <summary>
-    /// 外部提供速度（状态持续影响
+    /// 写入该来源的持续速度；ENV-04 登记，ENV-06 的 HUnderForce 逐来源相加。
     /// </summary>
-    /// <param name="force"></param>
+    /// <param name="iD">来源键；环境状态使用 Registration。</param>
+    /// <param name="force">持续附加速度；沿用旧参数名，不代表需要积分的力。</param>
     public void AddSpeedStatus(IApplyingForceAction iD, Vector2 force)
     {
 
@@ -224,8 +237,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// <summary>
     /// 外部取消状态性质速度
     /// </summary>
-    /// <param name="force"></param>
-    /// <param name="Isdelayed">是否延迟</param>
+    /// <param name="iD">需要删除的持续速度来源。</param>
     public void RemoveSpeedStatus(IApplyingForceAction iD)
     {
         //否则再将受力容器对应值删除
@@ -233,8 +245,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
     }
 
+    /// <summary>接收 ENV-04 创建的动态参数；累计速度归 dynamicForceDic，来源键仍是动态能力提供者。</summary>
     public void AddForce(IDynamicAddForce iD, ForceData force)
     {
+        // 环境重新进入沿用旧规则：保留累计速度及旧初始化参数，仅恢复 apply。
+        // 参数刷新与速度尾效的策略另案决定；本轮统一登记时不改为每次重新初始化。
         //若已有影响，则直接设置类型并返回
         if (objectApplyingForce.Contains(iD))
         {
@@ -335,8 +350,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     }
 
 
+    /// <summary>ENV-07 的数值出口：停止来源控制，转 fadeAway；剩余速度由 ENV-06 继续衰减。</summary>
     public void RemoveForce(IDynamicAddForce iD)
     {
+        // 幂等清理：该动态项已被移除时不再切换类型。
         if (!dynamicForceDic.TryGetValue(iD, out var data))
             return;
         //受力类型改为消除，物理循环自动更新和移除
@@ -397,33 +414,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     protected virtual void PhyFunUpdate()
     {
-        //得到地面的物理世界组件
-        //解析并获得站地物理职能
-        nowPhyFun.nowGround = null;
-        if (nowGemetry.nowtaijie is BaseGround)
-        {
-            nowPhyFun.nowGround = nowGemetry.nowtaijie as BaseGround;
-            //当找到脚本时，自身阻力受到地面阻力影响
-            self_resistanceCoefficient *= nowPhyFun.nowGround.SlowingEffect;
-        }
-        // 比对状态，只在地面改变时调用
-        if (nowPhyFun.nowGround !=  nowPhyFun.lastFrameGroundPlatform)//简易理解为状态（同时最多只能在一种地面上）
-        {
-            // 离开上一个平台
-            if (nowPhyFun.lastFrameGroundPlatform != null)
-            {
-                nowPhyFun.lastFrameGroundPlatform.OnPhyExit(this);
-            }
-
-            // 进入新平台
-            if (nowPhyFun.nowGround != null)
-            {
-                nowPhyFun.nowGround.OnPhyEnter(this);
-            }
-            // 记录本帧状态，供下帧对比
-            nowPhyFun.lastFrameGroundPlatform = nowPhyFun.nowGround;
-        }
-    
+        // [ENV-01] 阅读起点：相位 1 已拿到真实脚下 Collider；从这里进入 Context 的 ENV-02。
+        // 着地才传脚下；离地传 null，使旧 Ground 依据被撤销。普通无脚本地面也可着地。
+        // 相位 1 已按空中/着地重置自身阻力。本相位只乘一次表面倍率，不跨帧累乘。
+        EnvironmentContext.RefreshGround(nowGemetry.isGrounded ? nowGemetry.groundCollider : null);
+        self_resistanceCoefficient *= EnvironmentFrame.slowingMultiplier;
     }
 
     /// <summary>
@@ -442,11 +437,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
         HorizontalSpeedCalculation();
         //竖直速度计算
         VerticalSpeedCalculation();
-        // 上一帧接触动态力已由上面的速度计算入账。本帧仅在这里采样地面/平台并构建一次快照，
+        // 上一帧接触动态力已由上面的速度计算入账。在这里读取相位 2 环境帧的平台位移并构建一次运动快照，
         // 相位 4 仍只累计偏置及刷新下帧动态力，相位 5 不再重算基础位移。
-        Vector2 platformDelta = nowGemetry.isGrounded && nowPhyFun.nowGround != null
-            ? nowPhyFun.nowGround.Delta
-            : Vector2.zero;
+        Vector2 platformDelta = EnvironmentFrame.platformDelta;
         motionFrame = BuildMotionFrame(
             GetPlanarVelocity(),
             playerPhysicsData.verticalSpeed,
@@ -526,6 +519,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     void HorizontalSpeedCalculation()
     {
+        // [ENV-06] 第一遍只看这三次调用：移速修饰、被动速度、主动速度。登记层到这里才变成速度。
         //计算环境约束
         PhyStateCalculate();
         //计算被动速度
@@ -539,6 +533,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     void PhyStateCalculate()
     {
+        // 数值规则：仅在来源登记/撤销后重新汇总；它不是每帧重新登记环境。
         if (isRecalculate)
         {
             float phyEvData = 0;
@@ -556,7 +551,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 
 
     /// <summary>
-    /// 统一计算外界因素带来的水平附加速度改变
+    /// ENV-06 的被动速度分支：依次汇总限时速度、动态施力、持续速度，写回 phyHSpeed。
+    /// 通读冰面时先看动态循环：回调 IceGround.ForceCalculation → ForceData 更新 → 写回动态容器。
+    /// 退出后的 fadeAway 跳过来源回调；因此 ENV-07 撤关系不等于速度立即归零。
     /// </summary>
     void HUnderForce()
     {
@@ -722,8 +719,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
 #endif
         //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
         //无脚本的墙层碰撞体同样视为静墙
-        bool staticLeft = nowGemetry.onLeftWall && nowGemetry.canLeftWall is not BasicEntity;
-        bool staticRight = nowGemetry.onRightWall && nowGemetry.canRightWall is not BasicEntity;
+        bool staticLeft = nowGemetry.onLeftWall && EnvironmentCapabilities.FindEntity(nowGemetry.leftWallCollider) == null;
+        bool staticRight = nowGemetry.onRightWall && EnvironmentCapabilities.FindEntity(nowGemetry.rightWallCollider) == null;
         if (wordDelta.x < 0 && staticLeft)
         {
 #if UNITY_EDITOR
@@ -743,7 +740,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
                 }
             }
 
-            nowPhyFun.nowWall = nowGemetry.canLeftWall;
+            nowPhyFun.wallCollider = nowGemetry.leftWallCollider;
         }
         else if (wordDelta.x > 0 && staticRight)
         {
@@ -763,12 +760,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             }
 
             //设置当前靠墙
-            nowPhyFun.nowWall = nowGemetry.canRightWall;
+            nowPhyFun.wallCollider = nowGemetry.rightWallCollider;
         }
         else
         {
             //离开墙面后重置
-            nowPhyFun.nowWall = null;
+            nowPhyFun.wallCollider = null;
         }
         // 由已解析的静墙状态刷新下一帧墙滑引用；不读取移动后的接触结果，故在最终位移提交前完成。
         RefreshWallSlideSnapshot();
@@ -802,11 +799,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(DisplacementCorrection, 5);
         }
 
-        nowPhyFun.nowGround?.OnPhyExit(this);
-
-
-        nowPhyFun.lastFrameGroundPlatform?.OnPhyExit(this);
-        nowPhyFun.lastFrameGroundPlatform = null;
+        environmentContext?.ReleaseAll();
     }
 
     public virtual void ForceCalculation(IForceAction IF)

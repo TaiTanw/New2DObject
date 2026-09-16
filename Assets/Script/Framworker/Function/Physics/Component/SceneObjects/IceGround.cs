@@ -1,95 +1,47 @@
 ﻿using PhyData;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using static UnityEditor.Progress;
 
 /// <summary>
-/// 冰面
+/// 踩上冰面时，按受力者是否能主动移动给出初始参数；在冰面内根据输入施力或受控减速。
+/// 职能：具体环境算法提供者。旧 OnPhyEnter 中的初始化搬到 ENV-05，登记与清理由 Context 处理。
+/// 第一遍只读 CreateEnvironmentForce；理解实体 ENV-06 的消费循环后，再回来看 ForceCalculation。
 /// </summary>
-public class IceGround : BaseGround, IDynamicAddForce
+public class IceGround : BaseGround, IDynamicEnvironmentForce
 {
-    /// <summary>
-    /// 加速影响因子
-    /// </summary>
-    public float Idex=1;
-    /// <summary>
-    /// 减速因子受控
-    /// </summary>
-    public float Odex=1;
+    /// <summary>加速影响因子（保留旧序列化字段）。</summary>
+    public float Idex = 1;
+    /// <summary>输入松开时的受控减速因子。</summary>
+    public float Odex = 1;
+    /// <summary>最大滑动速度系数，参与原有平衡速度公式。</summary>
+    public float maxISpeed = 1;
 
-    /// <summary>
-    /// 最大滑动速度系数
-    /// </summary>
-    public float maxISpeed=1;
-
-
-    public override void OnPhyEnter(IForceAction obj)
+    /// <summary>[ENV-05] 给 ENV-04 返回初始 ForceData；只产生参数，不在冰面上保存每个实体的累计速度。</summary>
+    public ForceData CreateEnvironmentForce(IForceAction receiver)
     {
-        //不重复则进入
-        if (!objIPhyHas.Contains(obj))
-        {
-            objIPhyHas.Add(obj);
-            obj.StatePowerRegistration(this, speedChangeNum);
-            obj.AddSpeedStatus(this, phySpeed);
-            //开始动态施力
-            ForceData force = new ForceData();
-            //受力物体是否有可移动能力
-            if (obj is ICanMove Ic)
-            {
-                force.Init(Idex, Odex, Ic.Mobility * maxISpeed * speedChangeNum);
-            }
-            else
-            {
-                //实体无移动能力，则直接0
-                force.Init(Idex, slowingEffect, 0);
-            }
-
-            //设置受力,复原速度和最大速度
-
-            obj.AddForce(this, force);
-        }
-    }
-    public override void OnPhyExit(IForceAction obj)
-    {
-        if (objIPhyHas.TryGetValue(obj, out var theo))
-        {
-            theo.StatePowerCancellation(this);
-            //状态力的延迟删除
-            theo.RemoveSpeedStatus(this);
-            theo.RemoveForce(this);
-            objIPhyHas.Remove(obj);
-        }
+        ForceData force = new ForceData();
+        // 保留旧公式：speedChangeNum 同时参与主动修饰和冰面平衡速度。
+        // 无移动能力分支仍使用 slowingEffect / 零平衡速度，本轮不更改其算法语义。
+        // 算法分支：角色等有主动移动能力，使用其 Mobility；箱子走下方原无移动能力公式。
+        if (receiver is ICanMove moving)
+            force.Init(Idex, Odex, moving.Mobility * maxISpeed * speedChangeNum);
+        else
+            force.Init(Idex, slowingEffect, 0);
+        return force;
     }
 
-    protected override void OnDisable()
+    /// <summary>相位 3 由实体 ENV-06 回调：修改该实体中的控制参数，随后实体自己积分 ForceData。</summary>
+    public void ForceCalculation(IForceAction receiver)
     {
-        foreach (var obj in objIPhyHas)
+        // 算法分支：无主动移动能力者不做输入控制，保留初始化状态。
+        if (receiver is ICanMove moving)
         {
-            //取消影响
-            obj.StatePowerCancellation(this);
-            obj.RemoveSpeedStatus(this);
-            obj.RemoveForce(this);
-        }
-        objIPhyHas.Clear();
-    }
-
-    public void ForceCalculation(IForceAction IF)
-    {
-        
-        if (IF is ICanMove ICa)
-        {
-            float v = ICa.MovingDirection;
-            if (v != 0)
+            float direction = moving.MovingDirection;
+            // 有方向输入则施力；松开输入则切受控减速。这与离开冰面后的 fadeAway 是两条分支。
+            if (direction != 0)
             {
-                IF.ChangeForce(this, v * Idex);
-                IF.ChangeType(this, E_PhyForceType.apply);
+                receiver.ChangeForce(this, direction * Idex);
+                receiver.ChangeType(this, E_PhyForceType.apply);
             }
-            else
-            {
-                IF.ChangeType(this, E_PhyForceType.controlRecovery);
-            }
-
+            else receiver.ChangeType(this, E_PhyForceType.controlRecovery);
         }
     }
 }

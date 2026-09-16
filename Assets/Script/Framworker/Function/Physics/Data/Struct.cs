@@ -165,6 +165,10 @@ namespace PhyData
     /// </summary>
     public class GeometryPhysicsData
     {
+        // 真实命中与脚本能力分别保存；无脚本地面/墙也保留 Collider 几何身份。
+        public Collider2D groundCollider;
+        public Collider2D leftWallCollider;
+        public Collider2D rightWallCollider;
         /// <summary>
         /// 当前玩家所属平台
         /// </summary>
@@ -189,7 +193,7 @@ namespace PhyData
         /// <summary>
         /// 当前倚靠的墙（静墙裁剪结果；可推体不再写入）
         /// </summary>
-        public IPhyBaseI nowWall;
+        public Collider2D wallCollider;
         /// <summary>
         /// 已废弃：推墙/推箱不再用 Enter 边沿 AddForce（保留字段以免旧序列化/注释对照）
         /// </summary>
@@ -198,8 +202,7 @@ namespace PhyData
         /// 已废弃：同上
         /// </summary>
         public IForceAction lastForceThing;
-        public BaseGround nowGround;
-        public BaseGround lastFrameGroundPlatform;//上一帧台阶
+        // 支撑环境关系及采样已归实体 EnvironmentContext，不再保存 BaseGround 类型引用。
 
 
     }
@@ -208,12 +211,12 @@ namespace PhyData
     /// </summary>
     public class PhysicalFunctionData:BasePhyFunData
     {
-        public Wall canLeftWall;
-        public Wall canRightWall;
+        public IWallSlideSurface canLeftWall;
+        public IWallSlideSurface canRightWall;
         /// <summary>
         /// 当前倚靠的墙
         /// </summary>
-        public Wall nowWallt;
+        public IWallSlideSurface nowWallt;
     }
     /// <summary>
     /// 速度物理实时数据只读包装
@@ -255,10 +258,10 @@ namespace PhyData
         public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall => _data.onRightWall;
 
-        public Wall canRightWall => _data2.canRightWall;
-        public Wall canLeftWall => _data2.canLeftWall;
+        public bool canRightWall => EnvironmentCapabilities.IsActive(_data2.canRightWall);
+        public bool canLeftWall => EnvironmentCapabilities.IsActive(_data2.canLeftWall);
 
-        public Wall nowKWall => _data2.nowWallt;
+        public bool nowKWall => EnvironmentCapabilities.IsActive(_data2.nowWallt);
     }
 
 
@@ -372,6 +375,12 @@ namespace PhyData
         public bool isOnLeftWall;
         public bool isOnRightWall;
         public Vector2 groundNormal;
+        public int environmentSourceCount;
+        public int movementModifierCount;
+        public int stateVelocityCount;
+        public int dynamicForceCount;
+        public float environmentSlowingMultiplier;
+        public float environmentJumpHeightOffset;
     }
 
     /// <summary>

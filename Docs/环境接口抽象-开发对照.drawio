@@ -1,0 +1,256 @@
+<mxfile host="Electron" pages="3" compressed="false">
+  <diagram id="before" name="01 开发前：冰面为什么要自己登记，还要自己清理">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1680" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="01 开发前：冰面为什么要自己登记，还要自己清理" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="62" width="1710" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="基线：5a8209f（环境接入改动前）。先沿左栏 A→E 读一次冰面作用；右栏解释问题及当前去向。&lt;br&gt;本页描述历史实现，不把旧方法行号当作当前工作区行号。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=18;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="124" width="1710" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="代码路径前缀 P = Assets/Script/Framworker/Function/Physics/；图内路径均相对 P。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="195" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="阅读编号是检索锚点，不是物理相位。行号记录本次工作区；方法名与 ENV 编号用于后续稳定定位。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1631" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="old0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;A · 角色判断脚下是不是换了&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicEntity.PhyFunUpdate（实体的环境阶段）&lt;br&gt;先把脚下对象转为 BaseGround；只在地面引用改变时，&lt;br&gt;调用旧地面 OnPhyExit，再调用新地面 OnPhyEnter。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicEntity.cs:398&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="265" width="855" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="why0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;读到这里，应认清的改动原因&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;这里混了“识别具体地面类型”和“决定进入退出”。&lt;br&gt;同一对象原地禁用再启用，不一定触发地面引用变化。&lt;br&gt;现在对应 ENV-01 / 02：每相位核对真实 Collider。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="965" y="265" width="790" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="old1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;B · 冰面自己判断是否登记过&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround.OnPhyEnter（冰面进入回调）&lt;br&gt;查继承来的 objIPhyHas；没见过这个实体，才加进集合。&lt;br&gt;基类有一份默认实现，冰面仍得整段重写。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:27&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="489" width="855" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="why1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;读到这里，应认清的改动原因&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;去重与名单属于每种具体环境必须操心的工作。&lt;br&gt;这份名单还兼任禁用清理索引，职责没有分开。&lt;br&gt;现在对应 ENV-03：实体 Binding 决定是否首次登记。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="965" y="489" width="790" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="old0" target="old1" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;C · 同一方法又登记数值、又算冰面参数&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;仍是 IceGround.OnPhyEnter（不是另一条链路）&lt;br&gt;登记移速修饰、持续速度；按 ICanMove 算 ForceData；&lt;br&gt;然后 AddForce，把初始动态参数交给实体。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:27&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="713" width="855" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="why2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;读到这里，应认清的改动原因&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;公共登记步骤与“冰面的公式”绑在一个回调里。&lt;br&gt;现在拆为 ENV-04 通用登记 + ENV-05 冰面参数。&lt;br&gt;公式与参数保留；类变薄不是因为删掉了冰面能力。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="965" y="713" width="790" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="old1" target="old2" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;D · 实体才是实际算速度的地方&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicEntity.HUnderForce（相位 3 被动速度计算）&lt;br&gt;回调 IceGround.ForceCalculation 更新输入控制参数，&lt;br&gt;再算 ForceData，将累计速度留在实体字典里。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicEntity.cs:561&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="937" width="855" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="why3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;读到这里，应认清的改动原因&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;这一数值归属原本就在实体，本次仍然保留。&lt;br&gt;新增 Context 不应该再积一次速度。&lt;br&gt;现在对应 ENV-06：这里是登记通向实际运动的出口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="965" y="937" width="790" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="old2" target="old3" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;E · 退出与禁用要各写一遍对称撤销&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround.OnPhyExit + OnDisable&lt;br&gt;两处都要撤移速修饰、持续速度、动态施力，再清名单。&lt;br&gt;ForceField 继承的禁用路径只清基类两项，遗漏动态停止。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:53&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1161" width="855" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="why4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;读到这里，应认清的改动原因&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;这就是“子类不该操心注册注销，却仍得重写”的根源。&lt;br&gt;现在对应 ENV-07：按实际登记凭据统一撤销。&lt;br&gt;源与实体禁用只负责把清理汇入同一个出口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="965" y="1161" width="790" height="187" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="old3" target="old4" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oldbranches" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旁支也有同类问题：区域接入与表面读值&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;ForceField 的 OnTriggerEnter2D / OnTriggerExit2D 按单个 Collider 转发进入/退出；多 Collider 需要统一成实体集合。&lt;br&gt;旧地面参数与平台 Delta 经 BaseGround 读取；墙滑检查具体 Wall 类型。它们后来分别转向 ENV-R1 和 ENV-S1 / 墙滑能力查询。&lt;br&gt;查看历史源码：git show 5a8209f:Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F5F7F9;strokeColor=#9AAAB6;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1420" width="1710" height="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="expected" name="02 预估功能：把旧回调里的工作拆成五个职责">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1680" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="02 预估功能：把旧回调里的工作拆成五个职责" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="62" width="1710" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="这是对已确认收敛方案的回顾重建，不是当时保存的草稿。虚线框表示当时拟新增或调整的责任。&lt;br&gt;顺序与第 1 页 A→E 对齐；具体方法以第 3 页为准。实线蓝框表示原有数值层继续承担的工作。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=18;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="124" width="1710" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="代码路径前缀 P = Assets/Script/Framworker/Function/Physics/；图内路径均相对 P。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="195" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="阅读编号是检索锚点，不是物理相位。行号记录本次工作区；方法名与 ENV 编号用于后续稳定定位。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1631" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="plan0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;A · 保留实际脚下；持续核对接入&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;输入事实 → 接入发现&lt;br&gt;BasicEntity（实体）把真实 Collider 交给环境关系层。&lt;br&gt;脚下入口、区域入口、显式入口各提供自己的接入依据。&lt;br&gt;表面参数按接口读取，不再要求具体 BaseGround / Wall。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFF7E8;strokeColor=#C39B51;strokeWidth=1.5;dashed=1;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="265" width="955" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="accept0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;要验证什么 → 最终去哪里看&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;验收：脚下没换，来源原地重新启用也能恢复。&lt;br&gt;区域多个 Collider 仍重叠时不会过早解除。&lt;br&gt;当前落点：ENV-01 / 02，区域旁支 ENV-R1。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="265" width="695" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="plan1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;B · 每个实体拥有一份来源登记单&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;EntityEnvironmentContext + Binding（实体关系）&lt;br&gt;每个来源一份 Binding，合并 Ground / Region / Explicit。&lt;br&gt;EnvironmentRegistration（源端辅助）只记清理所需反向索引。&lt;br&gt;基类转发 Unity 启停，不再让冰面管理受力者名单。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFF7E8;strokeColor=#C39B51;strokeWidth=1.5;dashed=1;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="489" width="955" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="accept1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;要验证什么 → 最终去哪里看&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;验收：同一来源经两个入口进入，不重复 AddForce。&lt;br&gt;只移除一个依据时，其余依据仍保持作用。&lt;br&gt;当前落点：ENV-03；看清关系单与源端名单的区别。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="489" width="695" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="plan0" target="plan1" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="plan2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;C · 公共层登记，具体冰面只给参数&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;能力接口 → 既有实体写入方法&lt;br&gt;IMovementSpeedModifier / IStateVelocitySource 提供状态值。&lt;br&gt;IDynamicEnvironmentForce 提供按受力者初始化的 ForceData。&lt;br&gt;公共登记记下实际写入项，退出可按登记单撤销。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFF7E8;strokeColor=#C39B51;strokeWidth=1.5;dashed=1;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="713" width="955" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="accept2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;要验证什么 → 最终去哪里看&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;验收：接口缺席表示没有该能力，不能把零当作缺席。&lt;br&gt;冰面无须复制公共登记与清理；原公式保持。&lt;br&gt;当前落点：ENV-04 → ENV-05；初始化完返回 ENV-04。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="713" width="695" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="plan1" target="plan2" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="plan3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;D · 原有数值容器与速度算法继续工作&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicEntity + ForceData（数值状态与计算）&lt;br&gt;phyStateDic / startSpeedDic / dynamicForceDic 继续存数值。&lt;br&gt;相位 3 计算速度，再由 EntityMotionFrame 供预测与提交共用。&lt;br&gt;支撑采样单独承载三个值，不再造一份全速度容器。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#EAF2FC;strokeColor=#7E9FC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="937" width="955" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="accept3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;要验证什么 → 最终去哪里看&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;验收：Context 不积分；平台位移只计入一次。&lt;br&gt;着地竖直环境速度的已有语义疑点保留注释，另行验证。&lt;br&gt;当前落点：ENV-06；采样旁支 ENV-S1。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="937" width="695" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="plan2" target="plan3" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="plan4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;E · 一个统一撤销出口&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;Context.Detach（实体撤销）+ 双方 ReleaseAll（清理）&lt;br&gt;最后一个依据消失才撤销；来源失效直接解除整份绑定。&lt;br&gt;源禁用、实体禁用都通知同一个 Context 出口。&lt;br&gt;动态 RemoveForce 沿用 fadeAway，已取得速度仍归实体。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFF7E8;strokeColor=#C39B51;strokeWidth=1.5;dashed=1;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1161" width="955" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="accept4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;要验证什么 → 最终去哪里看&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;验收：重复清理安全；ForceField 禁用也停止动态控制。&lt;br&gt;退出不是归零，重入继续原参数与累计速度策略。&lt;br&gt;当前落点：ENV-07；生命周期旁支 ENV-L1。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="1161" width="695" height="194" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="plan3" target="plan4" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="scope" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;抽象到这里就停：这些职责都在现有物理执行层内部&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;没有新增全局环境管理器；没有替换接触速度算法；云朵、弹力块、跷跷板只有扩展方向，未为例子预造接口。&lt;br&gt;读第三页时以“输入 → 判断 → 写入 → 消费 → 撤销”检验职责，而不是按新增类的数量理解设计。&lt;br&gt;此次可读性整理只提取私有步骤：把发现/核对/采样分开，把接入判断/效果登记分开；公开入口和相位保持。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1420" width="1710" height="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="current" name="03 当前情况：按 ENV-01 → 07 通读一次冰面作用">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="2280" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="03 当前情况：按 ENV-01 → 07 通读一次冰面作用" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="62" width="1710" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="先只读左栏的方法与右栏指定的重点；暂时跳过几何查询、编辑器代码和下面三条旁支。&lt;br&gt;箭头是阅读顺序，不是连续调用栈：05 返回 04 完成登记；06 等相位 3；07 在离开或禁用时发生。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=18;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="124" width="1710" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="代码路径前缀 P = Assets/Script/Framworker/Function/Physics/；图内路径均相对 P。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="195" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="阅读编号是检索锚点，不是物理相位。行号记录本次工作区；方法名与 ENV 编号用于后续稳定定位。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="2231" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <object id="step0" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-01 · 从一个熟悉的实体入口开始&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicEntity.PhyFunUpdate（相位 2 入口）&lt;br&gt;传入着地时的 groundCollider；离地时传 null。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicEntity.cs:415&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#EAF2FC;strokeColor=#7E9FC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="270" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;只读这个短方法，先别从 BasicEntity 文件头逐行读。&lt;br&gt;输入：相位 1 已得到的脚下几何；下一站：ENV-02。&lt;br&gt;旧 A 的“转 BaseGround、比引用、手动进出”已被替换。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="270" width="795" height="157" as="geometry" />
+        </mxCell>
+        <object id="step1" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-02 · 先看三步目录，再进具体判断&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;EntityEnvironmentContext.RefreshGround（核对脚下）&lt;br&gt;找来源 → 核对关系 → 采样参数。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EntityEnvironmentContext.cs:133&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F2EDFA;strokeColor=#A88EC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="465" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;先读 SynchronizeGroundSources，再去 ENV-03。&lt;br&gt;CollectGroundSources 是发现细节；SampleGroundFrame 是旁支。&lt;br&gt;旧 A 拆成明确步骤；groundSources 是采样缓存，不是绑定单。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="465" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="step0" target="step1" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <object id="step2" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-03 · 回答“这次到底要不要登记”&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;EntityEnvironmentContext.SetAccess（接入判定）&lt;br&gt;退出删依据；重复进入并依据；首次进入才建 Binding。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EntityEnvironmentContext.cs:58&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F2EDFA;strokeColor=#A88EC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="660" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;重点看两个 return：保留关系时不会重复登记数值。&lt;br&gt;读 Binding.access 与 hasMovement 等：依据 ≠ 已登记内容。&lt;br&gt;首次进入去 ENV-04；最后一个依据消失直接去 ENV-07。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="660" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="step1" target="step2" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <object id="step3" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-04 · 回答“具体登记了哪三类效果”&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;EntityEnvironmentContext.RegisterEffects（统一登记）&lt;br&gt;能力 → 原实体写入方法 → 登记凭据。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EntityEnvironmentContext.cs:89&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F2EDFA;strokeColor=#A88EC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="855" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;移速修饰 → StatePowerRegistration；持续速度 → AddSpeedStatus。&lt;br&gt;动态施力 → CreateEnvironmentForce → AddForce；去 ENV-05。&lt;br&gt;前两项来源键为 Registration；动态键仍是具体动态能力接口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="855" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="step2" target="step3" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <object id="step4" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-05 · 只看冰面留下的具体算法&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround.CreateEnvironmentForce（冰面参数）&lt;br&gt;按是否 ICanMove 给出 ForceData，返回 ENV-04。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:18&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="1050" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;这里只认清两条旧公式；累计速度没有搬到冰面上。&lt;br&gt;IceGround.ForceCalculation 是随后相位 3 的输入控制回调。&lt;br&gt;旧 OnPhyEnter 只剩参数职责；其登记部分去了 ENV-04。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="1050" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="step3" target="step4" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <object id="step5" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-06 · 登记的数据怎样变成速度&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicEntity.HorizontalSpeedCalculation（相位 3）&lt;br&gt;移速修饰 → 被动速度 → 主动速度。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicEntity.cs:520&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#EAF2FC;strokeColor=#7E9FC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="1245" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read5" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;重点进 HUnderForce：回调 ForceCalculation，再更新 ForceData。&lt;br&gt;动态累计值仍在 dynamicForceDic；持续速度来自 startSpeedDic。&lt;br&gt;之后 SpeedCalculation 构建运动快照；第一遍到这里即可。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="1245" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="step4" target="step5" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <object id="step6" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-07 · 关闭这一次作用，保留已有尾效&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;EntityEnvironmentContext.Detach（统一撤销）&lt;br&gt;删 Binding / Untrack，再按登记凭据撤效果。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EntityEnvironmentContext.cs:116&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F2EDFA;strokeColor=#A88EC7;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="1440" width="855" height="157" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="read6" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;这一步只盯住这些内容&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;普通离开由 ENV-03 调用；禁用由下面的 ENV-L1 汇入。&lt;br&gt;看 BasicEntity.RemoveForce：只切 fadeAway，不是删除全部速度。&lt;br&gt;回到 ENV-06 可见尾效衰减；这才是一次作用的完整闭环。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="1440" width="795" height="157" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="step5" target="step6" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n27" value="第二遍再读旁支：它们接到上面的主线，不是另外三套速度系统" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=23;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1650" width="1710" height="40" as="geometry" />
+        </mxCell>
+        <object id="branch0" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-R1 · 力场 / 水域从区域接入&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;RefreshTriggerRegion → SetAccess(Region)&lt;br&gt;先看本次/上次集合的增减，再读查询细节。&lt;br&gt;CollectRegionReceivers 合并多 Collider；&lt;br&gt;登记规则仍回 ENV-03，参数由具体来源给。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EnvironmentRegistration.cs:67&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="45" y="1710" width="550" height="227" as="geometry" />
+          </mxCell>
+        </object>
+        <object id="branch1" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-S1 · 支撑参数绕开动态登记&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;SampleGroundFrame → Frame 的三个值&lt;br&gt;阻力 → PhyFunUpdate；起跳 → CharacterPhysics；&lt;br&gt;平台 Delta → SpeedCalculation / 运动快照。&lt;br&gt;墙滑走 IWallSlideSurface 查询，不经过 Binding。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Data/EntityEnvironmentFrame.cs:11&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Data/EntityEnvironmentFrame.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Data/EntityEnvironmentFrame.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="625" y="1710" width="550" height="227" as="geometry" />
+          </mxCell>
+        </object>
+        <object id="branch2" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-L1 · 禁用时统一收尾&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;源 OnDisable → Registration.ReleaseAll&lt;br&gt;实体 OnDisable → Context.ReleaseAll&lt;br&gt;两条路径都汇入 ENV-07 / Detach。&lt;br&gt;先复制名单再清理，避免边遍历边删索引。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EnvironmentRegistration.cs:52&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+            <mxGeometry x="1205" y="1710" width="550" height="227" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="reading" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;怎样把图和代码真正连起来&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;① 按 ENV 编号搜注释或按方法名定位；先回答右栏的问题，再继续下一编号。类名、字段清单留到第二遍核对。&lt;br&gt;② 图框附相对源码链接（打开方式由本机文件关联决定）；即使行号变化，ENV 编号与方法名仍可检索。&lt;br&gt;③ 本轮结构变化等级 2：新增私有步骤方法，公开接入接口、状态字段、序列化资源与物理相位均保持。&lt;br&gt;④ 原五页《环境接口抽象》保留作类关系与能力总览；这三页只负责从旧代码走到现在的具体阅读顺序。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1990" width="1710" height="190" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

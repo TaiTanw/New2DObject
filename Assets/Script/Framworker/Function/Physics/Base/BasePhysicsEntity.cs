@@ -36,6 +36,7 @@ public abstract class BasePhysicsEntity : BasicEntity
     ReadOnly_GeometryPhysicsData readOnly_GeometryPhysicsData;
     //自身特殊物理职能数据
     protected PhysicalFunctionData playphyFunData;
+    private readonly List<MonoBehaviour> surfaceBuffer = new List<MonoBehaviour>();
     public ReadOnly_GeometryPhysicsData ReadOnly_GeometryPhysicsData => readOnly_GeometryPhysicsData;
 
     ReadOnly_PlayerPhysicsData readOnly_PlayerPhysicsData;
@@ -82,23 +83,28 @@ public abstract class BasePhysicsEntity : BasicEntity
         // 更新数据
         nowGemetry.nowtaijie = currentGroundPlatform;
         nowGemetry.isGrounded = onGroundNow;
+        nowGemetry.groundCollider = onGroundNow ? hit.collider : null;
         //检测左右靠墙
         RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
         RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
         //检测墙是否有物理逻辑（无特殊逻辑则表示无法贴墙下滑
         nowGemetry.onLeftWall = false;
         nowGemetry.canLeftWall = null;
+        nowGemetry.leftWallCollider = null;
         //夹角需小于25度，内积近似0.9
         if (hit1.collider != null && Vector2.Dot(hit1.normal, Vector2.right) > 0.9f)
         {
             nowGemetry.onLeftWall = true;
+            nowGemetry.leftWallCollider = hit1.collider;
             hit1.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canLeftWall);  
         }
         nowGemetry.onRightWall = false;
         nowGemetry.canRightWall = null;
+        nowGemetry.rightWallCollider = null;
         if (hit2.collider != null && Vector2.Dot(hit2.normal, Vector2.left) > 0.9f)
         {
             nowGemetry.onRightWall = true;
+            nowGemetry.rightWallCollider = hit2.collider;
             hit2.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canRightWall);
         }
 
@@ -108,32 +114,15 @@ public abstract class BasePhysicsEntity : BasicEntity
     {
         base.PhyFunUpdate();
 
-        playphyFunData.canLeftWall =null; 
-        if (nowGemetry.canLeftWall is Wall)
-        {
-            playphyFunData.canLeftWall = nowGemetry.canLeftWall as Wall; //获取特殊物理职能数据
-        }
-        playphyFunData.canRightWall = null;
-        if(nowGemetry.canRightWall is Wall)
-        {
-            playphyFunData.canRightWall = nowGemetry.canRightWall as Wall;
-        }
-
-        
+        playphyFunData.canLeftWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.leftWallCollider, surfaceBuffer);
+        playphyFunData.canRightWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.rightWallCollider, surfaceBuffer);
     }
     /// <summary>
     /// 位移提交前，根据已解析的静墙引用刷新墙滑快照；不读取移动后的几何结果。
     /// </summary>
     protected override void RefreshWallSlideSnapshot()
     {
-        if (nowPhyFun.nowWall is Wall wall)
-        {
-            playphyFunData.nowWallt = wall;
-        }
-        else
-        {
-            playphyFunData.nowWallt = null;
-        }
+        playphyFunData.nowWallt = EnvironmentCapabilities.Find<IWallSlideSurface>(nowPhyFun.wallCollider, surfaceBuffer);
     }
     protected override void HActiveSpeedOperation()
     {

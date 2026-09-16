@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Wall : BaseGround
+/// <summary>
+/// 为接触到本物体的角色提供墙滑倍率；无此组件的普通墙仍可裁剪位移。
+/// 职能：具体表面能力提供者；墙滑参数由实体直接查询，不通过动态施力 Binding。
+/// </summary>
+public class Wall : BaseGround, IWallSlideSurface
 {
     /// <summary>
     /// 是否可以攀爬
@@ -26,4 +30,5 @@ public class Wall : BaseGround
     float wallFriction=1f;
 
     public float WallFRICTION => wallFriction;
+    public float WallSlideMultiplier => wallFriction;
 }

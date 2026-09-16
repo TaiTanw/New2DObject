@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 /// <summary>
-/// 碰撞物体基类（非生物
+/// 旧地面家族共用的消退阻力倍率和起跳加成；同时允许实体从脚下支撑登记持续效果。
+/// 职能：旧场景参数兼容层，通过 IGroundResponse 给 ENV-S1 提供读值。
 /// </summary>
-public class BaseGround : BasicPhysicalObject
+public class BaseGround : BasicPhysicalObject, IGroundResponse
 {
 
-    //只要是外部需要用到的数据，均在基类声明
-    //当前行为：基类只负责所有可能用到的数据，具体行为由子类实现
+    // 旧地面组件的参数兼容层。实体读取能力接口，不再以 BaseGround 类型判定环境效果。
+    protected override bool AppliesOnGround => true;
 
     /// <summary>
     /// 减速影响因子（处于此地面时，对消退类型力的衰减幅度）
@@ -25,7 +26,7 @@ public class BaseGround : BasicPhysicalObject
     public float JumpHeightNum=>jumpHeightNum;
 
     /// <summary>
-    /// 本帧位移，动态平台可用，默认0,运行时数据
+    /// 本帧位移的旧存储位置；只有实现 IPlatformMotion 的平台才会被运动管线读取。
     /// </summary>
     protected Vector2 delta;
     public Vector2 Delta=>delta;
