@@ -2,30 +2,21 @@
 using UnityEngine;
 
 /// <summary>
-/// 旧地面、冰面、力场仍从这里取得已有移速/持续速度参数；启用时接入调度，禁用时统一通知退出。
+/// 场景环境入口：持有 Registration，启用时接入调度，禁用时统一通知退出。
+/// 移速修饰和持续速度由具体组件自行声明并持有参数。
 /// 职能：现有场景组件的 Unity 兼容外壳；能力接口不要求新组件继承本类。
 /// 子类只扩展参数、算法或启停钩子；本类固定入口负责转发，不再要求子类成对重写登记/撤销。
 /// F_5.3 入口约束：同一物体只挂本类家族中的一个组件，该组件可实现多个能力接口。
 /// </summary>
 [DisallowMultipleComponent]
-public class BasicPhysicalObject : MonoBehaviour, IApplyingForceAction, IPhyBaseI,
-    IEnvironmentSource, IMovementSpeedModifier, IStateVelocitySource
+public class BasicPhysicalObject : MonoBehaviour, IEnvironmentSource
 {
-    [SerializeField] protected float speedChangeNum; // 主动速度加性修饰，旧序列化名称保留。
-    [SerializeField] protected Vector2 phySpeed; // 持续速度，非逐帧积分的力。
-
-    public float MovementSpeedOffset => speedChangeNum;
-    public Vector2 StateVelocity => phySpeed;
-
     private EnvironmentRegistration environmentRegistration;
     public EnvironmentRegistration EnvironmentRegistration => environmentRegistration ??=
         new EnvironmentRegistration(this, this, AppliesOnGround);
 
     protected virtual bool AppliesOnGround => false; // BaseGround 开启：走 ENV-02 的脚下入口。
     protected virtual bool UsesTriggerRegion => false; // ForceField / pond 开启：走 ENV-R1 区域入口。
-
-    public void OnPhyEnter(IForceAction receiver) => EnvironmentRegistration.OnPhyEnter(receiver);
-    public void OnPhyExit(IForceAction receiver) => EnvironmentRegistration.OnPhyExit(receiver);
 
     protected void OnEnable()
     {

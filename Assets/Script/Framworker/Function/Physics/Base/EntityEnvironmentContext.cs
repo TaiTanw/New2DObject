@@ -44,6 +44,9 @@ public sealed class EntityEnvironmentContext
     }
 
     public bool IsActive => owner != null && owner.isActiveAndEnabled;
+    /// <summary>
+    /// 瞬时物理快照
+    /// </summary>
     public EntityEnvironmentFrame Frame { get; private set; } = EntityEnvironmentFrame.Empty;
 
 #if UNITY_EDITOR

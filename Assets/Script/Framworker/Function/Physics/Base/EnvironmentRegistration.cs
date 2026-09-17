@@ -2,14 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 例如力场要知道区域内有哪些实体，自己禁用时还要找到所有受影响实体通知退出。
-/// 每个来源组合一个本对象完成这些通知；真正“登记了什么”的记录在各实体 Context 内。
-/// 职能：源端接入辅助与清理反向索引，兼作旧状态容器的来源键；不存数值或决定碰撞响应。
+/// 职能：源端接入辅助与清理反向索引，并作为实体状态容器的来源键；不存数值或决定碰撞响应。
+/// 提供组件生命周期情况，与增删接口
 /// 阅读：区域旁支 ENV-R1；普通脚下主线从 BasicEntity 的 ENV-01 开始。
 /// </summary>
-public sealed class EnvironmentRegistration : IApplyingForceAction
+public sealed class EnvironmentRegistration
 {
+    /// <summary>
+    /// 引擎组件生命周期读取
+    /// </summary>
     private readonly Behaviour owner;
+    /// <summary>
+    /// 纯c#类结构占用
+    /// </summary>
     internal object Provider { get; }
     /// <summary>
     /// 是登记地面物理效果（当外界符合条件拿到此环境影响时，是否同意）
@@ -17,10 +22,14 @@ public sealed class EnvironmentRegistration : IApplyingForceAction
     public bool AcceptsGroundContact { get; }
     public bool IsActive => owner != null && owner.isActiveAndEnabled;
 
-    // Context 在建立/解除 Binding 时 Track / Untrack；用于源禁用时找到所有接收者。
+    /// <summary>
+    /// 注册表本身：
+    /// Context 在建立/解除 Binding 时 Track / Untrack；用于源禁用时找到所有接收者。
+    /// </summary>
     private readonly HashSet<EntityEnvironmentContext> receivers = new HashSet<EntityEnvironmentContext>();
+    //缓存，防止遍历中移除自身元素
     private readonly List<EntityEnvironmentContext> releaseBuffer = new List<EntityEnvironmentContext>();
-    // 上次/本次区域采样集合只作差集与缓存复用；它们不决定效果是否已经登记。
+    // 上次/本次区域采样集合只作差集与缓存复用；它们不决定效果是否已经登记。本帧和下一帧状态快照
     private HashSet<EntityEnvironmentContext> regionReceivers = new HashSet<EntityEnvironmentContext>();
     private HashSet<EntityEnvironmentContext> nextRegionReceivers = new HashSet<EntityEnvironmentContext>();
     private readonly List<Collider2D> sourceColliders = new List<Collider2D>();
@@ -36,19 +45,15 @@ public sealed class EnvironmentRegistration : IApplyingForceAction
     internal void Track(EntityEnvironmentContext context) => receivers.Add(context);
     internal void Untrack(EntityEnvironmentContext context) => receivers.Remove(context);
 
-    // 兼容旧入口。只有实现实体环境接收接口的受力者才参与这一套关系管理。
-    public void OnPhyEnter(IForceAction receiver)
+    /// <summary>
+    /// 显式接入窄口：只增删 Explicit 依据，不代替脚下或区域采样。
+    /// </summary>
+    public void SetExplicitAccess(IEnvironmentReceiver receiver, bool present)
     {
-        // 接入协议：只有持有 Context 的实体才能登记 Explicit 依据。
-        if (receiver is IEnvironmentReceiver environment)
-            environment.EnvironmentContext.SetAccess(this, EntityEnvironmentContext.Access.Explicit, true);
-    }
-
-    public void OnPhyExit(IForceAction receiver)
-    {
-        // 只撤 Explicit；Ground / Region 仍由各自的采样入口决定。
-        if (receiver is IEnvironmentReceiver environment)
-            environment.EnvironmentContext.SetAccess(this, EntityEnvironmentContext.Access.Explicit, false);
+        // 安全：没有接收者时不能建 Explicit 依据。
+        if (receiver == null) return;
+        // 接入逻辑：只增删 Explicit；Ground / Region 仍由各自采样入口决定。
+        receiver.EnvironmentContext.SetAccess(this, EntityEnvironmentContext.Access.Explicit, present);
     }
 
     /// <summary>[ENV-L1] 源禁用入口：按反向索引通知每个 Context 走 ENV-07，不清零实体已有速度。</summary>
@@ -64,6 +69,7 @@ public sealed class EnvironmentRegistration : IApplyingForceAction
     }
 
     /// <summary>
+    /// 刷新触发区域（物理更新逻辑）
     /// [ENV-R1] 力场/水域的旁支入口：相位 2 采样区域，再汇入与脚下主线相同的 ENV-03。
     /// 先收集本次接收者，撤销离开者的 Region，再确认仍在区域者；具体 Collider 筛选可第二遍读。
     /// </summary>

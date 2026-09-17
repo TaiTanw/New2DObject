@@ -7,8 +7,11 @@ using UnityEngine.U2D;
 /// 移动平台在相位 0 更新位置并记录 delta；实体踩在上面时，经 ENV-S1 读到该帧位移。
 /// 职能：平台自身运动与位移能力提供者；启停钩子只管理自身回调，环境解除由旧基类统一处理。
 /// </summary>
-public class Taijie : BaseGround, IPlatformMotion
+public class Taijie : BaseGround, IPlatformMotion, IMovementSpeedModifier
 {
+    [SerializeField] protected float speedChangeNum; // 主动速度加性修饰，旧序列化名称保留。
+    public float MovementSpeedOffset => speedChangeNum;
+
     /// <summary>
     /// 平台效应器
     /// </summary>

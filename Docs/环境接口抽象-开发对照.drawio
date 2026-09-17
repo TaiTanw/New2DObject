@@ -1,10 +1,10 @@
-<mxfile host="Electron" pages="3" compressed="false">
+<mxfile host="Electron" pages="4" compressed="false">
   <diagram id="before" name="01 开发前：冰面为什么要自己登记，还要自己清理">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1680" background="#FFFFFF">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2–0.4 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
         </mxCell>
         <mxCell id="n3" value="01 开发前：冰面为什么要自己登记，还要自己清理" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
@@ -72,7 +72,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2–0.4 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
         </mxCell>
         <mxCell id="n3" value="02 预估功能：把旧回调里的工作拆成五个职责" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
@@ -140,7 +140,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2–0.4 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
         </mxCell>
         <mxCell id="n3" value="03 当前情况：按 ENV-01 → 07 通读一次冰面作用" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
@@ -196,7 +196,7 @@
         <mxCell id="e17" edge="1" parent="1" source="step2" target="step3" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <object id="step4" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-05 · 只看冰面留下的具体算法&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround.CreateEnvironmentForce（冰面参数）&lt;br&gt;按是否 ICanMove 给出 ForceData，返回 ENV-04。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:18&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+        <object id="step4" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-05 · 只看冰面留下的具体算法&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround.CreateEnvironmentForce（冰面参数）&lt;br&gt;按是否 ICanMove 给出 ForceData，返回 ENV-04。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs:23&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
           <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
             <mxGeometry x="45" y="1050" width="855" height="157" as="geometry" />
           </mxCell>
@@ -242,13 +242,97 @@
             <mxGeometry x="625" y="1710" width="550" height="227" as="geometry" />
           </mxCell>
         </object>
-        <object id="branch2" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-L1 · 禁用时统一收尾&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;源 OnDisable → Registration.ReleaseAll&lt;br&gt;实体 OnDisable → Context.ReleaseAll&lt;br&gt;两条路径都汇入 ENV-07 / Detach。&lt;br&gt;先复制名单再清理，避免边遍历边删索引。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EnvironmentRegistration.cs:55&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
+        <object id="branch2" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;ENV-L1 · 禁用时统一收尾&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;源 OnDisable → Registration.ReleaseAll&lt;br&gt;实体 OnDisable → Context.ReleaseAll&lt;br&gt;两条路径都汇入 ENV-07 / Detach。&lt;br&gt;先复制名单再清理，避免边遍历边删索引。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EnvironmentRegistration.cs:51&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs" tooltip="相对文件链接：Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs。用框内方法名或 ENV 编号定位；链接打开方式取决于本机文件关联。">
           <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
             <mxGeometry x="1205" y="1710" width="550" height="227" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="reading" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;怎样把图和代码真正连起来&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;① 按 ENV 编号搜注释或按方法名定位；先回答右栏的问题，再继续下一编号。类名、字段清单留到第二遍核对。&lt;br&gt;② 图框附相对源码链接（打开方式由本机文件关联决定）；即使行号变化，ENV 编号与方法名仍可检索。&lt;br&gt;③ 本轮结构变化等级 2：新增私有步骤方法，公开接入接口、状态字段、序列化资源与物理相位均保持。&lt;br&gt;④ 原五页《环境接口抽象》保留作类关系与能力总览；这三页只负责从旧代码走到现在的具体阅读顺序。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
+        <mxCell id="reading" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;怎样把图和代码真正连起来&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;① 按 ENV 编号搜注释或按方法名定位；先回答右栏的问题，再继续下一编号。类名、字段清单留到第二遍核对。&lt;br&gt;② 图框附相对源码链接（打开方式由本机文件关联决定）；即使行号变化，ENV 编号与方法名仍可检索。&lt;br&gt;③ 0.2–0.3 结构变化等级 2：新增私有步骤方法，公开接入接口、状态字段、序列化资源与物理相位均保持。&lt;br&gt;④ 类关系总览仍看《环境接口抽象》；本页只读调用顺序。F_5.4 职责退出后的旧→新对照见第 4 页。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;dashed=0;dashPattern=8 5;" vertex="1" parent="1">
           <mxGeometry x="45" y="1990" width="1710" height="190" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="after-f54" name="04 F_5.4：旧结构怎样落到现在">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1800" pageHeight="1760" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n2" value="环境接口抽象 · F_5 / 0.2–0.4 · 开发对照与代码阅读" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="23" width="1700" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="04 F_5.4：旧结构怎样落到现在" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=32;fontColor=#254359;fontStyle=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="62" width="1710" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="本页是职责退出后的对照，不是新的调用栈。第 1–3 页仍按历史阅读；能力归属、来源键和几何身份以本页为准。&lt;br&gt;左栏是退出前的公共入口习惯；右栏是现在实际落地的位置。资源数值与效果生命周期没有改。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=18;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="124" width="1710" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="代码路径前缀 P = Assets/Script/Framworker/Function/Physics/；图内路径均相对 P。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=15;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="195" width="1710" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="old0" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旧 · 公共外壳兼默认能力&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicPhysicalObject 同时持有身份、speedChangeNum / phySpeed，并默认实现移速修饰与持续速度。&lt;br&gt;墙和普通地面也会因 0 值被登记。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F7F1EA;strokeColor=#C4A882;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="250" width="855" height="150" as="geometry" />
+        </mxCell>
+        <object id="new0" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;新 · 薄层宿主只保留身份&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;BasicPhysicalObject 只做 IEnvironmentSource、生命周期和区域调度。&lt;br&gt;需要效果的子类自行声明接口并持有字段。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicPhysicalObject.cs&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/BasicPhysicalObject.cs">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="960" y="250" width="795" height="150" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="e0" edge="1" parent="1" source="old0" target="new0" style="endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old1" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旧 · 参数挂在基类字段&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;speedChangeNum、phySpeed 序列化在公共外壳上。&lt;br&gt;Ice / Pond / Taijie 的真实值也从这里读。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F7F1EA;strokeColor=#C4A882;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="430" width="855" height="150" as="geometry" />
+        </mxCell>
+        <object id="new1" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;新 · 字段跟着已声明的能力走&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IceGround：移速、持续速度、动态力。ForceField：动态力 + 移速。Taijie：平台 + 移速。Wall / BaseGround：不再声明移速或持续速度。&lt;br&gt;预制体 YAML 字段名未改。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Component/SceneObjects/IceGround.cs&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Component/SceneObjects/IceGround.cs">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="960" y="430" width="795" height="150" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="e1" edge="1" parent="1" source="old1" target="new1" style="endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old2" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旧 · 字典键是进入协议&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;phyStateDic / startSpeedDic 以 IApplyingForceAction 为键。&lt;br&gt;OnPhyEnter 同时承担显式接入。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F7F1EA;strokeColor=#C4A882;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="610" width="855" height="150" as="geometry" />
+        </mxCell>
+        <object id="new2" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;新 · 来源键是登记表实例&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;移速与持续速度键为 EnvironmentRegistration。&lt;br&gt;动态力键仍是 IDynamicAddForce（冰面/力场，以及实体接触施力）。IForceAction 保留为实体写入协议。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasicEntity.cs&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="960" y="610" width="795" height="150" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="e2" edge="1" parent="1" source="old2" target="new2" style="endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old3" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旧 · 几何身份靠 IPhyBaseI&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;GeometricQuery 用 TryGetComponent 写 nowtaijie、canLeftWall / canRightWall。&lt;br&gt;实体自己也实现了该标记。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F7F1EA;strokeColor=#C4A882;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="790" width="855" height="150" as="geometry" />
+        </mxCell>
+        <object id="new3" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;新 · 几何只认 Collider&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;角色与箱子的 GeometricQuery 只保存 Collider 与着地/贴墙布尔。&lt;br&gt;墙滑能力另查 IWallSlideSurface；IPhyBaseI 已删除。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/BasePhysicsEntity.cs&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/BasePhysicsEntity.cs">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="960" y="790" width="795" height="150" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="e3" edge="1" parent="1" source="old3" target="new3" style="endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="old4" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;旧 · 显式进入走 OnPhyEnter&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;IApplyingForceAction 既是字典键，也是外部 Enter / Exit。&lt;br&gt;基类把调用转给 Registration。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#F7F1EA;strokeColor=#C4A882;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="970" width="855" height="150" as="geometry" />
+        </mxCell>
+        <object id="new4" label="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;新 · Explicit 只走窄口&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;Access.Explicit 语义保留。&lt;br&gt;入口是 EnvironmentRegistration.SetExplicitAccess；IApplyingForceAction 与基类转发已删除。生产代码不调用此口。&lt;/div&gt;&lt;div style=&quot;font-size:14px;color:#56778E;margin-top:10px;&quot;&gt;P / Base/EnvironmentRegistration.cs:42&lt;/div&gt;&lt;/div&gt;" link="../Assets/Script/Framworker/Function/Physics/Base/EnvironmentRegistration.cs">
+          <mxCell style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#E9F5EF;strokeColor=#7DAB96;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="960" y="970" width="795" height="150" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="e4" edge="1" parent="1" source="old4" target="new4" style="endArrow=blockThin;endFill=1;strokeWidth=2;strokeColor=#648399;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="keep" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;本单元保持不变&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;ICE / ICE 1 / Pond / Taijie 资源值；冰面公式与尾效衰减；脚下 / 区域 / 禁用生命周期；重复接入不重置累计速度。&lt;br&gt;ENV-01 → 07 阅读顺序仍然有效，只是效果来源改为具体组件上的接口。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#EAF2FC;strokeColor=#7E9FC7;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1160" width="855" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="out" value="&lt;div style=&quot;box-sizing:border-box;padding:15px 17px;width:100%;font-family:Microsoft YaHei;line-height:1.45;text-align:left;&quot;&gt;&lt;div style=&quot;font-size:21px;font-weight:bold;color:#193B51;&quot;&gt;明确不在本页处理&lt;/div&gt;&lt;div style=&quot;font-size:17px;color:#365368;margin-top:9px;&quot;&gt;参数持续更新、通用环境效果容器、空间采样函数数组、新的入口父类、全局环境管理器、接触算法、Wall 是否继续作为脚下来源。&lt;br&gt;FindHost 目前仍只认 BasicPhysicalObject。&lt;/div&gt;&lt;/div&gt;" style="rounded=1;absoluteArcSize=1;arcSize=12;whiteSpace=wrap;html=1;overflow=fill;align=left;verticalAlign=top;fillColor=#FFFFFF;strokeColor=#D1DCE5;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="1160" width="795" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="阅读编号仍以第 3 页 ENV-01 → 07 为准。本页只回答“旧字段和旧接口现在在哪”。" style="text;html=1;whiteSpace=wrap;overflow=fill;spacing=0;align=left;verticalAlign=middle;fontFamily=Microsoft YaHei;fontSize=14;fontColor=#254359;fontStyle=0;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="45" y="1365" width="1710" height="28" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

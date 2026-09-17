@@ -1,12 +1,18 @@
 ﻿using PhyData;
+using UnityEngine;
 
 /// <summary>
 /// 踩上冰面时，按受力者是否能主动移动给出初始参数；在冰面内根据输入施力或受控减速。
 /// 职能：具体环境算法提供者。旧 OnPhyEnter 中的初始化搬到 ENV-05，登记与清理由 Context 处理。
 /// 第一遍只读 CreateEnvironmentForce；理解实体 ENV-06 的消费循环后，再回来看 ForceCalculation。
 /// </summary>
-public class IceGround : BaseGround, IDynamicEnvironmentForce
+public class IceGround : BaseGround, IDynamicEnvironmentForce, IMovementSpeedModifier, IStateVelocitySource
 {
+    [SerializeField] protected float speedChangeNum; // 主动速度加性修饰，旧序列化名称保留。
+    [SerializeField] protected Vector2 phySpeed; // 持续速度，非逐帧积分的力。
+    public float MovementSpeedOffset => speedChangeNum;
+    public Vector2 StateVelocity => phySpeed;
+
     /// <summary>加速影响因子（保留旧序列化字段）。</summary>
     public float Idex = 1;
     /// <summary>输入松开时的受控减速因子。</summary>

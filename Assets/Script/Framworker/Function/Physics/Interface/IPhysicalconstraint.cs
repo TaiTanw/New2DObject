@@ -4,24 +4,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 /// <summary>
-/// 施力动作（施力物体必须
-/// </summary>
-public interface IApplyingForceAction
-{
-    /// <summary>
-    /// 施力动作开始
-    /// </summary>
-    /// <param name="iD">受力对象</param>
-    public void OnPhyEnter(IForceAction iD);
-    /// <summary>
-    /// 施力动作结束
-    /// </summary>
-    /// <param name="iD">受力对象</param>
-    public void OnPhyExit(IForceAction iD);
-
-
-}
-/// <summary>
 /// 动态施力（施力物体可有
 /// </summary>
 public interface IDynamicAddForce 
@@ -41,25 +23,25 @@ public interface IForceAction
     /// <summary>
     /// 粘滞力注册
     /// </summary>
-    /// <param name="id">施力物体</param>
+    /// <param name="id">环境来源身份</param>
     /// <param name="num">大小</param>
-    public void StatePowerRegistration(IApplyingForceAction id,float num);
+    public void StatePowerRegistration(EnvironmentRegistration id,float num);
     /// <summary>
     /// 粘滞力注销
     /// </summary>
-    /// <param name="id">施力对象</param>
-    public void StatePowerCancellation(IApplyingForceAction id);
+    /// <param name="id">环境来源身份</param>
+    public void StatePowerCancellation(EnvironmentRegistration id);
     /// <summary>
     /// 状态速度添加
     /// </summary>
-    /// <param name="iD">施力对象</param>
+    /// <param name="iD">环境来源身份</param>
     /// <param name="force">速度大小</param>
-    public void AddSpeedStatus(IApplyingForceAction iD, Vector2 force);
+    public void AddSpeedStatus(EnvironmentRegistration iD, Vector2 force);
     /// <summary>
     /// 状态速度移除
     /// </summary>
-    /// <param name="iD">施力对象</param>
-    public void RemoveSpeedStatus(IApplyingForceAction iD);
+    /// <param name="iD">环境来源身份</param>
+    public void RemoveSpeedStatus(EnvironmentRegistration iD);
     /// <summary>
     /// 添加限时速度（水平
     /// </summary>

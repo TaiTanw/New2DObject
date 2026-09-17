@@ -8,7 +8,7 @@ using UnityEngine;
 /// 环境关系由每个实体自己的 EnvironmentContext 管理，力和速度仍放在本类原有容器中。
 /// 职能：实体物理执行与数值状态归属。通读本次环境接入先搜 ENV-01，再沿编号读到 ENV-07。
 /// </summary>
-public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDynamicAddForce, IEnvironmentReceiver
+public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForce, IEnvironmentReceiver
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
@@ -68,7 +68,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// <summary>
     /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
     /// </summary>
-    Dictionary<IApplyingForceAction, float> phyStateDic = new Dictionary<IApplyingForceAction, float>();
+    Dictionary<EnvironmentRegistration, float> phyStateDic = new Dictionary<EnvironmentRegistration, float>();
     /// <summary>
     /// 时间速度容器
     /// </summary>
@@ -76,7 +76,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// <summary>
     /// 状态速度容器（传送带模型
     /// </summary>
-    Dictionary<IApplyingForceAction, Vector2> startSpeedDic = new Dictionary<IApplyingForceAction, Vector2>();
+    Dictionary<EnvironmentRegistration, Vector2> startSpeedDic = new Dictionary<EnvironmentRegistration, Vector2>();
 
     /// <summary>
     /// 受到哪些物体的施力影响
@@ -194,7 +194,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     /// <param name="iD">唯一标识</param>
     /// <param name="num">影响程度</param>
-    public void StatePowerRegistration(IApplyingForceAction iD, float num)
+    public void StatePowerRegistration(EnvironmentRegistration iD, float num)
     {
         //避免键重复而报错
         phyStateDic[iD] = num;
@@ -204,7 +204,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// 撤销该来源的主动移速修饰，标记下一速度阶段重新汇总。
     /// </summary>
     /// <param name="iD"></param>
-    public void StatePowerCancellation(IApplyingForceAction iD)
+    public void StatePowerCancellation(EnvironmentRegistration iD)
     {
         phyStateDic.Remove(iD);
         isRecalculate = true;
@@ -227,7 +227,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// </summary>
     /// <param name="iD">来源键；环境状态使用 Registration。</param>
     /// <param name="force">持续附加速度；沿用旧参数名，不代表需要积分的力。</param>
-    public void AddSpeedStatus(IApplyingForceAction iD, Vector2 force)
+    public void AddSpeedStatus(EnvironmentRegistration iD, Vector2 force)
     {
 
         startSpeedDic[iD] = force;
@@ -238,7 +238,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction,IPhyBaseI, IDyna
     /// 外部取消状态性质速度
     /// </summary>
     /// <param name="iD">需要删除的持续速度来源。</param>
-    public void RemoveSpeedStatus(IApplyingForceAction iD)
+    public void RemoveSpeedStatus(EnvironmentRegistration iD)
     {
         //否则再将受力容器对应值删除
         startSpeedDic.Remove(iD);

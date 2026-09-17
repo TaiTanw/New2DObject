@@ -5,11 +5,6 @@ using UnityEngine;
 namespace PhyData
 {
     /// <summary>
-    /// 物理引用接口（属于EPhy物理世界）
-    /// </summary>
-    public interface IPhyBaseI { }
-
-    /// <summary>
     /// 限时速度叠加效果
     /// </summary>
 	public struct SpeedStackData
@@ -169,16 +164,10 @@ namespace PhyData
         public Collider2D groundCollider;
         public Collider2D leftWallCollider;
         public Collider2D rightWallCollider;
-        /// <summary>
-        /// 当前玩家所属平台
-        /// </summary>
-        public IPhyBaseI nowtaijie;
         public bool istop;//是否顶头
         public bool isGrounded;     // 物理检测
         public bool onLeftWall; //左右墙布尔，表示受墙的影响因素 
         public bool onRightWall;
-        public IPhyBaseI canLeftWall;
-        public IPhyBaseI canRightWall;
 
         /// <summary>
         /// 贴地法线
@@ -250,10 +239,6 @@ namespace PhyData
             _data2 = data2;
         }
 
-        /// <summary>
-        /// 当前玩家所属平台
-        /// </summary>
-        public IPhyBaseI nowtaijie => _data.nowtaijie;
         public bool isGrounded => _data.isGrounded;     // 物理检测
         public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
         public bool onRightWall => _data.onRightWall;

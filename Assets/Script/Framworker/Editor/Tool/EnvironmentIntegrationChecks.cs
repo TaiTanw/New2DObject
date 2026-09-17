@@ -34,6 +34,7 @@ public static class EnvironmentIntegrationChecks
             CheckGroundLifecycle();
             CheckRegions();
             CheckCapabilities();
+            CheckCapabilityOwnership();
             CheckUniqueEnvironmentHost();
             Directory.CreateDirectory(".utmp/EnvironmentValidation");
             File.WriteAllLines(".utmp/EnvironmentValidation/checks.txt", passed);
@@ -170,11 +171,11 @@ public static class EnvironmentIntegrationChecks
         Refresh(field);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "实体原地启用恢复区域作用");
 
-        field.OnPhyEnter(body);
+        field.EnvironmentRegistration.SetExplicitAccess(body, true);
         first.enabled = false;
         Refresh(field);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "区域依据消失时保留显式接入依据");
-        field.OnPhyExit(body);
+        field.EnvironmentRegistration.SetExplicitAccess(body, false);
         Check(body.EnvironmentContext.DebugSourceCount == 0, "最后一个接入依据移除才注销效果");
         first.enabled = true;
         Refresh(field);
@@ -228,7 +229,7 @@ public static class EnvironmentIntegrationChecks
 
         platform.enabled = true;
         body.RefreshSupport(collider);
-        Check(body.DebugSnapshot.stateVelocityCount == 1 && body.DebugSnapshot.movementModifierCount == 1 &&
+        Check(body.DebugSnapshot.stateVelocityCount == 1 && body.DebugSnapshot.movementModifierCount == 0 &&
             body.DebugSnapshot.dynamicForceCount == 0, "同一宿主可单独提供持续速度能力");
         body.envImpact = .25f;
         body.RunForces();
@@ -243,6 +244,43 @@ public static class EnvironmentIntegrationChecks
         Check(!read.canLeftWall && !read.nowKWall, "接口引用能识别 Unity 组件禁用");
         Object.DestroyImmediate(platform);
         Check(!read.nowKWall, "接口引用能识别 Unity 对象销毁");
+    }
+
+    private static void CheckCapabilityOwnership()
+    {
+        Vector3 position = NextPosition();
+        IceGround ice = Prefab<IceGround>("ICE.prefab", position);
+        Near(ice.MovementSpeedOffset, -.5f, "冰面预制体保留移速修饰");
+        EnvironmentCheckBody body = Body(position + Vector3.up * 3);
+        body.RefreshSupport(ice.GetComponent<Collider2D>());
+        Check(body.DebugSnapshot.movementModifierCount == 1 && body.DebugSnapshot.stateVelocityCount == 1,
+            "冰面声明的移速和持续速度仍会登记");
+
+        IceGround iceBelt = Prefab<IceGround>("ICE 1.prefab", position);
+        Check(iceBelt.StateVelocity == new Vector2(3, 0), "ICE 1 预制体保留持续速度");
+        body.RefreshSupport(iceBelt.GetComponent<Collider2D>());
+        Check(body.DebugSnapshot.stateVelocityCount == 1, "ICE 1 持续速度仍会登记");
+
+        ForceField pond = Prefab<ForceField>("Pond.prefab", position);
+        Near(pond.MovementSpeedOffset, -.4f, "Pond 预制体保留移速修饰");
+        pond.GetComponent<Collider2D>().isTrigger = true;
+        EnvironmentCheckBody swimmer = Body(position);
+        Refresh(pond);
+        Check(swimmer.DebugSnapshot.movementModifierCount == 1 && swimmer.DebugSnapshot.stateVelocityCount == 0,
+            "力场登记移速修饰且不再隐式登记持续速度");
+
+        Taijie platform = Prefab<Taijie>("Taijie.prefab", position);
+        Near(platform.MovementSpeedOffset, 1f, "台阶预制体保留移速修饰");
+        EnvironmentCheckBody rider = Body(position + Vector3.up);
+        rider.RefreshSupport(platform.GetComponent<Collider2D>());
+        Check(rider.DebugSnapshot.movementModifierCount == 1 && rider.DebugSnapshot.stateVelocityCount == 0,
+            "台阶登记移速修饰且不登记持续速度");
+
+        Wall wall = Prefab<Wall>("wall.prefab", position);
+        EnvironmentCheckBody onWall = Body(position + Vector3.up);
+        onWall.RefreshSupport(wall.GetComponent<Collider2D>());
+        Check(onWall.DebugSnapshot.movementModifierCount == 0 && onWall.DebugSnapshot.stateVelocityCount == 0,
+            "墙能力缺席时零值不再登记移速或持续速度");
     }
 
     private static void CheckUniqueEnvironmentHost()
@@ -271,6 +309,7 @@ public static class EnvironmentIntegrationChecks
     private static T Prefab<T>(string name, Vector3 position) where T : Component
     {
         GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/MyObjAssets/gameObject/" + name);
+        if (asset == null) asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/default/" + name);
         if (asset == null) throw new InvalidOperationException("Missing fixture prefab: " + name);
         GameObject item = Object.Instantiate(asset);
         item.hideFlags = HideFlags.DontSave;
@@ -346,19 +385,20 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
     }
 }
 
-public sealed class EnvironmentCheckSurface : BasicPhysicalObject, IPlatformMotion, IWallSlideSurface
+public sealed class EnvironmentCheckSurface : BasicPhysicalObject, IPlatformMotion, IWallSlideSurface, IStateVelocitySource
 {
-    private void Awake() => phySpeed = new Vector2(3, 2);
+    [SerializeField] Vector2 phySpeed = new Vector2(3, 2);
+    public Vector2 StateVelocity => phySpeed;
     public Vector2 Delta => new Vector2(.3f, -.2f);
     public float WallSlideMultiplier => .5f;
     protected override bool AppliesOnGround => true;
 }
 public sealed class EnvironmentCheckReceiver : MonoBehaviour, IForceAction
 {
-    public void StatePowerRegistration(IApplyingForceAction id, float num) { }
-    public void StatePowerCancellation(IApplyingForceAction id) { }
-    public void AddSpeedStatus(IApplyingForceAction id, Vector2 value) { }
-    public void RemoveSpeedStatus(IApplyingForceAction id) { }
+    public void StatePowerRegistration(EnvironmentRegistration id, float num) { }
+    public void StatePowerCancellation(EnvironmentRegistration id) { }
+    public void AddSpeedStatus(EnvironmentRegistration id, Vector2 value) { }
+    public void RemoveSpeedStatus(EnvironmentRegistration id) { }
     public void AddTimeSpeed(float time, float value) { }
     public void AddForce(IDynamicAddForce id, ForceData data) { }
     public void ChangeForce(IDynamicAddForce id, float value) { }

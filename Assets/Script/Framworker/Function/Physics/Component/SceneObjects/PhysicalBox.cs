@@ -40,8 +40,6 @@ public class PhysicalBox : BasicEntity
         nowGemetry.istop = topHit.collider != null;
         //缓存真实命中法线；斜坡位移与着地判定必须使用表面信息
         nowGemetry.groundNormal = hit.normal;
-        //默认数据声明
-        IPhyBaseI currentGroundPlatform = null;
         bool onGroundNow = false;
         //默认的空中阻力系数
         self_resistanceCoefficient = 1;
@@ -51,37 +49,28 @@ public class PhysicalBox : BasicEntity
             onGroundNow = true;
             //在地面，则自身阻力增大
             self_resistanceCoefficient = 20;
-            //下文需要判空处理，空表示无任何特殊逻辑的地面
-            hit.collider.TryGetComponent<IPhyBaseI>(out currentGroundPlatform);
-
         }
 
-        // 更新数据
-        nowGemetry.nowtaijie = currentGroundPlatform;
+        // 几何只保留 Collider；脚下能力由相位 2 经 groundCollider 解析。
         nowGemetry.isGrounded = onGroundNow;
         nowGemetry.groundCollider = onGroundNow ? hit.collider : null;
         //检测左右靠墙
         RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, a, -transform.right, 0f, cPhysics.wallLayer);
         RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, a, transform.right, 0f, cPhysics.wallLayer);
-        //检测墙是否有物理逻辑
         nowGemetry.onLeftWall = false;
-        nowGemetry.canLeftWall = null;
         nowGemetry.leftWallCollider = null;
         //夹角需小于25度，内积近似0.9
         if (hit1.collider != null && Vector2.Dot(hit1.normal, Vector2.right) > 0.9f)
         {
             nowGemetry.onLeftWall = true;
             nowGemetry.leftWallCollider = hit1.collider;
-            hit1.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canLeftWall);
         }
         nowGemetry.onRightWall = false;
-        nowGemetry.canRightWall = null;
         nowGemetry.rightWallCollider = null;
         if (hit2.collider != null && Vector2.Dot(hit2.normal, Vector2.left) > 0.9f)
         {
             nowGemetry.onRightWall = true;
             nowGemetry.rightWallCollider = hit2.collider;
-            hit2.collider.TryGetComponent<IPhyBaseI>(out nowGemetry.canRightWall);
         }
 
     }

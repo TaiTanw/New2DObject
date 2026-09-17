@@ -3,9 +3,9 @@ using UnityEngine;
 namespace PhyData
 {
     /// <summary>
+    /// 职能：支撑参数的只读采样结果，不是全部环境速度，也不是持续效果的 Binding。
     /// [ENV-S1] 脚下表面本帧提供的三个数：消退阻力倍率、起跳速度加成、平台已走的世界位移。
     /// 它由 Context.SampleGroundFrame 生成；没有对应能力时分别使用 1、0、零位移。
-    /// 职能：支撑参数的只读采样结果，不是全部环境速度，也不是持续效果的 Binding。
     /// </summary>
     public readonly struct EntityEnvironmentFrame
     {
