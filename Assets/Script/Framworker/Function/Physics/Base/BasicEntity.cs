@@ -12,6 +12,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
+    // 相位 1 overlap 工作缓存；有效 Trigger 再写入 nowGemetry.regionOverlaps。
+    private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
     /// <summary>
     /// 物理配置数据
     /// </summary>
@@ -395,7 +397,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     {
         //物理更新时序设置
         //几何查询
-        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQuery, 1);
+        MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQueryPhase, 1);
         //物理职能更新
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(PhyFunUpdate, 2);
         //速度计算 → 构建本帧运动快照 → PositionPrediction 上报预测框
@@ -409,15 +411,55 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// 几何查询，最早阶段，检测碰撞信息
     /// </summary>
     protected abstract void GeometricQuery();
+
+    /// <summary>
+    /// 相位 1：先做脚下/贴墙查询，再记下本帧区域 Trigger 重叠。
+    /// 职能：几何感知入口；登记效果仍在相位 2。
+    /// </summary>
+    void GeometricQueryPhase()
+    {
+        GeometricQuery();
+        CollectRegionOverlapFacts();
+    }
+
+    /// <summary>
+    /// 用自身碰撞体扫到的区域 Trigger 写入几何事实列表。例如碰到水的触发器只记碰撞体。
+    /// 职能：相位 1 感知；不在这里登记或撤销环境效果。
+    /// </summary>
+    protected void CollectRegionOverlapFacts()
+    {
+        nowGemetry.regionOverlaps.Clear();
+        // 安全：没有可用碰撞体时本帧没有区域重叠事实。
+        if (boxCollider == null || !boxCollider.enabled) return;
+
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(boxCollider.gameObject.layer));
+        regionOverlapHits.Clear();
+        boxCollider.OverlapCollider(filter, regionOverlapHits);
+        foreach (Collider2D other in regionOverlapHits)
+        {
+            // 安全：销毁、禁用或不在激活层级的碰撞体不是有效命中。
+            if (other == null || !other.enabled || !other.gameObject.activeInHierarchy) continue;
+            // 区域选择：只保留对方 Trigger，避免把实心地面/墙写进区域事实。
+            if (!other.isTrigger) continue;
+            // 区域规则：排除自身与显式忽略对；层矩阵已在 filter 中筛选。
+            if (other.gameObject == gameObject || Physics2D.GetIgnoreCollision(boxCollider, other)) continue;
+            // 与 Unity 触发条件一致：至少一方具有 Rigidbody2D。
+            if (boxCollider.attachedRigidbody == null && other.attachedRigidbody == null) continue;
+            nowGemetry.regionOverlaps.Add(other);
+        }
+    }
     /// <summary>
     /// 物理职能更新（自身
     /// </summary>
     protected virtual void PhyFunUpdate()
     {
-        // [ENV-01] 阅读起点：相位 1 已拿到真实脚下 Collider；从这里进入 Context 的 ENV-02。
+        // 相位 1 已拿到脚下 Collider 和区域 Trigger 重叠；从这里进入 RefreshEnvironment。
         // 着地才传脚下；离地传 null，使旧 Ground 依据被撤销。普通无脚本地面也可着地。
         // 相位 1 已按空中/着地重置自身阻力。本相位只乘一次表面倍率，不跨帧累乘。
-        EnvironmentContext.RefreshGround(nowGemetry.isGrounded ? nowGemetry.groundCollider : null);
+        EnvironmentContext.RefreshEnvironment(
+            nowGemetry.isGrounded ? nowGemetry.groundCollider : null,
+            nowGemetry.regionOverlaps);
         self_resistanceCoefficient *= EnvironmentFrame.slowingMultiplier;
     }
 
@@ -793,7 +835,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         //事件注销
         if (!MonoPublicMgr.IsQuitting)
         {
-            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(GeometricQuery, 1);
+            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(GeometricQueryPhase, 1);
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(PhyFunUpdate, 2);
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(SpeedCalculation, 3);
             MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(DisplacementCorrection, 5);

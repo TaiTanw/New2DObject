@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 实体进入力场区域时，用 add / maxSpeed 给出动态力初值；后续每帧沿用这组参数。
-/// 职能：具体区域算法提供者；接入从公共 ENV-R1 汇入 ENV-03，不自行登记或清理实体。
+/// 职能：具体区域算法提供者；区域重叠由实体发现，本类只提供参数。
 /// </summary>
 public class ForceField : BasicPhysicalObject, IDynamicEnvironmentForce, IMovementSpeedModifier
 {
@@ -12,8 +12,6 @@ public class ForceField : BasicPhysicalObject, IDynamicEnvironmentForce, IMoveme
 
     [SerializeField] protected float maxSpeed;
     [SerializeField] protected float add;
-
-    protected override bool UsesTriggerRegion => true;
 
     public ForceData CreateEnvironmentForce(IForceAction receiver)
     {

@@ -131,65 +131,62 @@ public static class EnvironmentIntegrationChecks
         GameObject child = NewObject("child collider", position + Vector3.right);
         child.transform.SetParent(body.transform, true);
         Collider2D second = child.AddComponent<BoxCollider2D>();
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1 && body.DebugSnapshot.dynamicForceCount == 1,
             "复合碰撞体区域接入只登记一次");
         Check(EnvironmentCapabilities.FindEntity(second) == body, "子 Collider 仍正确识别动态实体身份");
         body.RunForces();
         Near(body.Force(field).speedStacking, -5f * Time.fixedDeltaTime, "力场使用预制体原有施力参数");
         first.enabled = false;
-        Refresh(field);
-        Check(body.EnvironmentContext.DebugSourceCount == 1, "一个接收 Collider 退出不提前解除作用");
-        Object.DestroyImmediate(second);
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 0 && body.Force(field).type == E_PhyForceType.fadeAway,
-            "最后一个 Collider 销毁且无 Exit 回调时完整退出");
+            "主碰撞体禁用后解除区域作用");
         first.enabled = true;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "Collider 重启后恢复区域作用");
 
         Collider2D source2 = field.gameObject.AddComponent<BoxCollider2D>();
         source2.isTrigger = true;
         source.enabled = false;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "多个源 Collider 取并集");
         source2.enabled = false;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 0, "全部源 Collider 禁用后解除区域作用");
         source.enabled = true;
-        Refresh(field);
+        Refresh(body);
         Disable(field);
         Check(body.EnvironmentContext.DebugSourceCount == 0 && body.Force(field).type == E_PhyForceType.fadeAway,
             "力场禁用同时停止动态施力（旧遗漏修复）");
         field.enabled = true;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "力场原地启用无需新的 Enter 回调");
         Disable(body);
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 0, "区域查询排除禁用接收者");
         body.enabled = true;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "实体原地启用恢复区域作用");
 
         field.EnvironmentRegistration.SetExplicitAccess(body, true);
         first.enabled = false;
-        Refresh(field);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "区域依据消失时保留显式接入依据");
         field.EnvironmentRegistration.SetExplicitAccess(body, false);
         Check(body.EnvironmentContext.DebugSourceCount == 0, "最后一个接入依据移除才注销效果");
         first.enabled = true;
-        Refresh(field);
+        Refresh(body);
         Physics2D.IgnoreCollision(source, first, true);
         try
         {
-            Refresh(field);
+            Refresh(body);
             Check(body.EnvironmentContext.DebugSourceCount == 0, "区域查询尊重 Collider 忽略关系");
         }
         finally { Physics2D.IgnoreCollision(source, first, false); }
-        Refresh(field);
+        Refresh(body);
         ForceField overlapping = Prefab<ForceField>("Pond.prefab", position);
         overlapping.GetComponent<Collider2D>().isTrigger = true;
-        Refresh(overlapping);
+        Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 2, "Pond 实际 ForceField 组件与另一环境独立叠加");
         Disable(field);
         Check(body.EnvironmentContext.DebugSourceCount == 1 && body.Force(overlapping).type == E_PhyForceType.apply,
@@ -265,19 +262,20 @@ public static class EnvironmentIntegrationChecks
         Near(pond.MovementSpeedOffset, -.4f, "Pond 预制体保留移速修饰");
         pond.GetComponent<Collider2D>().isTrigger = true;
         EnvironmentCheckBody swimmer = Body(position);
-        Refresh(pond);
+        Refresh(swimmer);
         Check(swimmer.DebugSnapshot.movementModifierCount == 1 && swimmer.DebugSnapshot.stateVelocityCount == 0,
             "力场登记移速修饰且不再隐式登记持续速度");
 
-        Taijie platform = Prefab<Taijie>("Taijie.prefab", position);
+        Taijie platform = Prefab<Taijie>("Taijie.prefab", NextPosition());
         Near(platform.MovementSpeedOffset, 1f, "台阶预制体保留移速修饰");
-        EnvironmentCheckBody rider = Body(position + Vector3.up);
+        EnvironmentCheckBody rider = Body(platform.transform.position + Vector3.up);
         rider.RefreshSupport(platform.GetComponent<Collider2D>());
         Check(rider.DebugSnapshot.movementModifierCount == 1 && rider.DebugSnapshot.stateVelocityCount == 0,
             "台阶登记移速修饰且不登记持续速度");
 
-        Wall wall = Prefab<Wall>("wall.prefab", position);
-        EnvironmentCheckBody onWall = Body(position + Vector3.up);
+        Vector3 wallPosition = NextPosition();
+        Wall wall = Prefab<Wall>("wall.prefab", wallPosition);
+        EnvironmentCheckBody onWall = Body(wallPosition + Vector3.up);
         onWall.RefreshSupport(wall.GetComponent<Collider2D>());
         Check(onWall.DebugSnapshot.movementModifierCount == 0 && onWall.DebugSnapshot.stateVelocityCount == 0,
             "墙能力缺席时零值不再登记移速或持续速度");
@@ -326,10 +324,10 @@ public static class EnvironmentIntegrationChecks
         body.InitializeForChecks();
         return body;
     }
-    private static void Refresh(ForceField field)
+    private static void Refresh(EnvironmentCheckBody body)
     {
         Physics2D.SyncTransforms();
-        field.EnvironmentRegistration.RefreshTriggerRegion();
+        body.RefreshRegions();
     }
     private static void Disable(Behaviour component)
     {
@@ -371,6 +369,13 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
         nowGemetry.groundCollider = collider;
         nowGemetry.isGrounded = collider != null;
         self_resistanceCoefficient = collider != null ? 20 : 1;
+        CollectRegionOverlapFacts();
+        base.PhyFunUpdate();
+    }
+
+    public void RefreshRegions()
+    {
+        CollectRegionOverlapFacts();
         base.PhyFunUpdate();
     }
     public void RunForces() => typeof(BasicEntity).GetMethod("HUnderForce", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(this, null);
@@ -391,7 +396,6 @@ public sealed class EnvironmentCheckSurface : BasicPhysicalObject, IPlatformMoti
     public Vector2 StateVelocity => phySpeed;
     public Vector2 Delta => new Vector2(.3f, -.2f);
     public float WallSlideMultiplier => .5f;
-    protected override bool AppliesOnGround => true;
 }
 public sealed class EnvironmentCheckReceiver : MonoBehaviour, IForceAction
 {

@@ -9,9 +9,6 @@ using UnityEngine;
 public class BaseGround : BasicPhysicalObject, IGroundResponse
 {
 
-    // 旧地面组件的参数兼容层。实体读取能力接口，不再以 BaseGround 类型判定环境效果。
-    protected override bool AppliesOnGround => true;
-
     /// <summary>
     /// 减速影响因子（处于此地面时，对消退类型力的衰减幅度）
     /// </summary>

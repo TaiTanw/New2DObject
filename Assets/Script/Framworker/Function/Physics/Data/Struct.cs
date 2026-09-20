@@ -173,6 +173,12 @@ namespace PhyData
         /// 贴地法线
         /// </summary>
         public Vector2 groundNormal;
+
+        /// <summary>
+        /// 本帧自身碰撞体重叠到的区域 Trigger。例如人碰到水的触发器，这里先记下碰撞体，还不登记减速。
+        /// 职能：相位 1 感知缓冲；监测点与嵌入深度不放在本列表。
+        /// </summary>
+        public readonly List<Collider2D> regionOverlaps = new List<Collider2D>();
     }
     /// <summary>
     /// 物理职能基类

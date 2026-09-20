@@ -34,6 +34,8 @@ public sealed class EntityEnvironmentContext
     private readonly Dictionary<EnvironmentRegistration, Binding> bindings = new Dictionary<EnvironmentRegistration, Binding>();
     // 以下均为可复用工作缓存；不是另一份关系或物理状态。
     private readonly List<EnvironmentRegistration> removalBuffer = new List<EnvironmentRegistration>();
+    // 本帧重叠到的区域来源；同一宿主多个 Trigger 只保留一份 Registration。
+    private readonly HashSet<EnvironmentRegistration> regionSources = new HashSet<EnvironmentRegistration>();
     // 本次相位 2 采样到的唯一脚下来源；实体整体的多来源关系仍在 bindings 中。
     private EnvironmentRegistration groundSource;
 
@@ -141,14 +143,50 @@ public sealed class EntityEnvironmentContext
         SampleGroundFrame(ground);
     }
 
-    /// <summary>核对事实，找来源：唯一环境宿主若允许脚下接入，就成为本次 Ground 来源。</summary>
+    /// <summary>
+    /// 相位 2 一次核对脚下和区域：脚下仍按支撑 Collider，区域按实体本帧重叠到的 Trigger。
+    /// 职能：实体环境刷新入口；Ground / Region 仍是两套依据，不改 Access 掩码。
+    /// </summary>
+    public void RefreshEnvironment(Collider2D ground, List<Collider2D> regionOverlaps)
+    {
+        RefreshGround(ground);
+        SynchronizeRegionSources(regionOverlaps);
+    }
+
+    /// <summary>按本帧重叠 Trigger 找到唯一宿主，合并为 Registration 后再进出 Region。</summary>
+    private void SynchronizeRegionSources(List<Collider2D> regionOverlaps)
+    {
+        regionSources.Clear();
+        if (regionOverlaps != null)
+        {
+            foreach (Collider2D hit in regionOverlaps)
+            {
+                BasicPhysicalObject host = EnvironmentCapabilities.FindHost(hit);
+                // 单入口约束：只认唯一宿主；多 Trigger 命中同一来源时 HashSet 去重。
+                if (host is IEnvironmentSource source && source.EnvironmentRegistration.IsActive)
+                    regionSources.Add(source.EnvironmentRegistration);
+            }
+        }
+
+        removalBuffer.Clear();
+        foreach (var entry in bindings)
+            // 区域逻辑：仍带着 Region 依据、但本帧重叠集合里没有的来源，要撤 Region。
+            if ((entry.Value.access & Access.Region) != 0 && !regionSources.Contains(entry.Key))
+                removalBuffer.Add(entry.Key);
+        foreach (EnvironmentRegistration source in removalBuffer)
+            SetAccess(source, Access.Region, false);
+        foreach (EnvironmentRegistration source in regionSources)
+            SetAccess(source, Access.Region, true);
+    }
+
+    /// <summary>核对事实，找来源：脚下 Collider 上的唯一环境宿主就是本次 Ground 来源。</summary>
     private void CollectGroundSources(Collider2D ground)
     {
         groundSource = null;
         // 几何有效性：没有有效脚下 Collider 时留下空来源，让下一步移除旧 Ground 依据。
         BasicPhysicalObject host = EnvironmentCapabilities.FindHost(ground);
-        // 单入口约束：只从唯一宿主取得 Registration，不再遍历同物体的多个 MonoBehaviour。
-        if (host is IEnvironmentSource source && source.EnvironmentRegistration.AcceptsGroundContact)
+        // 单入口约束：只从唯一宿主取得 Registration；能否着地由相位 1 的层与法线决定。
+        if (host is IEnvironmentSource source)
             groundSource = source.EnvironmentRegistration;
     }
 

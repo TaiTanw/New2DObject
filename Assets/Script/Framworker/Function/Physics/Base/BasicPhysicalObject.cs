@@ -13,30 +13,19 @@ public class BasicPhysicalObject : MonoBehaviour, IEnvironmentSource
 {
     private EnvironmentRegistration environmentRegistration;
     public EnvironmentRegistration EnvironmentRegistration => environmentRegistration ??=
-        new EnvironmentRegistration(this, this, AppliesOnGround);
-
-    protected virtual bool AppliesOnGround => false; // BaseGround 开启：走 ENV-02 的脚下入口。
-    protected virtual bool UsesTriggerRegion => false; // ForceField / pond 开启：走 ENV-R1 区域入口。
+        new EnvironmentRegistration(this, this);
 
     protected void OnEnable()
     {
-        // 调度选择：只有区域来源注册相位 2 采样；脚下来源由实体自己发现。
-        if (UsesTriggerRegion)
-            MonoPublicMgr.Instance.AddPhysicalTimingUpdate(RefreshRegion, 2);
         OnSourceEnabled();
     }
 
     protected void OnDisable()
     {
-        // 调度选择与退出保护：仅撤已使用的区域回调；退出程序时不再访问管理器单例。
-        if (UsesTriggerRegion && !MonoPublicMgr.IsQuitting)
-            MonoPublicMgr.Instance.RemovePhysicalTimingUpdate(RefreshRegion, 2);
         // [ENV-L1] 源端禁用：已创建辅助对象才清理；最终走各实体 ENV-07。
         environmentRegistration?.ReleaseAll();
         OnSourceDisabled();
     }
-
-    private void RefreshRegion() => EnvironmentRegistration.RefreshTriggerRegion();
 
 #if UNITY_EDITOR
     /// <summary>[EditorOnly] 提示旧资源中的重复入口；不自动删除组件或修改参数。</summary>
