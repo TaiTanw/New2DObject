@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// 每个环境来源一份身份：源禁用时按反向索引通知实体退出，也作为实体速度容器的来源键。
@@ -7,15 +6,10 @@ using UnityEngine;
 /// </summary>
 public sealed class EnvironmentRegistration
 {
-    /// <summary>
-    /// 引擎组件生命周期读取
-    /// </summary>
-    private readonly Behaviour owner;
-    /// <summary>
-    /// 纯c#类结构占用
-    /// </summary>
-    internal object Provider { get; }
-    public bool IsActive => owner != null && owner.isActiveAndEnabled;
+    /// <summary>同一来源提供有效性与效果能力；注册表不解释具体引擎的生命周期。</summary>
+    internal IEnvironmentSource Source { get; }
+    // 安全：空引用无效；存活与启用等具体规则由来源实现方判断。
+    public bool IsActive => Source != null && Source.IsEnvironmentActive;
 
     /// <summary>
     /// 注册表本身：
@@ -25,25 +19,13 @@ public sealed class EnvironmentRegistration
     //缓存，防止遍历中移除自身元素
     private readonly List<EntityEnvironmentContext> releaseBuffer = new List<EntityEnvironmentContext>();
 
-    public EnvironmentRegistration(Behaviour owner, object provider)
+    public EnvironmentRegistration(IEnvironmentSource source)
     {
-        this.owner = owner;
-        Provider = provider;
+        Source = source;
     }
 
     internal void Track(EntityEnvironmentContext context) => receivers.Add(context);
     internal void Untrack(EntityEnvironmentContext context) => receivers.Remove(context);
-
-    /// <summary>
-    /// 显式接入窄口：只增删 Explicit 依据，不代替脚下或区域采样。
-    /// </summary>
-    public void SetExplicitAccess(IEnvironmentReceiver receiver, bool present)
-    {
-        // 安全：没有接收者时不能建 Explicit 依据。
-        if (receiver == null) return;
-        // 接入逻辑：只增删 Explicit；Ground / Region 仍由各自采样入口决定。
-        receiver.EnvironmentContext.SetAccess(this, EntityEnvironmentContext.Access.Explicit, present);
-    }
 
     /// <summary>[ENV-L1] 源禁用入口：按反向索引通知每个 Context 走 ENV-07，不清零实体已有速度。</summary>
     public void ReleaseAll()

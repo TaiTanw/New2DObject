@@ -22,10 +22,4 @@ public class BaseGround : BasicPhysicalObject, IGroundResponse
     protected float jumpHeightNum ;
     public float JumpHeightNum=>jumpHeightNum;
 
-    /// <summary>
-    /// 本帧位移的旧存储位置；只有实现 IPlatformMotion 的平台才会被运动管线读取。
-    /// </summary>
-    protected Vector2 delta;
-    public Vector2 Delta=>delta;
-
 }

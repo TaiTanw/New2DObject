@@ -4,6 +4,7 @@
 
 > 结构示意（三页：概述流程 / 结构 / 数据流）：[`Docs/物理框架结构图.drawio`](Docs/物理框架结构图.drawio)  
 > 可用 [diagrams.net](https://app.diagrams.net/) 或 VS Code Draw.io 插件打开。  
+> **工程原则（策略展开）：** [`Docs/工程原则.md`](Docs/工程原则.md)  
 > **开发设计文档索引：** [`Docs/README.md`](Docs/README.md)  
 > **漏洞与功能安排：** [`Docs/漏洞与功能安排.md`](Docs/漏洞与功能安排.md)  
 > **事务具体安排与评估：** [`Docs/事务具体安排与评估/README.md`](Docs/事务具体安排与评估/README.md)  
@@ -12,6 +13,8 @@
 ---
 
 ## 设计原则
+
+展开与现码对照见 [`Docs/工程原则.md`](Docs/工程原则.md)。
 
 | # | 原则 | 落地方式 |
 |---|------|----------|

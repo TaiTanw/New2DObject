@@ -3,10 +3,12 @@ using UnityEngine;
 
 /// <summary>
 /// 让脚下/区域入口取得来源的 Registration；例如冰面经旧基类提供这一入口。
-/// 职能：来源接入协议，不代表一定施力。消费位置见 Context.CollectGroundSources（ENV-02）。
+/// 职能：来源接入协议，不代表一定施力。消费位置见 Context.CollectSources（核对事实，ENV-02）。
 /// </summary>
 public interface IEnvironmentSource
 {
+    /// <summary>来源当前是否允许提供环境效果；实现方解释生命周期，不回读注册表 IsActive。</summary>
+    bool IsEnvironmentActive { get; }
     EnvironmentRegistration EnvironmentRegistration { get; }
 }
 

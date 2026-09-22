@@ -746,6 +746,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     }
 
     /// <summary>
+    /// 位移应用
     /// 消费相位 3 的基础运动快照及相位 4 的接触结果，再执行原有静墙裁剪与一次 MovePosition。
     /// 基础位移已包含平台补偿，此处不再读地面/平台重算，避免预测与提交采用两套位移。
     /// </summary>

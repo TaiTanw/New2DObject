@@ -9,6 +9,11 @@ using UnityEngine.U2D;
 /// </summary>
 public class Taijie : BaseGround, IPlatformMotion, IMovementSpeedModifier
 {
+    /// <summary>平台在相位 0 记录的本帧位移；停止或禁用时清零，由平台自身持有。</summary>
+    protected Vector2 delta;
+    /// <summary>采样：通过 IPlatformMotion 供脚下实体读取，随后并入其运动快照。</summary>
+    public Vector2 Delta => delta;
+
     [SerializeField] protected float speedChangeNum; // 主动速度加性修饰，旧序列化名称保留。
     public float MovementSpeedOffset => speedChangeNum;
 

@@ -36,6 +36,9 @@ public static class EnvironmentIntegrationChecks
             CheckCapabilities();
             CheckCapabilityOwnership();
             CheckUniqueEnvironmentHost();
+            CheckUnifiedSources();
+            CheckSourceValidity();
+            CheckPlatformDisplacement();
             Directory.CreateDirectory(".utmp/EnvironmentValidation");
             File.WriteAllLines(".utmp/EnvironmentValidation/checks.txt", passed);
             Debug.Log($"Environment integration: {passed.Count} checks passed.");
@@ -168,14 +171,6 @@ public static class EnvironmentIntegrationChecks
         Refresh(body);
         Check(body.EnvironmentContext.DebugSourceCount == 1, "实体原地启用恢复区域作用");
 
-        field.EnvironmentRegistration.SetExplicitAccess(body, true);
-        first.enabled = false;
-        Refresh(body);
-        Check(body.EnvironmentContext.DebugSourceCount == 1, "区域依据消失时保留显式接入依据");
-        field.EnvironmentRegistration.SetExplicitAccess(body, false);
-        Check(body.EnvironmentContext.DebugSourceCount == 0, "最后一个接入依据移除才注销效果");
-        first.enabled = true;
-        Refresh(body);
         Physics2D.IgnoreCollision(source, first, true);
         try
         {
@@ -296,6 +291,87 @@ public static class EnvironmentIntegrationChecks
             "禁用入口仍占身份，重复请求不新增或替换原组件");
     }
 
+    // 注入已经采集的几何事实，专门核对关系连续性；实际 overlap 查询由 CheckRegions 覆盖。
+    private static void CheckUnifiedSources()
+    {
+        Vector3 position = NextPosition();
+        IceGround ice = Prefab<IceGround>("ICE.prefab", position);
+        Collider2D collider = ice.GetComponent<Collider2D>();
+        EnvironmentCheckBody body = Body(position + Vector3.up * 3);
+        EntityEnvironmentContext context = body.EnvironmentContext;
+        var hits = new List<Collider2D> { collider, collider };
+        var bindings = (System.Collections.IDictionary)typeof(EntityEnvironmentContext)
+            .GetField("bindings", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(context);
+        context.RefreshEnvironment(collider, null);
+        object binding = bindings[ice.EnvironmentRegistration];
+        body.SetStack(ice, 4f);
+        context.RefreshEnvironment(null, hits);
+        Check(ReferenceEquals(binding, bindings[ice.EnvironmentRegistration]), "脚下转区域保留原绑定，不中途退出再进入");
+        Near(body.Force(ice).speedStacking, 4, "接入方式转换保留累计速度");
+        Near(body.Frame.slowingMultiplier, 1, "仅区域命中不采样脚下阻力");
+        context.RefreshEnvironment(collider, hits);
+        Check(context.DebugSourceCount == 1 && ReferenceEquals(binding, bindings[ice.EnvironmentRegistration]),
+            "脚下与重复区域事实同时命中仍只有原绑定");
+        context.RefreshEnvironment(collider, null);
+        Check(ReferenceEquals(binding, bindings[ice.EnvironmentRegistration]), "区域消失但脚下仍在时保持绑定");
+        context.RefreshEnvironment(null, null);
+        Check(context.DebugSourceCount == 0 && body.Force(ice).type == E_PhyForceType.fadeAway,
+            "完整事实消失才解除，动态力进入尾效");
+        Near(body.Force(ice).speedStacking, 4, "完整退出不清零累计速度");
+        context.RefreshEnvironment(collider, hits);
+        context.ReleaseAll();
+        var sources = (HashSet<EnvironmentRegistration>)typeof(EntityEnvironmentContext)
+            .GetField("currentSources", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(context);
+        Check(context.DebugSourceCount == 0 && sources.Count == 0 && body.Frame.platformDelta == Vector2.zero,
+            "实体释放时清空绑定、事实缓存与采样结果");
+    }
+
+    private static void CheckSourceValidity()
+    {
+        var plain = new EnvironmentCheckSource();
+        Check(plain.EnvironmentRegistration.IsActive, "纯 C# 来源可提供注册表有效性");
+        plain.IsEnvironmentActive = false;
+        Check(!plain.EnvironmentRegistration.IsActive, "注册表跟随来源接口的有效性变化");
+        BasicPhysicalObject host = NewObject("source validity", NextPosition()).AddComponent<BasicPhysicalObject>();
+        EnvironmentRegistration registration = host.EnvironmentRegistration;
+        Check(registration.IsActive, "Unity 宿主启用时来源有效");
+        host.enabled = false;
+        Check(!registration.IsActive, "Unity 宿主禁用时来源无效");
+        host.enabled = true;
+        host.gameObject.SetActive(false);
+        Check(!registration.IsActive, "Unity 宿主层级失活时来源无效");
+        host.gameObject.SetActive(true);
+        Check(registration.IsActive, "Unity 宿主重新激活恢复来源有效性");
+        Object.DestroyImmediate(host);
+        Check(!registration.IsActive, "接口持有已销毁宿主时安全返回无效");
+    }
+
+    private static void CheckPlatformDisplacement()
+    {
+        Vector3 target = NextPosition();
+        Taijie platform = Prefab<Taijie>("Taijie.prefab", target);
+        platform.ToMovePoint(target);
+        Vector2 expected = target - platform.transform.position;
+        // 固定为已到达终点的时刻，避免真实等待造成测试不稳定。
+        typeof(Taijie).GetField("nowtime", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(platform, AudioSettings.dspTime - 10d);
+        MethodInfo tick = typeof(Taijie).GetMethod("FixFun", BindingFlags.Instance | BindingFlags.NonPublic);
+        tick.Invoke(platform, null);
+        Check(platform.Delta == expected, "实际平台记录到达终点的本帧位移");
+        EnvironmentCheckBody rider = Body(target + Vector3.up * 3);
+        rider.RefreshSupport(platform.GetComponent<Collider2D>());
+        Check(rider.Frame.platformDelta == expected, "实际平台位移经接口进入脚下采样");
+        tick.Invoke(platform, null);
+        Check(platform.Delta == Vector2.zero, "平台停止后下一帧位移清零");
+        platform.ToMovePoint(target);
+        typeof(Taijie).GetField("nowtime", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(platform, AudioSettings.dspTime - 10d);
+        tick.Invoke(platform, null);
+        Disable(platform);
+        Check(platform.Delta == Vector2.zero && rider.EnvironmentContext.DebugSourceCount == 0,
+            "平台禁用时位移清零并立即解除骑手绑定");
+    }
+
     private static Vector3 NextPosition() => new Vector3(10000 + 100 * group++, 10000, 0);
     private static GameObject NewObject(string name, Vector3 position)
     {
@@ -397,6 +473,14 @@ public sealed class EnvironmentCheckSurface : BasicPhysicalObject, IPlatformMoti
     public Vector2 Delta => new Vector2(.3f, -.2f);
     public float WallSlideMultiplier => .5f;
 }
+// 无 Unity 宿主的来源夹具，只验证注册表的来源协议边界。
+public sealed class EnvironmentCheckSource : IEnvironmentSource
+{
+    public bool IsEnvironmentActive { get; set; } = true;
+    public EnvironmentRegistration EnvironmentRegistration { get; }
+    public EnvironmentCheckSource() => EnvironmentRegistration = new EnvironmentRegistration(this);
+}
+
 public sealed class EnvironmentCheckReceiver : MonoBehaviour, IForceAction
 {
     public void StatePowerRegistration(EnvironmentRegistration id, float num) { }

@@ -12,8 +12,10 @@ using UnityEngine;
 public class BasicPhysicalObject : MonoBehaviour, IEnvironmentSource
 {
     private EnvironmentRegistration environmentRegistration;
+    // Unity 适配：接口引用不会自动处理已销毁组件，因此先检查存活，再读取启用状态。
+    public bool IsEnvironmentActive => this != null && isActiveAndEnabled;
     public EnvironmentRegistration EnvironmentRegistration => environmentRegistration ??=
-        new EnvironmentRegistration(this, this);
+        new EnvironmentRegistration(this);
 
     protected void OnEnable()
     {

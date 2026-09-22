@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using PhyData;
 using UnityEngine;
@@ -7,21 +6,18 @@ using UnityEngine;
 /// 例如角色踩上冰面，这里记下“这块冰面正在影响这个角色，以及已经登记了哪些效果”。
 /// 同一来源即使同时通过脚下支撑和区域重叠接入，也只登记一份；最后一个依据消失才撤销。
 /// 职能：实体持有的接入关系层；数值仍写入 IForceAction 的原容器，本类不积分速度。
-/// 阅读：ENV-02 核对脚下 → ENV-03 判断是否首次接入 → ENV-04 登记；退出看 ENV-07。
+/// 阅读：RefreshEnvironment → CollectSources（核对事实）→ SynchronizeSources（核对管线）→ SampleGroundFrame（采样）。
+/// 核对管线内：Attach → RegisterEffects 登记；Detach 撤销。
 /// </summary>
 public sealed class EntityEnvironmentContext
 {
-    [Flags]
-    internal enum Access { Ground = 1, Region = 2, Explicit = 4 }
-
     /// <summary>
-    /// 一个来源对当前实体的登记单：access 记“为什么还有效”，其余字段记“退出时要撤销什么”。
-    /// 例如 Ground 被移除但 Region 仍存在，就保留整份效果。
+    /// 一个来源对当前实体的登记单，只记“退出时要撤销什么”。
+    /// 来源是否继续存在由本帧完整事实集合判断，不再保存接入方式。
     /// 职能：Context 私有关系记录；不存 ForceData 或累计速度。
     /// </summary>
     private sealed class Binding
     {
-        public Access access;
         public bool hasMovement;
         public bool hasStateVelocity;
         public IDynamicEnvironmentForce dynamicForce;
@@ -34,10 +30,8 @@ public sealed class EntityEnvironmentContext
     private readonly Dictionary<EnvironmentRegistration, Binding> bindings = new Dictionary<EnvironmentRegistration, Binding>();
     // 以下均为可复用工作缓存；不是另一份关系或物理状态。
     private readonly List<EnvironmentRegistration> removalBuffer = new List<EnvironmentRegistration>();
-    // 本帧重叠到的区域来源；同一宿主多个 Trigger 只保留一份 Registration。
-    private readonly HashSet<EnvironmentRegistration> regionSources = new HashSet<EnvironmentRegistration>();
-    // 本次相位 2 采样到的唯一脚下来源；实体整体的多来源关系仍在 bindings 中。
-    private EnvironmentRegistration groundSource;
+    // 本帧脚下与区域的完整来源事实；同一来源只存一份，收齐后统一核对绑定。
+    private readonly HashSet<EnvironmentRegistration> currentSources = new HashSet<EnvironmentRegistration>();
 
     public EntityEnvironmentContext(IForceAction receiver, Behaviour owner)
     {
@@ -57,31 +51,17 @@ public sealed class EntityEnvironmentContext
 #endif
 
     /// <summary>
-    /// [ENV-03] 汇合 Ground / Region / Explicit 三种入口，判断需新增、保留还是撤销登记。
-    /// 阅读重点是两个提前返回：退出只删自己的依据；重复进入只合并依据。首次接入才去 ENV-04。
+    /// [ENV-03] 首次绑定入口：有效且尚未登记的来源，才建立关系并登记效果。
+    /// 持续存在直接保留；退出由核对管线调用 Detach，不在本入口处理。
     /// </summary>
-    internal void SetAccess(EnvironmentRegistration source, Access access, bool present)
+    private void Attach(EnvironmentRegistration source)
     {
-        // 接入逻辑：本次入口报告离开；这不等于其它入口也失效。
-        if (!present)
-        {
-            // 幂等清理：没有登记单就没有东西需要撤销。
-            if (!bindings.TryGetValue(source, out Binding previous)) return;
-            previous.access &= ~access;
-            // 接入逻辑：所有依据都消失，才统一撤销三类效果。
-            if (previous.access == 0) Detach(source);
-            return;
-        }
         // 生命周期保护：禁用或已销毁的双方不能新建关系。
         if (!IsActive || !source.IsActive) return;
-        // 接入逻辑：相位 2 重复确认、或第二种入口接入，都不能再次初始化效果。
-        if (bindings.TryGetValue(source, out Binding existing))
-        {
-            existing.access |= access;
-            return;
-        }
+        // 接入逻辑：持续命中的来源不重复登记，保留实体已积累的运动状态。
+        if (bindings.ContainsKey(source)) return;
         //首次接入
-        var binding = new Binding { access = access };
+        var binding = new Binding();
         bindings.Add(source, binding);
         //环境容器关联受力者相关数据
         source.Track(this);
@@ -94,7 +74,7 @@ public sealed class EntityEnvironmentContext
     /// </summary>
     private void RegisterEffects(EnvironmentRegistration source, Binding binding)
     {
-        object provider = source.Provider;
+        IEnvironmentSource provider = source.Source;
         // 能力选择：有移速修饰就登记，即使值为零也有效；缺席由“没实现接口”表示。
         if (provider is IMovementSpeedModifier movement)
         {
@@ -117,7 +97,7 @@ public sealed class EntityEnvironmentContext
 
     /// <summary>
     /// [ENV-07] 撤销一份登记，先同步双方关系，再按登记单撤销实际效果。
-    /// 普通离开经 ENV-03 到这里；源或实体禁用经 ENV-L1 的 ReleaseAll 到这里。
+    /// 普通离开经核对管线到这里；源或实体禁用经 ENV-L1 的 ReleaseAll 到这里。
     /// </summary>
     internal void Detach(EnvironmentRegistration source)
     {
@@ -133,87 +113,60 @@ public sealed class EntityEnvironmentContext
     }
 
     /// <summary>
-    /// [ENV-02] 从 ENV-01 传来的脚下 Collider 开始，只按这三个步骤通读。
-    /// 关系分支进入 ENV-03；采样分支生成 ENV-S1。脚下没换也要核对，以恢复原地重新启用的来源。
-    /// </summary>
-    public void RefreshGround(Collider2D ground)
-    {
-        CollectGroundSources(ground);
-        SynchronizeGroundSources();
-        SampleGroundFrame(ground);
-    }
-
-    /// <summary>
+    /// 环境更新入口  
     /// 相位 2 一次核对脚下和区域：脚下仍按支撑 Collider，区域按实体本帧重叠到的 Trigger。
-    /// 职能：实体环境刷新入口；Ground / Region 仍是两套依据，不改 Access 掩码。
+    /// [ENV-02] 职能：实体环境刷新入口；核对事实 → 核对管线 → 采样。
     /// </summary>
     public void RefreshEnvironment(Collider2D ground, List<Collider2D> regionOverlaps)
     {
-        RefreshGround(ground);
-        SynchronizeRegionSources(regionOverlaps);
+        // 核对事实：先收齐脚下与区域身份，同一来源只在完整集合中保留一次。
+        BasicPhysicalObject groundHost = EnvironmentCapabilities.FindHost(ground);
+        CollectSources(groundHost, regionOverlaps);
+
+        // 核对管线：完整事实收齐后才决定进出，接入方式转换不会中途撤销效果。
+        SynchronizeSources();
+        // 采样：复用脚下宿主，区域命中不提供脚下参数。
+        SampleGroundFrame(groundHost);
     }
 
-    /// <summary>按本帧重叠 Trigger 找到唯一宿主，合并为 Registration 后再进出 Region。</summary>
-    private void SynchronizeRegionSources(List<Collider2D> regionOverlaps)
+    /// <summary>核对事实：每次重建脚下与区域的完整来源集合，只收集身份，不登记或撤销效果。</summary>
+    private void CollectSources(BasicPhysicalObject groundHost, List<Collider2D> regionOverlaps)
     {
-        regionSources.Clear();
-        if (regionOverlaps != null)
-        {
-            foreach (Collider2D hit in regionOverlaps)
-            {
-                BasicPhysicalObject host = EnvironmentCapabilities.FindHost(hit);
-                // 单入口约束：只认唯一宿主；多 Trigger 命中同一来源时 HashSet 去重。
-                if (host is IEnvironmentSource source && source.EnvironmentRegistration.IsActive)
-                    regionSources.Add(source.EnvironmentRegistration);
-            }
-        }
+        currentSources.Clear();
+        // 脚下事实：有效宿主提供一份来源；无宿主的普通地面不提供环境效果。
+        if (groundHost is IEnvironmentSource ground)
+            currentSources.Add(ground.EnvironmentRegistration);
 
+        // 区域事实缺席时，保留上面收集的脚下来源即可。
+        if (regionOverlaps == null) return;
+        foreach (Collider2D hit in regionOverlaps)
+        {
+            BasicPhysicalObject host = EnvironmentCapabilities.FindHost(hit);
+            // 区域事实：仅收有效来源；重复命中或与脚下同源时，HashSet 自动去重。
+            if (host is IEnvironmentSource source && source.EnvironmentRegistration.IsActive)
+                currentSources.Add(source.EnvironmentRegistration);
+        }
+    }
+
+    /// <summary>核对管线：完整事实中消失或已失效的来源退出，其余来源确认首次绑定。</summary>
+    private void SynchronizeSources()
+    {
+        // 遍历保护：先收集待删除来源，避免枚举 bindings 时修改字典。
         removalBuffer.Clear();
         foreach (var entry in bindings)
-            // 区域逻辑：仍带着 Region 依据、但本帧重叠集合里没有的来源，要撤 Region。
-            if ((entry.Value.access & Access.Region) != 0 && !regionSources.Contains(entry.Key))
+            // 退出规则：来源失效，或脚下与区域均未再命中它，才撤销整份登记。
+            if (!entry.Key.IsActive || !currentSources.Contains(entry.Key))
                 removalBuffer.Add(entry.Key);
         foreach (EnvironmentRegistration source in removalBuffer)
-            SetAccess(source, Access.Region, false);
-        foreach (EnvironmentRegistration source in regionSources)
-            SetAccess(source, Access.Region, true);
-    }
-
-    /// <summary>核对事实，找来源：脚下 Collider 上的唯一环境宿主就是本次 Ground 来源。</summary>
-    private void CollectGroundSources(Collider2D ground)
-    {
-        groundSource = null;
-        // 几何有效性：没有有效脚下 Collider 时留下空来源，让下一步移除旧 Ground 依据。
-        BasicPhysicalObject host = EnvironmentCapabilities.FindHost(ground);
-        // 单入口约束：只从唯一宿主取得 Registration；能否着地由相位 1 的层与法线决定。
-        if (host is IEnvironmentSource source)
-            groundSource = source.EnvironmentRegistration;
-    }
-
-    /// <summary>核对关系：失效源完全解除；换地只移除 Ground；本次来源逐个确认接入。</summary>
-    private void SynchronizeGroundSources()
-    {
-        // 遍历保护：先收集再修改 bindings，避免枚举期间删除字典。
-        removalBuffer.Clear();
-        foreach (var entry in bindings)
-            // 两类待处理项：任何已失效的来源，或已不在脚下的旧支撑来源（属于地面类型）。
-            if (!entry.Key.IsActive ||
-                ((entry.Value.access & Access.Ground) != 0 && entry.Key != groundSource))
-                removalBuffer.Add(entry.Key);
-        foreach (EnvironmentRegistration source in removalBuffer)
-        {
-            // 生命周期失效撤整份效果；仅离开脚下时，其余 Region / Explicit 依据仍可保留。
-            if (!source.IsActive) Detach(source);
-            else SetAccess(source, Access.Ground, false);
-        }
-        if (groundSource != null) SetAccess(groundSource, Access.Ground, true);
+            Detach(source);
+        foreach (EnvironmentRegistration source in currentSources)
+            Attach(source);
     }
 
     /// <summary>采样参数：表面读值不要求建立持续效果绑定，写成一帧只读结果供原消费点使用。</summary>
-    private void SampleGroundFrame(Collider2D ground)
+    private void SampleGroundFrame(BasicPhysicalObject host)
     {
-        // 先找一次宿主，再读取它的多个接口；不从同物体的不同组件分别拼装参数。
-        BasicPhysicalObject host = EnvironmentCapabilities.FindHost(ground);
+        // 读取已找到的同一宿主的多个接口；不从同物体的不同组件分别拼装参数。
         IGroundResponse response = host as IGroundResponse;
         IPlatformMotion platform = host as IPlatformMotion;
         Frame = new EntityEnvironmentFrame(response?.SlowingEffect ?? 1f, response?.JumpHeightNum ?? 0f,
@@ -227,7 +180,7 @@ public sealed class EntityEnvironmentContext
         removalBuffer.AddRange(bindings.Keys);
         foreach (EnvironmentRegistration source in removalBuffer) Detach(source);
         removalBuffer.Clear();
-        groundSource = null;
+        currentSources.Clear();
         Frame = EntityEnvironmentFrame.Empty;
     }
 }
