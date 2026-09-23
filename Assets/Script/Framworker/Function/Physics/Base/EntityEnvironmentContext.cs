@@ -124,30 +124,30 @@ public sealed class EntityEnvironmentContext
     public void RefreshEnvironment(Collider2D ground, List<Collider2D> regionOverlaps)
     {
         // 核对事实：先收齐脚下与区域身份，同一来源只在完整集合中保留一次。
-        BasicPhysicalObject groundHost = EnvironmentCapabilities.FindHost(ground);
-        CollectSources(groundHost, regionOverlaps);
+        IEnvironmentSource groundSource = EnvironmentCapabilities.FindHost(ground);
+        CollectSources(groundSource, regionOverlaps);
 
         // 核对管线：完整事实收齐后才决定进出，接入方式转换不会中途撤销效果。
         SynchronizeSources();
         // 采样：复用脚下宿主，区域命中不提供脚下参数。
-        SampleGroundFrame(groundHost);
+        SampleGroundFrame(groundSource);
     }
 
     /// <summary>核对事实：每次重建脚下与区域的完整来源集合，只收集身份，不登记或撤销效果。</summary>
-    private void CollectSources(BasicPhysicalObject groundHost, List<Collider2D> regionOverlaps)
+    private void CollectSources(IEnvironmentSource groundSource, List<Collider2D> regionOverlaps)
     {
         currentSources.Clear();
         // 脚下事实：有效宿主提供一份来源；无宿主的普通地面不提供环境效果。
-        if (groundHost is IEnvironmentSource ground)
-            currentSources.Add(ground.EnvironmentRegistration);
+        if (groundSource != null)
+            currentSources.Add(groundSource.EnvironmentRegistration);
 
         // 区域事实缺席时，保留上面收集的脚下来源即可。
         if (regionOverlaps == null) return;
         foreach (Collider2D hit in regionOverlaps)
         {
-            BasicPhysicalObject host = EnvironmentCapabilities.FindHost(hit);
+            IEnvironmentSource source = EnvironmentCapabilities.FindHost(hit);
             // 区域事实：仅收有效来源；重复命中或与脚下同源时，HashSet 自动去重。
-            if (host is IEnvironmentSource source && source.EnvironmentRegistration.IsActive)
+            if (source != null && source.EnvironmentRegistration.IsActive)
                 currentSources.Add(source.EnvironmentRegistration);
         }
     }
@@ -168,11 +168,11 @@ public sealed class EntityEnvironmentContext
     }
 
     /// <summary>采样参数：表面读值不要求建立持续效果绑定，写成一帧只读结果供原消费点使用。</summary>
-    private void SampleGroundFrame(BasicPhysicalObject host)
+    private void SampleGroundFrame(IEnvironmentSource source)
     {
-        // 读取已找到的同一宿主的多个接口；不从同物体的不同组件分别拼装参数。
-        IGroundResponse response = host as IGroundResponse;
-        IPlatformMotion platform = host as IPlatformMotion;
+        // 能力仍从发现到的同一个环境来源读取；没有相应接口时采用中性采样值。
+        IGroundResponse response = source as IGroundResponse;
+        IPlatformMotion platform = source as IPlatformMotion;
         Frame = new EntityEnvironmentFrame(response?.SlowingEffect ?? 1f, response?.JumpHeightNum ?? 0f,
             platform?.Delta ?? Vector2.zero);
     }

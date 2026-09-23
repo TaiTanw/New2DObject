@@ -493,6 +493,22 @@ public static class EnvironmentIntegrationChecks
         var remaining = host.GetComponents<BasicPhysicalObject>();
         Check(remaining.Length == 1 && remaining[0] == ice && !ice.enabled,
             "禁用入口仍占身份，重复请求不新增或替换原组件");
+
+        BoxCollider2D collider = host.AddComponent<BoxCollider2D>();
+        Check(EnvironmentCapabilities.FindHost(collider) == null, "层级失活对象不提供环境来源");
+        host.SetActive(true);
+        Check(EnvironmentCapabilities.FindHost(collider) == null, "禁用的唯一宿主不提供环境来源");
+        ice.enabled = true;
+        Check(ReferenceEquals(EnvironmentCapabilities.FindHost(collider), ice), "启用宿主通过来源接口被发现");
+        collider.enabled = false;
+        Check(EnvironmentCapabilities.FindHost(collider) == null, "禁用 Collider 不提供环境来源");
+        collider.enabled = true;
+        host.SetActive(false);
+        Check(EnvironmentCapabilities.FindHost(collider) == null, "Collider 所属物体失活时不提供环境来源");
+        host.SetActive(true);
+        Check(ReferenceEquals(EnvironmentCapabilities.FindHost(collider), ice), "重新启用后恢复同一来源身份");
+        UnityEngine.Object.DestroyImmediate(ice);
+        Check(EnvironmentCapabilities.FindHost(collider) == null, "销毁唯一宿主后不提供环境来源");
     }
 
     // 注入已经采集的几何事实，专门核对关系连续性；实际 overlap 查询由 CheckRegions 覆盖。

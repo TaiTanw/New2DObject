@@ -41,14 +41,14 @@ public static class EnvironmentCapabilities
         return true;
     }
 
-    /// <summary>先确定唯一环境宿主；没有入口或入口失活时，不从其它组件拼装能力。</summary>
-    public static BasicPhysicalObject FindHost(Collider2D collider)
+    /// <summary>从 Collider 同物体的唯一宿主取得环境来源；没有有效来源时返回 null。</summary>
+    public static IEnvironmentSource FindHost(Collider2D collider)
     {
         // 有效性保护：无有效几何命中时没有能力，调用者使用默认参数。
         if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy) return null;
         // 入口家族的唯一性由基类挂载约束及配置校验负责；禁用入口不提供表面能力。
         BasicPhysicalObject host = collider.GetComponent<BasicPhysicalObject>();
-        return IsActive(host) ? host : null;
+        return IsActive(host) ? host as IEnvironmentSource : null;
     }
 
     /// <summary>只询问唯一宿主是否实现该能力；接口缺席时返回 null，由消费方使用默认规则。</summary>
