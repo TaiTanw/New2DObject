@@ -59,9 +59,12 @@ public abstract class BasePhysicsEntity : BasicEntity
     }
     protected override void GeometricQuery()
     {
-
+        // 接触查询在命中选择前排除 Trigger，避免区域遮住实心表面；不改全局查询开关。
+        ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
+        contactFilter.SetLayerMask(cPhysics.groundLayer);
         // 地面检测（只做检测，不做响应）
-        RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, 0, Vector2.down, 0f, cPhysics.groundLayer);
+        RaycastHit2D hit = Physics2D.defaultPhysicsScene.BoxCast(groundV.position, cPhysics.boxCastH, 0,
+            Vector2.down, 0f, contactFilter);
         //缓存贴地法线
         nowGemetry.groundNormal = hit.normal;
         bool onGroundNow = false;
@@ -78,8 +81,11 @@ public abstract class BasePhysicsEntity : BasicEntity
         nowGemetry.isGrounded = onGroundNow;
         nowGemetry.groundCollider = onGroundNow ? hit.collider : null;
         //检测左右靠墙
-        RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, 0, Vector2.left, 0f, cPhysics.wallLayer);
-        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, 0, Vector2.right, 0f, cPhysics.wallLayer);
+        contactFilter.SetLayerMask(cPhysics.wallLayer);
+        RaycastHit2D hit1 = Physics2D.defaultPhysicsScene.BoxCast(leftV.position, cPhysics.boxCastV, 0,
+            Vector2.left, 0f, contactFilter);
+        RaycastHit2D hit2 = Physics2D.defaultPhysicsScene.BoxCast(rightV.position, cPhysics.boxCastV, 0,
+            Vector2.right, 0f, contactFilter);
         nowGemetry.onLeftWall = false;
         nowGemetry.leftWallCollider = null;
         //夹角需小于25度，内积近似0.9
@@ -104,13 +110,6 @@ public abstract class BasePhysicsEntity : BasicEntity
 
         playphyFunData.canLeftWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.leftWallCollider);
         playphyFunData.canRightWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.rightWallCollider);
-    }
-    /// <summary>
-    /// 位移提交前，根据已解析的静墙引用刷新墙滑快照；不读取移动后的几何结果。
-    /// </summary>
-    protected override void RefreshWallSlideSnapshot()
-    {
-        playphyFunData.nowWallt = EnvironmentCapabilities.Find<IWallSlideSurface>(nowPhyFun.wallCollider);
     }
     protected override void HActiveSpeedOperation()
     {

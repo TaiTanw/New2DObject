@@ -33,17 +33,22 @@ public class PhysicalBox : BasicEntity
 #endif
     protected override void GeometricQuery()
     {
-        float a = Vector2.SignedAngle(Vector2.up,transform.up);
-        RaycastHit2D hit = Physics2D.BoxCast(groundV.position, cPhysics.boxCastH, a, -transform.up, 0f, cPhysics.groundLayer);
-        //判断是否顶头
-        RaycastHit2D topHit = Physics2D.BoxCast(upV.position, cPhysics.boxCastH, a, transform.up, 0f, cPhysics.groundLayer);
+        // 接触查询在命中选择前排除 Trigger；箱体沿自身朝向探测，不在这里解析墙滑能力。
+        float a = Vector2.SignedAngle(Vector2.up, transform.up);
+        ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
+        contactFilter.SetLayerMask(cPhysics.groundLayer);
+        RaycastHit2D hit = Physics2D.defaultPhysicsScene.BoxCast(groundV.position, cPhysics.boxCastH, a,
+            -transform.up, 0f, contactFilter);
+        // 顶头与脚下同属接触查询，沿用同一层掩码和 Trigger 过滤。
+        RaycastHit2D topHit = Physics2D.defaultPhysicsScene.BoxCast(upV.position, cPhysics.boxCastH, a,
+            transform.up, 0f, contactFilter);
         nowGemetry.istop = topHit.collider != null;
         //缓存真实命中法线；斜坡位移与着地判定必须使用表面信息
         nowGemetry.groundNormal = hit.normal;
         bool onGroundNow = false;
         //默认的空中阻力系数
         self_resistanceCoefficient = 1;
-        //一定角度内正对碰撞才算着地
+        // 几何着地：法线足够朝上才算踩到支撑，与表面有没有环境能力无关。
         if (hit.collider != null && Vector2.Dot(hit.normal, Vector2.up) > 0.7f)
         {
             onGroundNow = true;
@@ -54,9 +59,12 @@ public class PhysicalBox : BasicEntity
         // 几何只保留 Collider；脚下能力由相位 2 经 groundCollider 解析。
         nowGemetry.isGrounded = onGroundNow;
         nowGemetry.groundCollider = onGroundNow ? hit.collider : null;
-        //检测左右靠墙
-        RaycastHit2D hit1 = Physics2D.BoxCast(leftV.position, cPhysics.boxCastV, a, -transform.right, 0f, cPhysics.wallLayer);
-        RaycastHit2D hit2 = Physics2D.BoxCast(rightV.position, cPhysics.boxCastV, a, transform.right, 0f, cPhysics.wallLayer);
+        // 左右墙只记几何接触。箱体没有贴墙下滑，不把侧面来源送进持续效果登记。
+        contactFilter.SetLayerMask(cPhysics.wallLayer);
+        RaycastHit2D hit1 = Physics2D.defaultPhysicsScene.BoxCast(leftV.position, cPhysics.boxCastV, a,
+            -transform.right, 0f, contactFilter);
+        RaycastHit2D hit2 = Physics2D.defaultPhysicsScene.BoxCast(rightV.position, cPhysics.boxCastV, a,
+            transform.right, 0f, contactFilter);
         nowGemetry.onLeftWall = false;
         nowGemetry.leftWallCollider = null;
         //夹角需小于25度，内积近似0.9

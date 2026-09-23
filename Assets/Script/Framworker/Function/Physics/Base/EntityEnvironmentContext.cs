@@ -51,7 +51,7 @@ public sealed class EntityEnvironmentContext
 #endif
 
     /// <summary>
-    /// [ENV-03] 首次绑定入口：有效且尚未登记的来源，才建立关系并登记效果。
+    /// [ENV-03] 首次绑定入口：有效、尚未登记且具有持续能力的来源，才建立关系并登记效果。
     /// 持续存在直接保留；退出由核对管线调用 Detach，不在本入口处理。
     /// </summary>
     private void Attach(EnvironmentRegistration source)
@@ -60,6 +60,10 @@ public sealed class EntityEnvironmentContext
         if (!IsActive || !source.IsActive) return;
         // 接入逻辑：持续命中的来源不重复登记，保留实体已积累的运动状态。
         if (bindings.ContainsKey(source)) return;
+        // 能力选择：三类持续能力都缺席时不建绑定；零值仍是有效能力，表面采样独立进行。
+        IEnvironmentSource provider = source.Source;
+        if (!(provider is IMovementSpeedModifier) && !(provider is IStateVelocitySource)
+            && !(provider is IDynamicEnvironmentForce)) return;
         //首次接入
         var binding = new Binding();
         bindings.Add(source, binding);
@@ -148,7 +152,7 @@ public sealed class EntityEnvironmentContext
         }
     }
 
-    /// <summary>核对管线：完整事实中消失或已失效的来源退出，其余来源确认首次绑定。</summary>
+    /// <summary>核对关系：完整事实中消失或已失效的来源退出，其余来源确认首次绑定。</summary>
     private void SynchronizeSources()
     {
         // 遍历保护：先收集待删除来源，避免枚举 bindings 时修改字典。

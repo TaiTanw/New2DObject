@@ -260,6 +260,8 @@ public class OnWallSliding : BasePlayerState
 
     public override void Update()
     {
+        // 先输出当前方向，贴墙持续或本次更新提前退出时都不保留旧输入。
+        playActionData.onMove = input.moveInput;
 
         if (playPhyData.isGrounded)//在地面
         {
@@ -267,8 +269,9 @@ public class OnWallSliding : BasePlayerState
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.isOnGround);
             return;
         }
-        else if ((input.moveInput > 0 && playPhyData.onLeftWall)||( input.moveInput < 0 && playPhyData.onRightWall)
-            || (!playPhyData.nowKWall)||input.moveInput==0)
+        // 当前动作指向的一侧无墙滑能力，或已松手，则退出贴墙。
+        else if (!((playActionData.onMove < 0 && playPhyData.canLeftWall)
+            || (playActionData.onMove > 0 && playPhyData.canRightWall)))
         {
             stateMachine.ChangeState(PlayerStateMachine.E_playerState.inAir);
             return;

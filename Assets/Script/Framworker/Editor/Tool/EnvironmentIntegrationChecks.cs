@@ -39,6 +39,9 @@ public static class EnvironmentIntegrationChecks
             CheckUnifiedSources();
             CheckSourceValidity();
             CheckPlatformDisplacement();
+            CheckContactRoles();
+            CheckTriggerContactFilter();
+            CheckWallSlideBehavior();
             Directory.CreateDirectory(".utmp/EnvironmentValidation");
             File.WriteAllLines(".utmp/EnvironmentValidation/checks.txt", passed);
             Debug.Log($"Environment integration: {passed.Count} checks passed.");
@@ -229,13 +232,13 @@ public static class EnvironmentIntegrationChecks
             $"同一环境宿主提供的持续速度不乘质量影响系数 [{body.PassiveVelocity} / {platform.StateVelocity}]");
         Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider), platform),
             "同一环境宿主可以提供墙滑能力");
-        var function = new PhysicalFunctionData { canLeftWall = platform, nowWallt = platform };
+        var function = new PhysicalFunctionData { canLeftWall = platform, canRightWall = platform };
         var read = new ReadOnly_GeometryPhysicsData(new GeometryPhysicsData(), function);
-        Check(read.canLeftWall && read.nowKWall, "逻辑层读取墙滑能力布尔事实");
+        Check(read.canLeftWall && read.canRightWall, "逻辑层读取左右墙滑能力布尔事实");
         platform.enabled = false;
-        Check(!read.canLeftWall && !read.nowKWall, "接口引用能识别 Unity 组件禁用");
+        Check(!read.canLeftWall && !read.canRightWall, "左右墙滑接口引用能识别 Unity 组件禁用");
         Object.DestroyImmediate(platform);
-        Check(!read.nowKWall, "接口引用能识别 Unity 对象销毁");
+        Check(!read.canLeftWall && !read.canRightWall, "左右墙滑接口引用能识别 Unity 对象销毁");
     }
 
     private static void CheckCapabilityOwnership()
@@ -272,8 +275,209 @@ public static class EnvironmentIntegrationChecks
         Wall wall = Prefab<Wall>("wall.prefab", wallPosition);
         EnvironmentCheckBody onWall = Body(wallPosition + Vector3.up);
         onWall.RefreshSupport(wall.GetComponent<Collider2D>());
-        Check(onWall.DebugSnapshot.movementModifierCount == 0 && onWall.DebugSnapshot.stateVelocityCount == 0,
-            "墙能力缺席时零值不再登记移速或持续速度");
+        Check(onWall.EnvironmentContext.DebugSourceCount == 0 && onWall.DebugSnapshot.movementModifierCount == 0
+            && onWall.DebugSnapshot.stateVelocityCount == 0, "纯墙不建立绑定，也不登记移速或持续速度");
+        Near(onWall.Frame.slowingMultiplier, 1f, "纯墙无地面响应时脚下采样阻力为默认");
+        Near(onWall.Frame.jumpHeightOffset, 0f, "纯墙无地面响应时脚下采样起跳为默认");
+        Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(wall.GetComponent<Collider2D>()), wall),
+            "无绑定时墙滑能力仍可按碰撞体查询");
+    }
+
+    // 同一组件同时声明墙滑、移速和地面响应。脚下只登记持续效果并采样地面；侧面只取墙滑；区域只登记移速。
+    private static void CheckContactRoles()
+    {
+        Vector3 position = NextPosition();
+        GameObject host = NewObject("contact roles", position);
+        BoxCollider2D collider = host.AddComponent<BoxCollider2D>();
+        EnvironmentCheckContact contact = host.AddComponent<EnvironmentCheckContact>();
+        EnvironmentCheckBody body = Body(position + Vector3.up * 3);
+
+        body.RefreshSupport(collider);
+        Check(body.DebugSnapshot.movementModifierCount == 1 && body.EnvironmentContext.DebugSourceCount == 1,
+            "脚下登记同宿主的移速修饰");
+        Near(body.Frame.slowingMultiplier, contact.SlowingEffect, "脚下采样同宿主的地面阻力");
+        Near(body.Frame.jumpHeightOffset, contact.JumpHeightNum, "脚下采样同宿主的起跳加成");
+
+        body.RefreshSupport(null);
+        Check(body.EnvironmentContext.DebugSourceCount == 0 && body.DebugSnapshot.movementModifierCount == 0,
+            "只查询侧面墙滑时不登记移速");
+        Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider), contact),
+            "侧面命中可解析墙滑能力");
+
+        collider.isTrigger = true;
+        body.transform.position = position;
+        Refresh(body);
+        var speeds = (Dictionary<EnvironmentRegistration, float>)typeof(BasicEntity)
+            .GetField("phyStateDic", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(body);
+        Check(body.DebugSnapshot.movementModifierCount == 1
+            && speeds.TryGetValue(contact.EnvironmentRegistration, out float offset)
+            && Mathf.Abs(offset - contact.MovementSpeedOffset) < .0001f,
+            "区域登记移速修饰，不登记墙滑乘数");
+        Near(body.Frame.slowingMultiplier, 1f, "区域不采样脚下阻力");
+        Near(body.Frame.jumpHeightOffset, 0f, "区域不采样起跳加成");
+    }
+
+    // 触发体与实心表面同时重叠探测盒时，接触查询必须返回实心体。区域重叠规则不在这里改变。
+    private static void CheckTriggerContactFilter()
+    {
+        Vector3 origin = NextPosition();
+        SO_CPhysics config = ScriptableObject.CreateInstance<SO_CPhysics>();
+        config.hideFlags = HideFlags.DontSave;
+        config.groundLayer = 1 << 6;
+        config.wallLayer = 1 << 6;
+        config.boxCastH = new Vector2(.3f, .12f);
+        config.boxCastV = new Vector2(.2f, .4f);
+        try
+        {
+            Collider2D ground = Solid(origin + new Vector3(0, -.5f, 0), Vector2.one);
+            TriggerVeil(origin + new Vector3(0, .25f, 0), new Vector2(3f, 1.5f));
+            Collider2D wall = Solid(origin + new Vector3(29.5f, 0, 0), new Vector2(1f, 2f));
+            TriggerVeil(origin + new Vector3(30.2f, 0, 0), new Vector2(2f, 3f));
+            Collider2D ceiling = Solid(origin + new Vector3(60, .5f, 0), Vector2.one);
+            TriggerVeil(origin + new Vector3(60, -.25f, 0), new Vector2(3f, 1.5f));
+            Transform groundProbe = NewObject("ground probe", origin + new Vector3(0, .04f, 0)).transform;
+            Transform leftProbe = NewObject("left probe", origin + new Vector3(30.05f, 0, 0)).transform;
+            Transform rightProbe = NewObject("right probe", origin + new Vector3(90, 0, 0)).transform;
+            Transform upProbe = NewObject("up probe", origin + new Vector3(60, -.04f, 0)).transform;
+            Physics2D.SyncTransforms();
+
+            EnvironmentCheckCharacter character = ProbeCharacter(origin + new Vector3(0, 20, 0), config,
+                groundProbe, leftProbe, rightProbe);
+            character.Query();
+            Check(character.Ground == ground && character.Grounded, "角色脚下过滤 Trigger 后命中实心表面");
+            Check(character.Left == wall && character.OnLeft, "角色侧面过滤 Trigger 后命中实心墙");
+
+            EnvironmentCheckBox box = ProbeBox(origin + new Vector3(0, 40, 0), config,
+                groundProbe, leftProbe, rightProbe, upProbe);
+            box.Query();
+            Check(box.Ground == ground && box.Grounded, "箱体脚下过滤 Trigger 后命中实心表面");
+            Check(box.Left == wall && box.OnLeft, "箱体侧面过滤 Trigger 后命中实心墙");
+            Check(box.Top, "箱体顶头过滤 Trigger 后仍发现实心表面");
+            ceiling.gameObject.SetActive(false);
+            Physics2D.SyncTransforms();
+            box.Query();
+            Check(!box.Top, "箱体顶头只有 Trigger 时不记为接触");
+        }
+        finally
+        {
+            Object.DestroyImmediate(config);
+        }
+    }
+
+    // 调用真实贴墙状态和角色限速，不使用把 VerticalTransmission 盖空的接触夹具。
+    private static void CheckWallSlideBehavior()
+    {
+        Vector3 position = NextPosition();
+        EnvironmentCheckSlide left = Slide(position, .5f);
+        EnvironmentCheckSlide right = Slide(position + Vector3.right * 3f, 2f);
+        var geometry = new GeometryPhysicsData();
+        var function = new PhysicalFunctionData { canLeftWall = left, canRightWall = right };
+        var read = new ReadOnly_GeometryPhysicsData(geometry, function);
+        var input = new PlayerInputData();
+        var action = new MovementData();
+        var fsm = new PlayerStateMachine();
+        fsm.InitData(read, input, action);
+        fsm.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
+
+        input.moveInput = 0f;
+        fsm.Update(input);
+        Check(action.nowState == PlayerStateMachine.E_playerState.inAir && action.onMove == 0f,
+            "松手退出贴墙并写回零方向");
+
+        fsm.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
+        function.canRightWall = null;
+        input.moveInput = 1f;
+        fsm.Update(input);
+        Check(action.nowState == PlayerStateMachine.E_playerState.inAir, "朝向没有墙滑能力的一侧则退出");
+
+        function.canRightWall = right;
+        fsm.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
+        input.moveInput = 1f;
+        fsm.Update(input);
+        Check(action.nowState == PlayerStateMachine.E_playerState.onWallSliding && action.onMove == 1f,
+            "朝向有墙滑能力的一侧保持贴墙");
+
+        EnvironmentCheckSlider slider = NewObject("wall slide body", position + Vector3.up * 5f).AddComponent<EnvironmentCheckSlider>();
+        slider.Bind(new ReadOnly_ActionData(action), function, fsm.EventSystem);
+        action.nowState = PlayerStateMachine.E_playerState.onWallSliding;
+        action.onMove = -1f;
+        slider.FallAt(-10f);
+        slider.Limit();
+        Near(slider.Vertical, -1f, "朝左按左墙乘数限速");
+        action.onMove = 1f;
+        slider.FallAt(-10f);
+        slider.Limit();
+        Near(slider.Vertical, -4f, "朝右按右墙乘数限速");
+        right.enabled = false;
+        slider.FallAt(-10f);
+        slider.Limit();
+        Near(slider.Vertical, -10f, "朝向一侧能力失效时不限速");
+        right.enabled = true;
+        action.onMove = 0f;
+        slider.FallAt(-10f);
+        slider.Limit();
+        Near(slider.Vertical, -10f, "松手不选择墙滑乘数");
+
+        slider.TouchBothWalls();
+        fsm.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
+        input.moveInput = 1f;
+        input.jumpPressed = true;
+        fsm.Update(input);
+        slider.ConsumeEvents();
+        Near(slider.LatestImpulse(), -30f, "双侧接触朝右墙跳时冲量向左");
+        fsm.ChangeState(PlayerStateMachine.E_playerState.onWallSliding);
+        input.moveInput = -1f;
+        input.jumpPressed = true;
+        fsm.Update(input);
+        slider.ConsumeEvents();
+        Near(slider.LatestImpulse(), 30f, "双侧接触朝左墙跳时冲量向右");
+    }
+
+    private static EnvironmentCheckSlide Slide(Vector3 position, float multiplier)
+    {
+        EnvironmentCheckSlide slide = NewObject("slide side", position).AddComponent<EnvironmentCheckSlide>();
+        slide.WallSlideMultiplier = multiplier;
+        return slide;
+    }
+
+    private static Collider2D Solid(Vector3 position, Vector2 size)
+    {
+        GameObject item = NewObject("solid contact", position);
+        item.layer = 6;
+        BoxCollider2D collider = item.AddComponent<BoxCollider2D>();
+        collider.size = size;
+        return collider;
+    }
+
+    private static void TriggerVeil(Vector3 position, Vector2 size)
+    {
+        GameObject item = NewObject("trigger veil", position);
+        item.layer = 6;
+        BoxCollider2D collider = item.AddComponent<BoxCollider2D>();
+        collider.size = size;
+        collider.isTrigger = true;
+    }
+
+    private static EnvironmentCheckCharacter ProbeCharacter(Vector3 position, SO_CPhysics config,
+        Transform ground, Transform left, Transform right)
+    {
+        GameObject item = NewObject("character probe", position);
+        item.AddComponent<Rigidbody2D>();
+        item.AddComponent<BoxCollider2D>();
+        EnvironmentCheckCharacter probe = item.AddComponent<EnvironmentCheckCharacter>();
+        probe.Apply(config, ground, left, right);
+        return probe;
+    }
+
+    private static EnvironmentCheckBox ProbeBox(Vector3 position, SO_CPhysics config,
+        Transform ground, Transform left, Transform right, Transform up)
+    {
+        GameObject item = NewObject("box probe", position);
+        item.AddComponent<Rigidbody2D>();
+        item.AddComponent<BoxCollider2D>();
+        EnvironmentCheckBox probe = item.AddComponent<EnvironmentCheckBox>();
+        probe.Apply(config, ground, left, right, up);
+        return probe;
     }
 
     private static void CheckUniqueEnvironmentHost()
@@ -463,6 +667,129 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
         ForceData data = Forces[source];
         data.speedStacking = speed;
         Forces[source] = data;
+    }
+}
+
+public sealed class EnvironmentCheckContact : BasicPhysicalObject, IMovementSpeedModifier, IWallSlideSurface, IGroundResponse
+{
+    public float MovementSpeedOffset => -.25f;
+    public float WallSlideMultiplier => .4f;
+    public float SlowingEffect => 2f;
+    public float JumpHeightNum => .3f;
+}
+
+public sealed class EnvironmentCheckCharacter : BasePhysicsEntity
+{
+    protected override void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        playerPhysicsData = new PlayerPhysicsData();
+        nowGemetry = new GeometryPhysicsData();
+        Init();
+    }
+    protected override void OnEnable() { }
+    protected override float HorizontalSpeedCalculation() => 0f;
+    protected override void PhyEventUpdate() { }
+    protected override void VerticalTransmission() { }
+    public void Apply(SO_CPhysics config, Transform ground, Transform left, Transform right)
+    {
+        // Edit Mode 添加组件时 Awake 可能尚未执行；查询前补齐几何容器。
+        if (nowGemetry == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+            boxCollider = GetComponent<BoxCollider2D>();
+            playerPhysicsData = new PlayerPhysicsData();
+            nowGemetry = new GeometryPhysicsData();
+            Init();
+        }
+        cPhysics = config;
+        groundV = ground;
+        leftV = left;
+        rightV = right;
+    }
+    public void Query() => GeometricQuery();
+    public Collider2D Ground => nowGemetry.groundCollider;
+    public bool Grounded => nowGemetry.isGrounded;
+    public Collider2D Left => nowGemetry.leftWallCollider;
+    public bool OnLeft => nowGemetry.onLeftWall;
+}
+
+public sealed class EnvironmentCheckBox : PhysicalBox
+{
+    protected override void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        playerPhysicsData = new PlayerPhysicsData();
+        nowGemetry = new GeometryPhysicsData();
+        nowPhyFun = new BasePhyFunData();
+    }
+    protected override void OnEnable() { }
+    public void Apply(SO_CPhysics config, Transform ground, Transform left, Transform right, Transform up)
+    {
+        // Edit Mode 添加组件时 Awake 可能尚未执行；查询前补齐几何容器。
+        if (nowGemetry == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+            boxCollider = GetComponent<BoxCollider2D>();
+            playerPhysicsData = new PlayerPhysicsData();
+            nowGemetry = new GeometryPhysicsData();
+            nowPhyFun = new BasePhyFunData();
+        }
+        cPhysics = config;
+        groundV = ground;
+        leftV = left;
+        rightV = right;
+        upV = up;
+    }
+    public void Query() => GeometricQuery();
+    public Collider2D Ground => nowGemetry.groundCollider;
+    public bool Grounded => nowGemetry.isGrounded;
+    public Collider2D Left => nowGemetry.leftWallCollider;
+    public bool OnLeft => nowGemetry.onLeftWall;
+    public bool Top => nowGemetry.istop;
+}
+
+public sealed class EnvironmentCheckSlide : BasicPhysicalObject, IWallSlideSurface
+{
+    public float WallSlideMultiplier { get; set; }
+}
+
+public sealed class EnvironmentCheckSlider : CharacterPhysics
+{
+    protected override void Awake() => EnsureReady();
+    protected override void OnEnable() { }
+    public void Bind(ReadOnly_ActionData action, PhysicalFunctionData function, LocalEventSystem<PlayerStateMachine.E_playEvent> events)
+    {
+        EnsureReady();
+        playphyFunData = function;
+        nowPhyFun = function;
+        Init(action, events);
+    }
+    public void FallAt(float vertical) => playerPhysicsData.verticalSpeed = vertical;
+    public void Limit() => VerticalTransmission();
+    public void ConsumeEvents() => PhyEventUpdate();
+    public float Vertical => playerPhysicsData.verticalSpeed;
+    public void TouchBothWalls()
+    {
+        nowGemetry.onLeftWall = true;
+        nowGemetry.onRightWall = true;
+    }
+    public float LatestImpulse()
+    {
+        var forces = (List<SpeedStackData>)typeof(BasicEntity)
+            .GetField("UnderForceList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this);
+        return forces[forces.Count - 1].hspeed;
+    }
+    void EnsureReady()
+    {
+        if (playerPhysicsData != null) return;
+        rb = GetComponent<Rigidbody2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        playerPhysicsData = new PlayerPhysicsData();
+        nowGemetry = new GeometryPhysicsData();
+        Init();
     }
 }
 

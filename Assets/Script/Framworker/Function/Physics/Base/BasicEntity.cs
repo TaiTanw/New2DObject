@@ -782,8 +782,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
                     dynamicForceDic[i] = data;
                 }
             }
-
-            nowPhyFun.wallCollider = nowGemetry.leftWallCollider;
         }
         else if (wordDelta.x > 0 && staticRight)
         {
@@ -801,17 +799,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
                     dynamicForceDic[i] = data;
                 }
             }
-
-            //设置当前靠墙
-            nowPhyFun.wallCollider = nowGemetry.rightWallCollider;
         }
-        else
-        {
-            //离开墙面后重置
-            nowPhyFun.wallCollider = null;
-        }
-        // 由已解析的静墙状态刷新下一帧墙滑引用；不读取移动后的接触结果，故在最终位移提交前完成。
-        RefreshWallSlideSnapshot();
 #if UNITY_EDITOR
         // [EditorOnly] 提交前记录请求结果，下一物理帧再观察 Unity 的实际位置修正。
         debugSolverOffset = solverOffset;
@@ -821,14 +809,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 #endif
         // 相位 5 的最后一步：所有状态更新和观测采样完成后，仅提交一次位移。
         rb.MovePosition(rb.position + wordDelta);
-    }
-
-    /// <summary>
-    /// 位移提交前，依据本帧已解析的墙面状态刷新墙滑引用（子类角色覆盖）。
-    /// 不依赖 Unity 在 MovePosition 之后的真实接触结果；最终位移提交保持在相位 5 末尾。
-    /// </summary>
-    protected virtual void RefreshWallSlideSnapshot()
-    {
     }
 
     protected virtual void OnDisable()

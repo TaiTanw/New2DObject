@@ -38,6 +38,8 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     ReadOnly_ActionData playActionData;
     //事件开关
     bool wallJump;
+    // 墙跳触发时的选侧：负数为左墙，正数为右墙。物理消费前不再跟随后续输入。
+    float wallJumpSide;
     bool jump;
 
     public float MovingDirection => playActionData.onMove;
@@ -74,6 +76,8 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     void WallJump()
     {
         wallJump = true;
+        // 事件与贴墙 Update 同步。此刻 onMove 已是本帧选侧；之后输入改写不再改变这次冲量。
+        wallJumpSide = playActionData.onMove < 0 ? -1f : playActionData.onMove > 0 ? 1f : 0f;
     }
     #endregion
     public void Init(ReadOnly_ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
@@ -114,29 +118,30 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             jumpForce = wallJumpV * speed;
 
             playerPhysicsData.verticalSpeed = jumpHeight;
-            //速度叠加
-            if (nowGemetry.onLeftWall)
-            {
-
+            // 离开触发时选定的墙：朝左贴墙向右跳，朝右贴墙向左跳。不读几何 onLeftWall。
+            if (wallJumpSide < 0)
                 AddTimeSpeed(0.2f, jumpForce);
-            }
-            else
-            {
+            else if (wallJumpSide > 0)
                 AddTimeSpeed(0.2f, -jumpForce);
-            }
             //消费
             wallJump = false;
+            wallJumpSide = 0f;
         }
     }
 
     protected override void VerticalTransmission()
     {
-        
-        //在贴墙以及在下落
-        //由于帧更新和物理更新时序的差异性,此处还是需要对nowWall判空
-        if (playActionData.NowState==PlayerStateMachine.E_playerState.onWallSliding && playerPhysicsData.verticalSpeed < 0 && EnvironmentCapabilities.IsActive(playphyFunData.nowWallt))
-        {
-            playerPhysicsData.verticalSpeed =Mathf.Max(playerPhysicsData.verticalSpeed,-wallDownSpeed*playphyFunData.nowWallt.WallSlideMultiplier);
-        }
+        // 只有逻辑处于贴墙状态且正在下落时，才应用墙滑限速。
+        if (playActionData.NowState != PlayerStateMachine.E_playerState.onWallSliding
+            || playerPhysicsData.verticalSpeed >= 0) return;
+
+        // 按动作方向选取相位 2 解析的本帧能力；松手不选择任何一侧。
+        IWallSlideSurface wall = playActionData.onMove < 0 ? playphyFunData.canLeftWall
+            : playActionData.onMove > 0 ? playphyFunData.canRightWall : null;
+        // 安全：能力缺席、来源禁用或销毁时，不能读取乘数。
+        if (!EnvironmentCapabilities.IsActive(wall)) return;
+
+        playerPhysicsData.verticalSpeed = Mathf.Max(playerPhysicsData.verticalSpeed,
+            -wallDownSpeed * wall.WallSlideMultiplier);
     }
 }

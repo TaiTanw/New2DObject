@@ -156,7 +156,9 @@ namespace PhyData
 
     }
     /// <summary>
-    /// 几何物理检测结果数据
+    /// 相位 1 记下本帧碰到了什么：脚下、左右墙、是否顶头、是否着地。
+    /// 例如侧面碰到墙，这里只留 Collider 和 onLeftWall，还不表示能贴墙下滑。
+    /// 职能：几何接触事实；能力是否有效在 PhysicalFunctionData，环境效果在 Context。
     /// </summary>
     public class GeometryPhysicsData
     {
@@ -164,10 +166,10 @@ namespace PhyData
         public Collider2D groundCollider;
         public Collider2D leftWallCollider;
         public Collider2D rightWallCollider;
-        public bool istop;//是否顶头
-        public bool isGrounded;     // 物理检测
-        public bool onLeftWall; //左右墙布尔，表示受墙的影响因素 
-        public bool onRightWall;
+        public bool istop;//几何：头顶方向碰到实心碰撞体
+        public bool isGrounded;     // 几何：法线判定后的着地，不表示表面能力
+        public bool onLeftWall; // 几何：左侧接触，不表示墙滑能力
+        public bool onRightWall; // 几何：右侧接触，不表示墙滑能力
 
         /// <summary>
         /// 贴地法线
@@ -186,10 +188,6 @@ namespace PhyData
     public class BasePhyFunData
     {
         /// <summary>
-        /// 当前倚靠的墙（静墙裁剪结果；可推体不再写入）
-        /// </summary>
-        public Collider2D wallCollider;
-        /// <summary>
         /// 已废弃：推墙/推箱不再用 Enter 边沿 AddForce（保留字段以免旧序列化/注释对照）
         /// </summary>
         public IForceAction nowForceThing;
@@ -202,16 +200,14 @@ namespace PhyData
 
     }
     /// <summary>
-    /// 角色物理职能数据
+    /// 角色在相位 2 从左右墙 Collider 解析出的墙滑能力引用。
+    /// 例如左侧碰到普通墙时 canLeftWall 为空，几何上的 onLeftWall 仍可为真。
+    /// 职能：物理职能结果；逻辑层只读其是否有效，乘数由执行层读取。箱体不使用本类型。
     /// </summary>
     public class PhysicalFunctionData:BasePhyFunData
     {
         public IWallSlideSurface canLeftWall;
         public IWallSlideSurface canRightWall;
-        /// <summary>
-        /// 当前倚靠的墙
-        /// </summary>
-        public IWallSlideSurface nowWallt;
     }
     /// <summary>
     /// 速度物理实时数据只读包装
@@ -235,6 +231,10 @@ namespace PhyData
 
     }
 
+    /// <summary>
+    /// 逻辑层只读出口。着地和左右贴墙读几何接触；canLeftWall / canRightWall 读墙滑能力是否仍有效。
+    /// 职能：行为层边界。不暴露墙滑乘数，也不把几何接触和能力可用性合成一个含义。
+    /// </summary>
     public class ReadOnly_GeometryPhysicsData
     {
         private readonly GeometryPhysicsData _data;
@@ -245,14 +245,13 @@ namespace PhyData
             _data2 = data2;
         }
 
-        public bool isGrounded => _data.isGrounded;     // 物理检测
-        public bool onLeftWall => _data.onLeftWall; //左右墙布尔，后续可替换为墙接口，表示受墙的影响因素 
-        public bool onRightWall => _data.onRightWall;
+        public bool isGrounded => _data.isGrounded; // 几何接触
+        public bool onLeftWall => _data.onLeftWall; // 几何接触
+        public bool onRightWall => _data.onRightWall; // 几何接触
 
-        public bool canRightWall => EnvironmentCapabilities.IsActive(_data2.canRightWall);
-        public bool canLeftWall => EnvironmentCapabilities.IsActive(_data2.canLeftWall);
+        public bool canRightWall => EnvironmentCapabilities.IsActive(_data2.canRightWall); // 职能：右侧墙滑能力可用
+        public bool canLeftWall => EnvironmentCapabilities.IsActive(_data2.canLeftWall); // 职能：左侧墙滑能力可用
 
-        public bool nowKWall => EnvironmentCapabilities.IsActive(_data2.nowWallt);
     }
 
 
