@@ -32,30 +32,41 @@ namespace PhyData
     }
 
     /// <summary>
-    /// 动态受力数据
+    /// 动态施力参数：不包含实体已累计的速度或当前受力类型。
+    /// 环境来源创建参数，实体的 ForceData 持有参数并独立维护跨帧状态。
+    /// </summary>
+    public readonly struct DynamicForceParameters
+    {
+        public readonly float Force;
+        public readonly float balanceSpeed;
+        public readonly float recoverySpeed;
+
+        public DynamicForceParameters(float force, float balanceSpeed, float recoverySpeed)
+        {
+            Force = force;
+            this.balanceSpeed = Mathf.Abs(balanceSpeed);
+            this.recoverySpeed = recoverySpeed;
+        }
+    }
+
+    /// <summary>
+    /// 动态受力数据：施力参数与跨帧状态分开保存。
     /// </summary>
     public struct ForceData 
     {
-        /// <summary>
-        /// 受力大小
-        /// </summary>
-        public float Force;
-        /// <summary>
-        /// 受控复原速度（阻滞速度叠加时的施力大小
-        /// </summary>
-        public float recoverySpeed;
+        /// <summary>施力配置；刷新此值不覆盖下方的跨帧状态。</summary>
+        public DynamicForceParameters parameters;
+        public readonly float Force => parameters.Force;
+        public readonly float recoverySpeed => parameters.recoverySpeed;
+        public readonly float balanceSpeed => parameters.balanceSpeed;
         /// <summary>
         /// 此施力所致的速度叠加
         /// </summary>
         public float speedStacking;
         /// <summary>
-        /// 平衡所致条件(必须为正数
-        /// </summary>
-        public float balanceSpeed;
-        /// <summary>
         /// 当满足当前叠加速度大于平衡速度时
         /// </summary>
-        public readonly bool IsBalance => Mathf.Abs(speedStacking) > Mathf.Abs(balanceSpeed);
+        public readonly bool IsBalance => Mathf.Abs(speedStacking) > Mathf.Abs(parameters.balanceSpeed);
         /// <summary>
         /// 施力类型
         /// </summary>
@@ -63,9 +74,7 @@ namespace PhyData
 
         public void Init(float Force,float recoverySpeed, float balanceSpeed)
         {
-            this.Force = Force;
-            this.recoverySpeed = recoverySpeed;
-            this.balanceSpeed = Mathf.Abs(balanceSpeed);
+            parameters = new DynamicForceParameters(Force, balanceSpeed, recoverySpeed);
             type = E_PhyForceType.apply;
         }
 
@@ -77,16 +86,16 @@ namespace PhyData
         /// <returns>速度叠加</returns>
         public float FixUpdate(float quality)
         {
-            speedStacking += Force * quality * Time.fixedDeltaTime;
+            speedStacking += parameters.Force * quality * Time.fixedDeltaTime;
             if(IsBalance)
             {
                 if (speedStacking < 0)
                 {
-                    speedStacking=-balanceSpeed;
+                    speedStacking=-parameters.balanceSpeed;
                 }
                 else
                 {
-                    speedStacking=balanceSpeed;
+                    speedStacking=parameters.balanceSpeed;
                 }
             }
 
@@ -101,11 +110,11 @@ namespace PhyData
         {
             if (speedStacking > 0.2)
             {
-                speedStacking -= recoverySpeed * quality * Time.fixedDeltaTime;
+                speedStacking -= parameters.recoverySpeed * quality * Time.fixedDeltaTime;
             }
             else if (speedStacking < -0.2)
             {
-                speedStacking += recoverySpeed * quality * Time.fixedDeltaTime;
+                speedStacking += parameters.recoverySpeed * quality * Time.fixedDeltaTime;
             }
             else
             {

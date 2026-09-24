@@ -30,10 +30,10 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
 
     #region 控制流数据=================================================================
-    //玩家状态机内部事件系统引用(一次性注册事件（因为生命周期和局部事件系统一致，所以暂时不用考虑注销物体（随物体删除一并销毁
+    //角色状态机内部事件系统引用(一次性注册事件（因为生命周期和局部事件系统一致，所以暂时不用考虑注销物体（随物体删除一并销毁
     //LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem;
     /// <summary>
-    /// 玩家可执行动作
+    /// 角色可执行动作
     /// </summary>
     ReadOnly_ActionData playActionData;
     //事件开关
@@ -41,7 +41,8 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     // 墙跳触发时的选侧：负数为左墙，正数为右墙。物理消费前不再跟随后续输入。
     float wallJumpSide;
     bool jump;
-
+    //跳跃斩断按钮
+    bool jumpReleaseSide;
     public float MovingDirection => playActionData.onMove;
 
     public float Mobility => speed;
@@ -68,10 +69,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     {
         //print("跳跃斩断1111111111");
 
-        if (playerPhysicsData.verticalSpeed > 0)
-        {
-            playerPhysicsData.verticalSpeed *= jumpRelNum;
-        }
+        jumpReleaseSide = true;
     }
     void WallJump()
     {
@@ -126,6 +124,15 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             //消费
             wallJump = false;
             wallJumpSide = 0f;
+        }
+        if (jumpReleaseSide)
+        {
+            if (playerPhysicsData.verticalSpeed > 0)
+            {
+                playerPhysicsData.verticalSpeed *= jumpRelNum;
+            }
+            //消费
+            jumpReleaseSide = false;
         }
     }
 

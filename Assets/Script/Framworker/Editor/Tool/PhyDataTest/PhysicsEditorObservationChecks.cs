@@ -235,6 +235,7 @@ public sealed class PhysicsObservationCheckBody : BasicEntity
 {
     protected override void Awake()
     {
+        BindEffectReceiver();
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         rb.gravityScale = 0;

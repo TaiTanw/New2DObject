@@ -210,9 +210,7 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
         float targetSpeed = sourceAxisSpeed * receiverWeight;
         receiver.SetOrUpdateDynamicForce(
             source,
-            targetSpeed * ContactForceGain,
-            Mathf.Abs(targetSpeed),
-            0f);
+            new DynamicForceParameters(targetSpeed * ContactForceGain, Mathf.Abs(targetSpeed), 0f));
 
         // 百分比削弱只发生在有向接触刚成立时；保持接触不会逐帧相乘而指数缩小。
         if (!previousContactForceLinks.Contains(link))

@@ -17,6 +17,15 @@ public static class EnvironmentIntegrationChecks
     private static readonly List<string> passed = new List<string>();
     private static int group;
 
+    // 检查夹具沿唯一持有者读取内部数值；运行时代码无需暴露可变容器。
+    internal static object EffectField(BasicEntity body, string fieldName)
+    {
+        object state = typeof(BasicEntity).GetField("effectState", BindingFlags.Instance | BindingFlags.NonPublic)
+            .GetValue(body);
+        return state.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)
+            .GetValue(state);
+    }
+
     [MenuItem("自定义工具/EPhy 验证环境接入（Edit Mode）")]
     public static void Run()
     {
@@ -32,6 +41,7 @@ public static class EnvironmentIntegrationChecks
             if ((MonoPublicMgr)previousScheduler == null)
                 schedulerField.SetValue(null, NewObject("validation scheduler", Vector3.zero).AddComponent<MonoPublicMgr>());
             CheckGroundLifecycle();
+            CheckDynamicForceRefresh();
             CheckRegions();
             CheckCapabilities();
             CheckCapabilityOwnership();
@@ -123,6 +133,23 @@ public static class EnvironmentIntegrationChecks
         ForceData passive = ice.CreateEnvironmentForce(plain);
         Near(passive.balanceSpeed, 0, "冰面对无移动能力实体仍使用零平衡速度");
         Near(passive.recoverySpeed, .5f, "无移动能力分支保留地面恢复参数");
+    }
+
+    private static void CheckDynamicForceRefresh()
+    {
+        Vector3 position = NextPosition();
+        ForceField source = Prefab<ForceField>("F1.prefab", position);
+        EnvironmentCheckBody body = Body(position + Vector3.up * 3);
+        body.SetOrUpdateDynamicForce(source, new DynamicForceParameters(1f, 2f, 3f));
+        body.SetStack(source, 4f);
+        body.ChangeType(source, E_PhyForceType.fadeAway);
+        body.SetOrUpdateDynamicForce(source, new DynamicForceParameters(5f, -6f, 7f));
+        ForceData refreshed = body.Force(source);
+        Near(refreshed.Force, 5f, "接触力刷新替换施力大小");
+        Near(refreshed.balanceSpeed, 6f, "接触力刷新仍规范化平衡速度");
+        Near(refreshed.recoverySpeed, 7f, "接触力刷新替换恢复速度");
+        Near(refreshed.speedStacking, 4f, "接触力刷新保留累计速度");
+        Check(refreshed.type == E_PhyForceType.apply, "接触力刷新恢复施加状态");
     }
 
     private static void CheckRegions()
@@ -307,8 +334,7 @@ public static class EnvironmentIntegrationChecks
         collider.isTrigger = true;
         body.transform.position = position;
         Refresh(body);
-        var speeds = (Dictionary<EnvironmentRegistration, float>)typeof(BasicEntity)
-            .GetField("phyStateDic", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(body);
+        var speeds = (Dictionary<EnvironmentRegistration, float>)EffectField(body, "movementModifiers");
         Check(PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 1
             && speeds.TryGetValue(contact.EnvironmentRegistration, out float offset)
             && Mathf.Abs(offset - contact.MovementSpeedOffset) < .0001f,
@@ -654,6 +680,7 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
     protected override void GeometricQuery() { }
     public void InitializeForChecks()
     {
+        BindEffectReceiver();
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         nowGemetry = new GeometryPhysicsData();
@@ -674,9 +701,9 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
         CollectRegionOverlapFacts();
         base.PhyFunUpdate();
     }
-    public void RunForces() => typeof(BasicEntity).GetMethod("HUnderForce", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(this, null);
+    public void RunForces() => typeof(BasicEntity).GetMethod("UpdatePassiveEffectSpeed", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(this, null);
     private Dictionary<IDynamicAddForce, ForceData> Forces =>
-        (Dictionary<IDynamicAddForce, ForceData>)typeof(BasicEntity).GetField("dynamicForceDic", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this);
+        (Dictionary<IDynamicAddForce, ForceData>)EnvironmentIntegrationChecks.EffectField(this, "dynamicForces");
     public ForceData Force(IDynamicAddForce source) => Forces[source];
     public void SetStack(IDynamicAddForce source, float speed)
     {
@@ -698,6 +725,7 @@ public sealed class EnvironmentCheckCharacter : BasePhysicsEntity
 {
     protected override void Awake()
     {
+        BindEffectReceiver();
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         playerPhysicsData = new PlayerPhysicsData();
@@ -735,6 +763,7 @@ public sealed class EnvironmentCheckBox : PhysicalBox
 {
     protected override void Awake()
     {
+        BindEffectReceiver();
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         playerPhysicsData = new PlayerPhysicsData();
@@ -747,6 +776,7 @@ public sealed class EnvironmentCheckBox : PhysicalBox
         // Edit Mode 添加组件时 Awake 可能尚未执行；查询前补齐几何容器。
         if (nowGemetry == null)
         {
+            BindEffectReceiver();
             rb = GetComponent<Rigidbody2D>();
             boxCollider = GetComponent<BoxCollider2D>();
             playerPhysicsData = new PlayerPhysicsData();
@@ -794,12 +824,12 @@ public sealed class EnvironmentCheckSlider : CharacterPhysics
     }
     public float LatestImpulse()
     {
-        var forces = (List<SpeedStackData>)typeof(BasicEntity)
-            .GetField("UnderForceList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(this);
+        var forces = (List<SpeedStackData>)EnvironmentIntegrationChecks.EffectField(this, "timedSpeeds");
         return forces[forces.Count - 1].hspeed;
     }
     void EnsureReady()
     {
+        BindEffectReceiver();
         if (playerPhysicsData != null) return;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -832,6 +862,7 @@ public sealed class EnvironmentCheckReceiver : MonoBehaviour, IForceAction
     public void RemoveSpeedStatus(EnvironmentRegistration id) { }
     public void AddTimeSpeed(float time, float value) { }
     public void AddForce(IDynamicAddForce id, ForceData data) { }
+    public void SetOrUpdateDynamicForce(IDynamicAddForce id, DynamicForceParameters parameters) { }
     public void ChangeForce(IDynamicAddForce id, float value) { }
     public void ChangeType(IDynamicAddForce id, E_PhyForceType type) { }
     public void RemoveForce(IDynamicAddForce id) { }

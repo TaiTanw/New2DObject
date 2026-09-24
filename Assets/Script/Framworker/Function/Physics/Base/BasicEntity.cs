@@ -1,19 +1,17 @@
 ﻿using PhyData;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 角色与箱子共用的物理执行主体：按相位读取环境、计算速度、预测并提交位移。
-/// 环境关系由每个实体自己的 EnvironmentContext 管理，力和速度仍放在本类原有容器中。
-/// 职能：实体物理执行与数值状态归属。通读本次环境接入先搜 ENV-01，再沿编号读到 ENV-07。
+/// 环境关系由 EntityEnvironmentContext 管理；效果数值与累计速度由 EntityEffectState 持有。
+/// 职能：实体物理相位编排、预测和位移提交；环境及接触效果经窄口转发。
 /// </summary>
 public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForce, IEnvironmentReceiver
 {
     protected Rigidbody2D rb; //刚体
     protected BoxCollider2D boxCollider;//碰撞器
-    // 相位 1 overlap 工作缓存；有效 Trigger 再写入 nowGemetry.regionOverlaps。
-    private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
+
     /// <summary>
     /// 物理配置数据
     /// </summary>
@@ -62,41 +60,17 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
 
-    // 环境关系由实体持有；原有速度容器仍是数值状态的唯一存储，不在 Context 中重复累计。
+    // 环境关系和效果数值分别由两个对象持有，不重复累计。
     private EntityEnvironmentContext environmentContext;
     public EntityEnvironmentContext EnvironmentContext => environmentContext ??= new EntityEnvironmentContext(this, this);
     protected EntityEnvironmentFrame EnvironmentFrame => EnvironmentContext.Frame;
 
-    /// <summary>
-    /// 持续性环境物理受限状态容器（左右移动速度（粘滞力
-    /// </summary>
-    Dictionary<EnvironmentRegistration, float> phyStateDic = new Dictionary<EnvironmentRegistration, float>();
-    /// <summary>
-    /// 时间速度容器
-    /// </summary>
-    List<SpeedStackData> UnderForceList = new List<SpeedStackData>();
-    /// <summary>
-    /// 状态速度容器（传送带模型
-    /// </summary>
-    Dictionary<EnvironmentRegistration, Vector2> startSpeedDic = new Dictionary<EnvironmentRegistration, Vector2>();
-
-    /// <summary>
-    /// 受到哪些物体的施力影响
-    /// </summary>
-    HashSet<IDynamicAddForce> objectApplyingForce = new HashSet<IDynamicAddForce>();
-    /// <summary>
-    /// 受力计算容器（可确保一定有动态施力接口
-    /// </summary>
-    Dictionary<IDynamicAddForce, ForceData> dynamicForceDic = new Dictionary<IDynamicAddForce, ForceData>();
+    // 数值状态与实体同生命周期；来源关系仍由 environmentContext 管理。
+    private readonly EntityEffectState effectState = new EntityEffectState();
     /// <summary>
     /// 自身阻力系数
     /// </summary>
     protected float self_resistanceCoefficient = 3;
-
-    /// <summary>
-    /// 物理约束情况改变时才重算（脏标识
-    /// </summary>
-    bool isRecalculate;
 
     /// <summary>
     /// 本帧未约束运动快照：相位 3 在速度结算后整体替换，预测和相位 5 提交共同读取。
@@ -108,6 +82,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// 实体解算结果：相位 4 累加 displacementOffset，相位 5 在同一物理帧消费。
     /// </summary>
     protected EntitySolutionResult entitySolutionResult;
+
+    // 相位 1 overlap 工作缓存；有效 Trigger 再写入 nowGemetry.regionOverlaps。
+    private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
 
 #if UNITY_EDITOR
     // [EditorOnly] 只读输出口；编辑器侧负责采样、缓存、快照组装与跨帧差值计算。
@@ -122,9 +99,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     public bool DebugIsOnRightWall => nowGemetry != null && nowGemetry.onRightWall;
     public Vector2 DebugGroundNormal => nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero;
     public int DebugEnvironmentSourceCount => environmentContext?.DebugSourceCount ?? 0;
-    public int DebugMovementModifierCount => phyStateDic.Count;
-    public int DebugStateVelocityCount => startSpeedDic.Count;
-    public int DebugDynamicForceCount => dynamicForceDic.Count;
+    public int DebugMovementModifierCount => effectState.DebugMovementModifierCount;
+    public int DebugStateVelocityCount => effectState.DebugStateVelocityCount;
+    public int DebugDynamicForceCount => effectState.DebugDynamicForceCount;
     public float DebugEnvironmentSlowingMultiplier => environmentContext?.Frame.slowingMultiplier ?? 1f;
     public float DebugEnvironmentJumpHeightOffset => environmentContext?.Frame.jumpHeightOffset ?? 0f;
 
@@ -146,6 +123,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         return true;
     }
 #endif
+
+    #endregion
+
+    #region 实体推动与接触
 
     /// <summary>
     /// 受环境影响程度（质量倒数，接触挤出权重）
@@ -172,15 +153,26 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     }
 
     /// <summary>
-    /// 写入主动移速修饰；ENV-04 以 Registration 为环境来源键，PhyStateCalculate 在相位 3 消费。
+    /// 接触刚成立时，按挤出方向一次性削弱会继续进入接触面的非持续速度来源。
+    /// 只改限时速度与 fadeAway 动态力；主动速度、状态速度和仍在 apply 的持续力不属于本次碰撞消耗。
+    /// </summary>
+    public void AttenuateTransientContactSpeed(float separateSign, float retainRatio)
+    {
+        effectState.AttenuateTransientContactSpeed(separateSign, retainRatio);
+    }
+
+    #endregion
+
+    #region IForceAction 受力入口
+
+    /// <summary>
+    /// 写入主动移速修饰；ENV-04 以 Registration 为环境来源键，数值状态在相位 3 汇总。
     /// </summary>
     /// <param name="iD">唯一标识</param>
     /// <param name="num">影响程度</param>
     public void StatePowerRegistration(EnvironmentRegistration iD, float num)
     {
-        //避免键重复而报错
-        phyStateDic[iD] = num;
-        isRecalculate = true;
+        effectState.RegisterMovementModifier(iD, num);
     }
     /// <summary>
     /// 撤销该来源的主动移速修饰，标记下一速度阶段重新汇总。
@@ -188,8 +180,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// <param name="iD"></param>
     public void StatePowerCancellation(EnvironmentRegistration iD)
     {
-        phyStateDic.Remove(iD);
-        isRecalculate = true;
+        effectState.RemoveMovementModifier(iD);
     }
     /// <summary>
     /// 外部提供速度(固定时间影响
@@ -199,22 +190,16 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     public void AddTimeSpeed(float time, float addSpeed)
     {
-        SpeedStackData data = new SpeedStackData();
-        data.responseTimer1 = Time.time + time;
-        data.hspeed = addSpeed * envImpact;
-        UnderForceList.Add(data);
+        effectState.AddTimedSpeed(time, addSpeed, envImpact);
     }
     /// <summary>
-    /// 写入该来源的持续速度；ENV-04 登记，ENV-06 的 HUnderForce 逐来源相加。
+    /// 写入该来源的持续速度；ENV-04 登记，ENV-06 在数值状态中逐来源相加。
     /// </summary>
     /// <param name="iD">来源键；环境状态使用 Registration。</param>
     /// <param name="force">持续附加速度；沿用旧参数名，不代表需要积分的力。</param>
     public void AddSpeedStatus(EnvironmentRegistration iD, Vector2 force)
     {
-
-        startSpeedDic[iD] = force;
-
-        //isRecalculate = true;
+        effectState.AddStateVelocity(iD, force);
     }
     /// <summary>
     /// 外部取消状态性质速度
@@ -222,92 +207,25 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// <param name="iD">需要删除的持续速度来源。</param>
     public void RemoveSpeedStatus(EnvironmentRegistration iD)
     {
-        //否则再将受力容器对应值删除
-        startSpeedDic.Remove(iD);
-
+        effectState.RemoveStateVelocity(iD);
     }
 
-    /// <summary>接收 ENV-04 创建的动态参数；累计速度归 dynamicForceDic，来源键仍是动态能力提供者。</summary>
+    /// <summary>接收 ENV-04 创建的动态参数；累计速度归数值状态，来源键仍是动态能力提供者。</summary>
     public void AddForce(IDynamicAddForce iD, ForceData force)
     {
-        // 环境重新进入沿用旧规则：保留累计速度及旧初始化参数，仅恢复 apply。
-        // 参数刷新与速度尾效的策略另案决定；本轮统一登记时不改为每次重新初始化。
-        //若已有影响，则直接设置类型并返回
-        if (objectApplyingForce.Contains(iD))
-        {
-            ChangeType(iD, E_PhyForceType.apply);
-            return;
-        }
-
-        //添加引用（（用于遍历
-        objectApplyingForce.Add(iD);
-        //只有未找到此影响，则新增赋值
-        dynamicForceDic[iD] = force;
-        //否则按照原有数据继续计算
+        effectState.AddDynamicForce(iD, force);
     }
 
     /// <summary>
     /// 新增或刷新动态力控制参数，同时保留已经跨帧累计的 speedStacking。
-    /// 接触数据链路：管理器相位 4 调用 → 下一帧 HUnderForce/FixUpdate 累计 → phyHSpeed 参与位移预测。
-    /// 此方法不加入 IForceAction，避免改变冰面、力场等现有通用施力接口的约定。
+    /// 接触数据链路：管理器相位 4 调用 → 下一帧数值状态积分 → phyHSpeed 参与位移预测。
+    /// IForceAction 窄口只传施力参数，累计速度仍由数值状态持有。
     /// </summary>
-    public void SetOrUpdateDynamicForce(
-        IDynamicAddForce source,
-        float force,
-        float balanceSpeed,
-        float recoverySpeed = 0f)
+    public void SetOrUpdateDynamicForce(IDynamicAddForce source, DynamicForceParameters parameters)
     {
-        if (dynamicForceDic.TryGetValue(source, out ForceData data))
-        {
-            data.Force = force;
-            data.balanceSpeed = Mathf.Abs(balanceSpeed);
-            data.recoverySpeed = recoverySpeed;
-            data.type = E_PhyForceType.apply;
-            dynamicForceDic[source] = data;
-            objectApplyingForce.Add(source);
-            return;
-        }
-
-        ForceData newData = new ForceData();
-        newData.Init(force, recoverySpeed, balanceSpeed);
-        dynamicForceDic[source] = newData;
-        objectApplyingForce.Add(source);
+        effectState.SetOrUpdateDynamicForce(source, parameters);
     }
 
-    /// <summary>
-    /// 接触刚成立时，按挤出方向一次性削弱会继续进入接触面的非持续速度来源。
-    /// 只改限时速度与 fadeAway 动态力；主动速度、状态速度和仍在 apply 的持续力不属于本次碰撞消耗。
-    /// </summary>
-    public void AttenuateTransientContactSpeed(float separateSign, float retainRatio)
-    {
-        if (Mathf.Approximately(separateSign, 0f))
-            return;
-
-        separateSign = separateSign >= 0f ? 1f : -1f;
-        retainRatio = Mathf.Clamp01(retainRatio);
-        //时间力衰减
-        for (int i = 0; i < UnderForceList.Count; i++)
-        {
-            SpeedStackData data = UnderForceList[i];
-            // 速度与挤出方向异号，表示该速度分量仍朝接触面运动。
-            if (data.hspeed * separateSign < 0f)
-            {
-                data.hspeed *= retainRatio;
-                UnderForceList[i] = data;
-            }
-        }
-        //动态（fadeAway状态）力衰减
-        foreach (IDynamicAddForce source in objectApplyingForce)
-        {
-            ForceData data = dynamicForceDic[source];
-            if (data.type == E_PhyForceType.fadeAway &&
-                data.speedStacking * separateSign < 0f)
-            {
-                data.speedStacking *= retainRatio;
-                dynamicForceDic[source] = data;
-            }
-        }
-    }
     /// <summary>
     /// 改变受力
     /// </summary>
@@ -315,9 +233,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// <param name="newForce"></param>
     public void ChangeForce(IDynamicAddForce iD, float newForce)
     {
-        ForceData data = dynamicForceDic[iD];
-        data.Force = newForce;
-        dynamicForceDic[iD] = data;
+        effectState.ChangeDynamicForce(iD, newForce);
     }
     /// <summary>
     /// 施力类型变化
@@ -326,20 +242,14 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// <param name="newSpeed"></param>
     public void ChangeType(IDynamicAddForce iD, E_PhyForceType type)
     {
-        ForceData data = dynamicForceDic[iD];
-        data.type = type;
-        dynamicForceDic[iD] = data;
+        effectState.ChangeDynamicType(iD, type);
     }
 
 
     /// <summary>ENV-07 的数值出口：停止来源控制，转 fadeAway；剩余速度由 ENV-06 继续衰减。</summary>
     public void RemoveForce(IDynamicAddForce iD)
     {
-        // 幂等清理：该动态项已被移除时不再切换类型。
-        if (!dynamicForceDic.TryGetValue(iD, out var data))
-            return;
-        //受力类型改为消除，物理循环自动更新和移除
-        ChangeType(iD, E_PhyForceType.fadeAway);
+        effectState.RemoveDynamicForce(iD);
     }
 
 
@@ -347,6 +257,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     protected virtual void Awake()
     {
+        BindEffectReceiver();
         if (cPhysics == null)
         {
             print("SO_玩家物理配置数据为空，请拖拽引用");
@@ -365,6 +276,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         gravity*=airResistance;
         Init();
     }
+
+    /// <summary>供自行实现 Awake 的实体明确完成效果回调关联。</summary>
+    protected void BindEffectReceiver() => effectState.BindReceiver(this);
     /// <summary>
     /// 初始化附加逻辑(子类可重写，初始化自身子类详细数据
     /// </summary>
@@ -528,7 +442,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     void PositionPrediction()
     {
         // 相位 4 会重新累加本帧偏置，先清零避免无接触时沿用旧结果。
-        // 接触速度不再写入解算结果，而由 dynamicForceDic 在下一帧相位 3 跨帧累计。
+        // 接触速度不再写入解算结果，而由实体数值状态在下一帧相位 3 跨帧累计。
         entitySolutionResult.displacementOffset = Vector2.zero;
 
         if (boxCollider == null || rb == null)
@@ -551,146 +465,19 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     {
         // [ENV-06] 第一遍只看这三次调用：移速修饰、被动速度、主动速度。登记层到这里才变成速度。
         //计算环境约束
-        PhyStateCalculate();
+        effectState.UpdateMovementModifier(playerPhysicsData);
         //计算被动速度
-        HUnderForce();
+        UpdatePassiveEffectSpeed();
         //计算主动操作的速度影响（计算主动速度,以及被动速度的特殊影响
         HActiveSpeedOperation();
     }
 
     /// <summary>
-    /// 统一计算持续性物理环境影响移动的参数（快照重算模式
+    /// ENV-06 的被动速度入口；限时、动态、持续速度的具体更新归 EntityEffectState。
     /// </summary>
-    void PhyStateCalculate()
+    void UpdatePassiveEffectSpeed()
     {
-        // 数值规则：仅在来源登记/撤销后重新汇总；它不是每帧重新登记环境。
-        if (isRecalculate)
-        {
-            float phyEvData = 0;
-
-            foreach (var i in phyStateDic.Values)
-            {
-                phyEvData += i;
-            }
-            //最终影响倍率不能在范围之外
-            playerPhysicsData.nowPhyNum = Mathf.Clamp(phyEvData, -0.95f, 4f);//此处可配置=================================
-            //重置标识
-            isRecalculate = false;
-        }
-    }
-
-
-    /// <summary>
-    /// ENV-06 的被动速度分支：依次汇总限时速度、动态施力、持续速度，写回 phyHSpeed。
-    /// 通读冰面时先看动态循环：回调 IceGround.ForceCalculation → ForceData 更新 → 写回动态容器。
-    /// 退出后的 fadeAway 跳过来源回调；因此 ENV-07 撤关系不等于速度立即归零。
-    /// </summary>
-    void HUnderForce()
-    {
-        //快照重算，所以需要新变量承载，不能直接在原始数据上叠加
-        Vector2 sp = Vector2.zero;
-        //先计算时间力
-        // 必须反向遍历，因为要操作删除
-        for (int i = UnderForceList.Count - 1; i >= 0; i--)
-        {
-            if (UnderForceList[i].responseTimer1 < Time.time)//表示此力过期
-            {
-                int lastI = UnderForceList.Count - 1;
-                if (i != lastI)//不在乎顺序，换位删除，提升性能
-                {
-                    UnderForceList[i] = UnderForceList[lastI];
-                }
-                UnderForceList.RemoveAt(lastI);
-            }
-            else
-            {
-                sp.x += UnderForceList[i].hspeed;
-            }
-        }
-        //计算动态受力
-        if (objectApplyingForce.Count != 0)
-        {
-            //待删除列表
-            var removelist = new List<IDynamicAddForce>(objectApplyingForce.Count);
-            //更新受力所致速度变化
-            foreach (var i in objectApplyingForce)
-            {
-                //结构体需要先拷贝，再传入更新
-                ForceData data = dynamicForceDic[i];
-                // 如果力正在渐隐消除，则跳过施力者的更新逻辑，只执行后续衰减
-                if (data.type != E_PhyForceType.fadeAway)
-                {
-                    i.ForceCalculation(this);
-                    data = dynamicForceDic[i]; // ForceCalculation 可能已经修改了 data，需要重新获取
-                }
-                switch (data.type)
-                {
-                    case E_PhyForceType.apply:
-                        sp.x += data.FixUpdate(envImpact);
-                        //更新
-                        dynamicForceDic[i] = data;
-                        break;
-                    case E_PhyForceType.controlRecovery://如果是受控复原
-                        //速度受控情况下衰减
-                        sp.x += data.ControlledSpeedRecovery(envImpact);
-                        dynamicForceDic[i] = data;
-                        break;
-                    case E_PhyForceType.balance:
-                        //平衡状态下不做处理
-                        break;
-                    case E_PhyForceType.fadeAway:
-                        //计算受自身阻力影响的速度衰减
-                        if (data.speedStacking > 0f)//正向速度减衰减
-                        {
-                            data.speedStacking -= self_resistanceCoefficient * envImpact * Time.fixedDeltaTime;
-                            //防止速度反向
-                            data.speedStacking = Mathf.Clamp(data.speedStacking, 0f, data.speedStacking);
-                        }
-                        else if (data.speedStacking < 0f)
-                        {
-                            data.speedStacking += self_resistanceCoefficient * envImpact * Time.fixedDeltaTime;
-                            //防止速度反向
-                            data.speedStacking = Mathf.Clamp(data.speedStacking, data.speedStacking, 0f);
-                        }
-                        //速度绝对值小于阈值则消除
-                        if (Mathf.Abs(data.speedStacking) < 0.2)
-                        {
-                            //移入删除
-                            removelist.Add(i);
-                            //删除受力影响
-                            dynamicForceDic.Remove(i);
-                        }
-                        else
-                        {
-                            sp.x += data.speedStacking;
-                            dynamicForceDic[i] = data;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-            //遍历删除
-            foreach (var i in removelist)
-            {
-                objectApplyingForce.Remove(i);
-            }
-        }
-        //再计算状态力//为传送带模型，不受质量影响
-        //此处不用标识，因为内部没有专门缓存当前状态力的数据容器（也没有必要专门占用一个数据内存
-        //if (isRecalculate)
-        {
-            //print("测试状态力计算次数");
-
-            foreach (var i in startSpeedDic.Values)
-            {
-                sp += i;
-            }
-
-        }
-        //赋值操作，保证正确
-        playerPhysicsData.phyHSpeed = sp.x;
-        playerPhysicsData.phyVSpeed = sp.y;
+        effectState.UpdatePassiveSpeed(playerPhysicsData, envImpact, self_resistanceCoefficient);
     }
     /// <summary>
     /// 子类实现水平速度主动操作(后处理
@@ -760,13 +547,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
             //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题,而附加力则清空速度但不移除受力影响
             if (playerPhysicsData.phyHSpeed < 0)//只有当被动速度也趋向于挤压
             {
-                UnderForceList.Clear();
-                foreach (var i in objectApplyingForce)//遍历置零
-                {
-                    ForceData data = dynamicForceDic[i];
-                    data.speedStacking = 0;
-                    dynamicForceDic[i] = data;
-                }
+                effectState.ClearTransientSpeedAtWall();
             }
         }
         else if (wordDelta.x > 0 && staticRight)
@@ -777,13 +558,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
             wordDelta.x = 0;
             if (playerPhysicsData.phyHSpeed > 0)
             {
-                UnderForceList.Clear();
-                foreach (var i in objectApplyingForce)//遍历置零
-                {
-                    ForceData data = dynamicForceDic[i];
-                    data.speedStacking = 0;
-                    dynamicForceDic[i] = data;
-                }
+                effectState.ClearTransientSpeedAtWall();
             }
         }
 #if UNITY_EDITOR
@@ -821,6 +596,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     public virtual void ForceCalculation(IForceAction IF)
     {
         // 实体接触力由 PhysicsSolverMgr 在相位 4 统一刷新。
-        // HUnderForce 在下一帧相位 3 回调到这里时不重复推导，直接使用容器内上一相位 4 的参数。
+        // 下一帧相位 3 的数值状态更新不重复推导接触力，直接使用相位 4 留下的参数。
     }
 }

@@ -21,10 +21,10 @@ public interface IEnvironmentReceiver
     EntityEnvironmentContext EnvironmentContext { get; }
 }
 
-/// <summary>提供主动移速加性修饰；ENV-04 登记，PhyStateCalculate 求和/限幅后按旧规则使用 1 + offset。职能：参数能力。</summary>
+/// <summary>提供主动移速加性修饰；ENV-04 登记，实体数值状态求和/限幅后按旧规则使用 1 + offset。职能：参数能力。</summary>
 public interface IMovementSpeedModifier { float MovementSpeedOffset { get; } }
 
-/// <summary>提供持续附加速度；ENV-04 登记到 startSpeedDic，ENV-06 按来源相加，不乘 EnvImpact。职能：参数能力。</summary>
+/// <summary>提供持续附加速度；ENV-04 登记到实体数值状态，ENV-06 按来源相加，不乘 EnvImpact。职能：参数能力。</summary>
 public interface IStateVelocitySource { Vector2 StateVelocity { get; } }
 
 /// <summary>
