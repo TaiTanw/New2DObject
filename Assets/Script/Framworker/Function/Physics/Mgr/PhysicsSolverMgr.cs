@@ -31,16 +31,6 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
     // 同一实体同一挤出方向一帧只衰减一次；多个接触请求取最小保留率（最强阻挡）。
     readonly Dictionary<ContactAttenuationKey, float> pendingAttenuations = new Dictionary<ContactAttenuationKey, float>();//（每帧清空
 
-#if UNITY_EDITOR
-    // [EditorOnly] 接触观测缓存，运行时解算不读取此列表。
-    readonly List<ContactPairDebugSnapshot> debugContacts = new List<ContactPairDebugSnapshot>();
-    /// <summary>
-    /// [EditorOnly] 编辑器只读接触快照；每个物理帧在解算开始时刷新。
-    /// </summary>
-    public IReadOnlyList<ContactPairDebugSnapshot> DebugContacts => debugContacts;
-#endif
-
-
     public void Init()
     {
         // 第 4 相位：速度预测之后、位移应用之前
@@ -63,9 +53,6 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
     {
         currentContactForceLinks.Clear();
         pendingAttenuations.Clear();
-#if UNITY_EDITOR
-        debugContacts.Clear();
-#endif
         for (int i = 0; i < projectingArray.Count; i++)
         {
             PhysicalBoundingBox a = projectingArray[i];
@@ -123,30 +110,24 @@ public class PhysicsSolverMgr : BaseMgr<PhysicsSolverMgr>
                         envSum);
 
 #if UNITY_EDITOR
-                    // [EditorOnly] 这里的法线副本只用于接触详情展示。
-                    Vector2 debugNormalA = separateOnX
-                        ? new Vector2(v1.x >= 0f ? 1f : -1f, 0f)
-                        : new Vector2(0f, v1.y >= 0f ? 1f : -1f);
-                    debugContacts.Add(new ContactPairDebugSnapshot
-                    {
-                        entityA = a.myPhyBox,
-                        entityB = b.myPhyBox,
-                        predictedCenterA = a.point,
-                        predictedCenterB = b.point,
-                        separateOnX = separateOnX,
-                        normalA = debugNormalA,
-                        depth = rawDepth,
-                        correctionDepth = correctionDepth,
-                        closingSpeed = speedResolution.closingSpeed,
-                        aAppliedForce = speedResolution.aAppliedForce,
-                        bAppliedForce = speedResolution.bAppliedForce,
-                        targetSpeedAToB = speedResolution.targetSpeedAToB,
-                        targetSpeedBToA = speedResolution.targetSpeedBToA,
-                        weightA = weightA,
-                        weightB = weightB,
-                        offsetA = offsetA,
-                        offsetB = offsetB
-                    });
+                    PhysicsEditorObservationBridge.ReportContactPair(
+                        a.myPhyBox,
+                        b.myPhyBox,
+                        a.point,
+                        b.point,
+                        v1,
+                        separateOnX,
+                        rawDepth,
+                        correctionDepth,
+                        speedResolution.closingSpeed,
+                        speedResolution.aAppliedForce,
+                        speedResolution.bAppliedForce,
+                        speedResolution.targetSpeedAToB,
+                        speedResolution.targetSpeedBToA,
+                        weightA,
+                        weightB,
+                        offsetA,
+                        offsetB);
 #endif
                 }
             }

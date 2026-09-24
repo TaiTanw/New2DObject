@@ -293,7 +293,7 @@ MonoBehaviour:
   gravity: -35
   airResistance: 1
   envImpact: 1
-  speed: 15
+  speed: 8
   upSpeed: 15
 --- !u!1 &7743792163046834635
 GameObject:

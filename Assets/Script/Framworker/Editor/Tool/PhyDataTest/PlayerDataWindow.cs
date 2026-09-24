@@ -21,11 +21,15 @@ public class PlayerDataWindow : EditorWindow
     private void OnEnable()
     {
         EditorApplication.update += Repaint;
+        PhysicsEditorEntityObservation.StartObserving();
+        PhysicsEditorContactObservation.StartObserving();
     }
 
     private void OnDisable()
     {
         EditorApplication.update -= Repaint;
+        PhysicsEditorEntityObservation.StopObserving();
+        PhysicsEditorContactObservation.StopObserving();
     }
 
     private void OnGUI()
@@ -69,7 +73,7 @@ public class PlayerDataWindow : EditorWindow
             return;
         }
 
-        EntityPhysicsDebugSnapshot snapshot = targetEntity.DebugSnapshot;
+        EntityPhysicsDebugSnapshot snapshot = PhysicsEditorEntityObservation.GetSnapshot(targetEntity);
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
         using (new EditorGUI.DisabledScope(true))
@@ -90,8 +94,12 @@ public class PlayerDataWindow : EditorWindow
         GUILayout.Label("实体", EditorStyles.boldLabel);
         EditorGUILayout.LabelField("名称", snapshot.entityName);
         EditorGUILayout.LabelField("Fixed Tick", snapshot.fixedTick.ToString());
+        string sampledPhase = snapshot.phase == -2
+            ? "无样本"
+            : snapshot.phase == -1 ? "物理循环开始" : snapshot.phase.ToString();
+        EditorGUILayout.LabelField("采样相位", sampledPhase);
         EditorGUILayout.LabelField("Body Type", snapshot.bodyType.ToString());
-        DrawVector("实际位置（相位 3 采样）", snapshot.actualPosition);
+        DrawVector("实际位置（物理帧开始采样）", snapshot.actualPosition);
         EditorGUILayout.LabelField("旋转", snapshot.rotation.ToString("F3"));
         EditorGUILayout.LabelField("角速度", snapshot.angularVelocity.ToString("F3"));
     }
@@ -146,9 +154,10 @@ public class PlayerDataWindow : EditorWindow
     {
         EditorGUILayout.Space();
         GUILayout.Label("本物理帧预测接触对", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("接触批次 Fixed Tick", PhysicsEditorContactObservation.PublishedFixedTick.ToString());
 
         int count = 0;
-        foreach (ContactPairDebugSnapshot pair in PhysicsSolverMgr.Instance.DebugContacts)
+        foreach (ContactPairDebugSnapshot pair in PhysicsEditorContactObservation.Contacts)
         {
             if (pair.entityA != target && pair.entityB != target)
                 continue;

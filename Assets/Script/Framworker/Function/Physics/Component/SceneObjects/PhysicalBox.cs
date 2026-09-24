@@ -13,24 +13,6 @@ public class PhysicalBox : BasicEntity
         rb.angularVelocity = 0f;
     }
 
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (cPhysics == null) return;
-        if (groundV == null) return;
-        if (upV == null) return;
-        if (leftV == null) return;
-        if (rightV == null) return;
-        // 设置颜色：绿色半透明，便于观察
-        Gizmos.color = new UnityEngine.Color(0, 1, 0, 0.5f);
-
-        // 绘制检测区域的线框矩形（位置、大小、旋转）
-        Gizmos.DrawWireCube(groundV.position, cPhysics.boxCastH);
-        Gizmos.DrawWireCube(upV.position, cPhysics.boxCastH);
-        Gizmos.DrawWireCube(leftV.position, cPhysics.boxCastV);
-        Gizmos.DrawWireCube(rightV.position, cPhysics.boxCastV);
-    }
-#endif
     protected override void GeometricQuery()
     {
         // 接触查询在命中选择前排除 Trigger；箱体沿自身朝向探测，不在这里解析墙滑能力。

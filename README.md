@@ -9,7 +9,7 @@ Unity 2022.3.54f1c1 项目。自研逻辑负责动作、环境效果、预测接
 - **为什么改成现在这样：** [历史回顾](Docs/历史回顾.md)
 - **文档维护规则：** [文档索引](Docs/README.md)
 
-F5.1–F5.8 已完成：运动快照与环境入口已收敛，最终 Edit Mode 回归 118 项通过。下一步拟评估统一二维运动模型与多箱上坡，尚未开工。
+F5.1–F5.8 已完成：运动快照与环境入口已收敛，最终 Edit Mode 回归 118 项通过。F6 已进入统一二维运动模型与多箱上坡的首轮评估，尚未修改实现。
 
 当前推箱抖动据用户验证，已通过**角色和箱子的 Rigidbody2D 均启用 Interpolate**暂时解决；后续运动回归以此配置为基线。该结论不代表接触算法或多箱上坡已修复。
 
@@ -23,7 +23,8 @@ F5.1–F5.8 已完成：运动快照与环境入口已收敛，最终 Edit Mode 
 | 运动与提交 | [BasicEntity](Assets/Script/Framworker/Function/Physics/Base/BasicEntity.cs)、[CharacterPhysics](Assets/Script/Framworker/Function/Physics/Component/CharacterPhysics.cs)、[PhysicalBox](Assets/Script/Framworker/Function/Physics/Component/SceneObjects/PhysicalBox.cs) |
 | 环境来源与关系 | [能力接口](Assets/Script/Framworker/Function/Physics/Interface/IEnvironmentCapabilities.cs)、[EntityEnvironmentContext](Assets/Script/Framworker/Function/Physics/Base/EntityEnvironmentContext.cs)、[EnvironmentCapabilities](Assets/Script/Framworker/Function/Physics/Data/EntityEnvironmentFrame.cs) |
 | 数据与表现 | [Struct](Assets/Script/Framworker/Function/Physics/Data/Struct.cs)、[PresentationLayer](Assets/Script/Framworker/Function/Performance/Component/PresentationLayer.cs) |
-| Edit Mode 回归 | [EnvironmentIntegrationChecks](Assets/Script/Framworker/Editor/Tool/EnvironmentIntegrationChecks.cs) |
+| Edit Mode 回归 | [EnvironmentIntegrationChecks](Assets/Script/Framworker/Editor/Tool/PhyDataTest/EnvironmentIntegrationChecks.cs) |
+| F8 观测与 Play Mode 自动回归 | [维护说明](Docs/待办具体事务文档集中/F_8-物理编辑器观测拆分.md)、[PhysicsEditorObservationChecks](Assets/Script/Framworker/Editor/Tool/PhyDataTest/PhysicsEditorObservationChecks.cs) |
 
 ## 当前物理帧
 

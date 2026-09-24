@@ -74,9 +74,15 @@ public class MonoPublicMgr : BaseAutoMonoMgr<MonoPublicMgr>
     private void FixedUpdate()
     {
         FixedUpdateEvent?.Invoke();
+#if UNITY_EDITOR
+        PhysicsEditorObservationBridge.BeginPhysicsFrame();
+#endif
         for (int i = 0; i < actionsLen.Length; i++)
         {
             actionsLen[i]?.Invoke();
+#if UNITY_EDITOR
+            PhysicsEditorObservationBridge.CompletePhysicsPhase(i);
+#endif
         }
     }
 

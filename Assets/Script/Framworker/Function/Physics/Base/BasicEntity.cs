@@ -110,60 +110,40 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     protected EntitySolutionResult entitySolutionResult;
 
 #if UNITY_EDITOR
-    // [EditorOnly] 观测缓存统一使用 debug 前缀；只向 DebugSnapshot 输出，不作为运行时解算输入。
-    int debugFixedTick;
-    bool debugHasRequestedTarget;
-    Vector2 debugActualPosition;
-    Vector2 debugPredictedCenter;
-    Vector2 debugPredictedExtents;
-    Vector2 debugSolverOffset;
-    Vector2 debugUnconstrainedDelta;
-    Vector2 debugRequestedDelta;
-    Vector2 debugRequestedTarget;
-    Vector2 debugEngineCorrection;
-    bool debugStaticWallClamped;
+    // [EditorOnly] 只读输出口；编辑器侧负责采样、缓存、快照组装与跨帧差值计算。
+    public RigidbodyType2D DebugBodyType => rb != null ? rb.bodyType : RigidbodyType2D.Static;
+    public Vector2 DebugActualPosition => rb != null ? rb.position : (Vector2)transform.position;
+    public float DebugRotation => rb != null ? rb.rotation : transform.eulerAngles.z;
+    public float DebugAngularVelocity => rb != null ? rb.angularVelocity : 0f;
+    public Vector2 DebugPlanarVelocity => GetPlanarVelocity();
+    public bool DebugIsGrounded => nowGemetry != null && nowGemetry.isGrounded;
+    public bool DebugIsTopBlocked => nowGemetry != null && nowGemetry.istop;
+    public bool DebugIsOnLeftWall => nowGemetry != null && nowGemetry.onLeftWall;
+    public bool DebugIsOnRightWall => nowGemetry != null && nowGemetry.onRightWall;
+    public Vector2 DebugGroundNormal => nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero;
+    public int DebugEnvironmentSourceCount => environmentContext?.DebugSourceCount ?? 0;
+    public int DebugMovementModifierCount => phyStateDic.Count;
+    public int DebugStateVelocityCount => startSpeedDic.Count;
+    public int DebugDynamicForceCount => dynamicForceDic.Count;
+    public float DebugEnvironmentSlowingMultiplier => environmentContext?.Frame.slowingMultiplier ?? 1f;
+    public float DebugEnvironmentJumpHeightOffset => environmentContext?.Frame.jumpHeightOffset ?? 0f;
 
-    /// <summary>
-    /// [EditorOnly] 编辑器只读观测入口。调试工具不得通过该快照改变物理解算。
-    /// </summary>
-    public EntityPhysicsDebugSnapshot DebugSnapshot
+    public bool TryGetEditorGizmoData(out PhysicsEditorObservationBridge.GizmoData data)
     {
-        get
-        {
-            return new EntityPhysicsDebugSnapshot
-            {
-                fixedTick = debugFixedTick,
-                entityName = name,
-                bodyType = rb != null ? rb.bodyType : RigidbodyType2D.Static,
-                actualPosition = debugActualPosition,
-                rotation = rb != null ? rb.rotation : transform.eulerAngles.z,
-                angularVelocity = rb != null ? rb.angularVelocity : 0f,
-                planarVelocity = motionFrame.debugFreeVelocity,
-                predictedCenter = debugPredictedCenter,
-                predictedExtents = debugPredictedExtents,
-                integratedVelocityDelta = motionFrame.debugIntegratedVelocityDelta,
-                motionDelta = motionFrame.debugMotionDelta,
-                platformDelta = motionFrame.debugPlatformDelta,
-                plannedWorldDelta = motionFrame.plannedWorldDelta,
-                solverOffset = debugSolverOffset,
-                unconstrainedDelta = debugUnconstrainedDelta,
-                requestedDelta = debugRequestedDelta,
-                requestedTarget = debugRequestedTarget,
-                engineCorrection = debugEngineCorrection,
-                staticWallClamped = debugStaticWallClamped,
-                isGrounded = nowGemetry != null && nowGemetry.isGrounded,
-                isTopBlocked = nowGemetry != null && nowGemetry.istop,
-                isOnLeftWall = nowGemetry != null && nowGemetry.onLeftWall,
-                isOnRightWall = nowGemetry != null && nowGemetry.onRightWall,
-                groundNormal = nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero,
-                environmentSourceCount = environmentContext?.DebugSourceCount ?? 0,
-                movementModifierCount = phyStateDic.Count,
-                stateVelocityCount = startSpeedDic.Count,
-                dynamicForceCount = dynamicForceDic.Count,
-                environmentSlowingMultiplier = environmentContext?.Frame.slowingMultiplier ?? 1f,
-                environmentJumpHeightOffset = environmentContext?.Frame.jumpHeightOffset ?? 0f
-            };
-        }
+        data = default;
+        if (cPhysics == null) return false;
+
+        data.hasGround = groundV != null;
+        data.hasTop = upV != null;
+        data.hasLeft = leftV != null;
+        data.hasRight = rightV != null;
+        data.groundCenter = data.hasGround ? groundV.position : default;
+        data.topCenter = data.hasTop ? upV.position : default;
+        data.leftCenter = data.hasLeft ? leftV.position : default;
+        data.rightCenter = data.hasRight ? rightV.position : default;
+        data.horizontalSize = cPhysics.boxCastH;
+        data.verticalSize = cPhysics.boxCastV;
+        return true;
     }
 #endif
 
@@ -395,6 +375,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     protected virtual void OnEnable()
     {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+            PhysicsEditorObservationBridge.NotifyEntityEnabled(this);
+#endif
         //物理更新时序设置
         //几何查询
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(GeometricQueryPhase, 1);
@@ -468,13 +452,6 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// </summary>
     void SpeedCalculation()
     {
-#if UNITY_EDITOR
-        debugFixedTick++;
-        debugActualPosition = rb != null ? rb.position : (Vector2)transform.position;
-        debugEngineCorrection = debugHasRequestedTarget
-            ? debugActualPosition - debugRequestedTarget
-            : Vector2.zero;
-#endif
         //水平速度计算
         HorizontalSpeedCalculation();
         //竖直速度计算
@@ -483,6 +460,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         // 相位 4 仍只累计偏置及刷新下帧动态力，相位 5 不再重算基础位移。
         Vector2 platformDelta = EnvironmentFrame.platformDelta;
         motionFrame = BuildMotionFrame(
+#if UNITY_EDITOR
+            this,
+#endif
             GetPlanarVelocity(),
             playerPhysicsData.verticalSpeed,
             nowGemetry.isGrounded,
@@ -494,10 +474,13 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     /// <summary>
     /// 把速度、几何和平台的本帧采样转换为未约束运动快照。
-    /// 从旧相位 5 提取原有位移公式；只计算值，不积分额外力、不读写实体或 Unity 世界。
+    /// 沿用原有位移公式；编辑器宏下旁路输出已计算分量，不改变快照结果或写入 Unity 世界。
     /// fixedDeltaTime 显式传入，确保各分量使用同一物理步长。
     /// </summary>
     private static EntityMotionFrame BuildMotionFrame(
+#if UNITY_EDITOR
+        BasicEntity entity,
+#endif
         Vector2 freeVelocity,
         float verticalSpeed,
         bool isGrounded,
@@ -525,11 +508,17 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
             moveDelta += tangent.normalized * Mathf.Abs(moveAmount);
         }
 
-        return new EntityMotionFrame(
+        Vector2 appliedPlatformDelta = isGrounded ? platformDelta : Vector2.zero;
+#if UNITY_EDITOR
+        PhysicsEditorObservationBridge.ReportMotionBuilt(
+            entity,
             freeVelocity,
             integratedVelocityDelta,
             moveDelta,
-            isGrounded ? platformDelta : Vector2.zero);
+            appliedPlatformDelta,
+            moveDelta + appliedPlatformDelta);
+#endif
+        return new EntityMotionFrame(moveDelta, appliedPlatformDelta);
     }
 
     /// <summary>
@@ -550,8 +539,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         box.size = boxCollider.bounds.extents; // 半长宽，与解算器 v3=a.size+b.size 一致
         box.myPhyBox = this;
 #if UNITY_EDITOR
-        debugPredictedCenter = box.point;
-        debugPredictedExtents = box.size;
+        PhysicsEditorObservationBridge.ReportPredictionBuilt(this, box.point, box.size);
 #endif
         PhysicsSolverMgr.Instance.AddPhyBoX(box);
     }
@@ -755,10 +743,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         Vector2 solverOffset = entitySolutionResult.displacementOffset;
         Vector2 wordDelta = motionFrame.plannedWorldDelta + solverOffset;
 #if UNITY_EDITOR
-        // [EditorOnly] 裁剪前位移和“本帧发生裁剪”仅用于观测，直接写调试缓存。
-        // 正式运行仅使用下方的 wordDelta/墙面状态，不保留额外观测局部变量。
-        debugUnconstrainedDelta = wordDelta;
-        debugStaticWallClamped = false;
+        Vector2 debugUnconstrainedDelta = wordDelta;
+        bool debugStaticWallClamped = false;
 #endif
         //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
         //无脚本的墙层碰撞体同样视为静墙
@@ -801,11 +787,14 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
             }
         }
 #if UNITY_EDITOR
-        // [EditorOnly] 提交前记录请求结果，下一物理帧再观察 Unity 的实际位置修正。
-        debugSolverOffset = solverOffset;
-        debugRequestedDelta = wordDelta;
-        debugRequestedTarget = rb.position + wordDelta;
-        debugHasRequestedTarget = true;
+        Vector2 debugRequestedTarget = rb.position + wordDelta;
+        PhysicsEditorObservationBridge.ReportMovementRequested(
+            this,
+            solverOffset,
+            debugUnconstrainedDelta,
+            wordDelta,
+            debugRequestedTarget,
+            debugStaticWallClamped);
 #endif
         // 相位 5 的最后一步：所有状态更新和观测采样完成后，仅提交一次位移。
         rb.MovePosition(rb.position + wordDelta);
@@ -813,6 +802,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     protected virtual void OnDisable()
     {
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+            PhysicsEditorObservationBridge.NotifyEntityDisabled(this);
+#endif
         //事件注销
         if (!MonoPublicMgr.IsQuitting)
         {

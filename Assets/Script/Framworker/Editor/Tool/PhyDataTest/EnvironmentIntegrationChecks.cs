@@ -71,9 +71,9 @@ public static class EnvironmentIntegrationChecks
         Collider2D ground = ice.GetComponent<Collider2D>();
         EnvironmentCheckBody body = Body(position + Vector3.up * 3);
         body.RefreshSupport(ground);
-        Check(body.DebugSnapshot.environmentSourceCount == 1, "冰面登记一个来源");
-        Check(body.DebugSnapshot.movementModifierCount == 1 && body.DebugSnapshot.stateVelocityCount == 1 &&
-            body.DebugSnapshot.dynamicForceCount == 1, "冰面三类效果完整登记");
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).environmentSourceCount == 1, "冰面登记一个来源");
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 1 &&
+            PhysicsEditorEntityObservation.GetSnapshot(body).dynamicForceCount == 1, "冰面三类效果完整登记");
         Near(body.Frame.slowingMultiplier, .5f, "保留冰面阻力倍率");
         Near(body.Frame.jumpHeightOffset, -.5f, "保留冰面跳跃加成");
         ForceData initial = body.Force(ice);
@@ -88,8 +88,8 @@ public static class EnvironmentIntegrationChecks
         Check(body.Force(ice).type == E_PhyForceType.controlRecovery, "松开输入进入受控恢复");
         body.SetStack(ice, 4f);
         body.RefreshSupport(null);
-        Check(body.DebugSnapshot.environmentSourceCount == 0 && body.DebugSnapshot.movementModifierCount == 0 &&
-            body.DebugSnapshot.stateVelocityCount == 0, "离地撤销绑定和持续状态");
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).environmentSourceCount == 0 && PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 0 &&
+            PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 0, "离地撤销绑定和持续状态");
         Check(body.Force(ice).type == E_PhyForceType.fadeAway, "离地动态力进入消退");
         Near(body.Force(ice).speedStacking, 4f, "退出保留已取得速度");
         body.RunForces();
@@ -138,7 +138,7 @@ public static class EnvironmentIntegrationChecks
         child.transform.SetParent(body.transform, true);
         Collider2D second = child.AddComponent<BoxCollider2D>();
         Refresh(body);
-        Check(body.EnvironmentContext.DebugSourceCount == 1 && body.DebugSnapshot.dynamicForceCount == 1,
+        Check(body.EnvironmentContext.DebugSourceCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(body).dynamicForceCount == 1,
             "复合碰撞体区域接入只登记一次");
         Check(EnvironmentCapabilities.FindEntity(second) == body, "子 Collider 仍正确识别动态实体身份");
         body.RunForces();
@@ -191,7 +191,7 @@ public static class EnvironmentIntegrationChecks
             "退出一个环境不撤销另一个环境");
         Object.DestroyImmediate(overlapping.gameObject);
         body.RefreshSupport(null);
-        Check(body.EnvironmentContext.DebugSourceCount == 0 && body.DebugSnapshot.stateVelocityCount == 0,
+        Check(body.EnvironmentContext.DebugSourceCount == 0 && PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 0,
             "来源销毁后的无效绑定被实体清理");
         body.RunForces();
         Check(true, "已销毁来源的尾效不再回调施力者");
@@ -213,7 +213,7 @@ public static class EnvironmentIntegrationChecks
             $"单一环境宿主提供平台能力并建立一份来源关系 [{body.Frame.platformDelta} / {platform.Delta}, sources={body.EnvironmentContext.DebugSourceCount}]");
         MethodInfo build = typeof(BasicEntity).GetMethod("BuildMotionFrame", BindingFlags.Static | BindingFlags.NonPublic);
         EntityMotionFrame motion = (EntityMotionFrame)build.Invoke(null, new object[]
-            { new Vector2(2, 0), 0f, true, Vector2.up, body.Frame.platformDelta, .02f });
+            { body, new Vector2(2, 0), 0f, true, Vector2.up, body.Frame.platformDelta, .02f });
         Near(motion.plannedWorldDelta.x, .04f + platform.Delta.x, "平台位移在实际运动快照中仅计一次 X");
         Near(motion.plannedWorldDelta.y, platform.Delta.y, "平台位移在实际运动快照中仅计一次 Y");
         platform.enabled = false;
@@ -224,8 +224,8 @@ public static class EnvironmentIntegrationChecks
 
         platform.enabled = true;
         body.RefreshSupport(collider);
-        Check(body.DebugSnapshot.stateVelocityCount == 1 && body.DebugSnapshot.movementModifierCount == 0 &&
-            body.DebugSnapshot.dynamicForceCount == 0, "同一宿主可单独提供持续速度能力");
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 0 &&
+            PhysicsEditorEntityObservation.GetSnapshot(body).dynamicForceCount == 0, "同一宿主可单独提供持续速度能力");
         body.envImpact = .25f;
         body.RunForces();
         Check(body.PassiveVelocity == platform.StateVelocity,
@@ -248,35 +248,35 @@ public static class EnvironmentIntegrationChecks
         Near(ice.MovementSpeedOffset, -.5f, "冰面预制体保留移速修饰");
         EnvironmentCheckBody body = Body(position + Vector3.up * 3);
         body.RefreshSupport(ice.GetComponent<Collider2D>());
-        Check(body.DebugSnapshot.movementModifierCount == 1 && body.DebugSnapshot.stateVelocityCount == 1,
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 1,
             "冰面声明的移速和持续速度仍会登记");
 
         IceGround iceBelt = Prefab<IceGround>("ICE 1.prefab", position);
         Check(iceBelt.StateVelocity == new Vector2(3, 0), "ICE 1 预制体保留持续速度");
         body.RefreshSupport(iceBelt.GetComponent<Collider2D>());
-        Check(body.DebugSnapshot.stateVelocityCount == 1, "ICE 1 持续速度仍会登记");
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).stateVelocityCount == 1, "ICE 1 持续速度仍会登记");
 
         ForceField pond = Prefab<ForceField>("Pond.prefab", position);
         Near(pond.MovementSpeedOffset, -.4f, "Pond 预制体保留移速修饰");
         pond.GetComponent<Collider2D>().isTrigger = true;
         EnvironmentCheckBody swimmer = Body(position);
         Refresh(swimmer);
-        Check(swimmer.DebugSnapshot.movementModifierCount == 1 && swimmer.DebugSnapshot.stateVelocityCount == 0,
+        Check(PhysicsEditorEntityObservation.GetSnapshot(swimmer).movementModifierCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(swimmer).stateVelocityCount == 0,
             "力场登记移速修饰且不再隐式登记持续速度");
 
         Taijie platform = Prefab<Taijie>("Taijie.prefab", NextPosition());
         Near(platform.MovementSpeedOffset, 1f, "台阶预制体保留移速修饰");
         EnvironmentCheckBody rider = Body(platform.transform.position + Vector3.up);
         rider.RefreshSupport(platform.GetComponent<Collider2D>());
-        Check(rider.DebugSnapshot.movementModifierCount == 1 && rider.DebugSnapshot.stateVelocityCount == 0,
+        Check(PhysicsEditorEntityObservation.GetSnapshot(rider).movementModifierCount == 1 && PhysicsEditorEntityObservation.GetSnapshot(rider).stateVelocityCount == 0,
             "台阶登记移速修饰且不登记持续速度");
 
         Vector3 wallPosition = NextPosition();
         Wall wall = Prefab<Wall>("wall.prefab", wallPosition);
         EnvironmentCheckBody onWall = Body(wallPosition + Vector3.up);
         onWall.RefreshSupport(wall.GetComponent<Collider2D>());
-        Check(onWall.EnvironmentContext.DebugSourceCount == 0 && onWall.DebugSnapshot.movementModifierCount == 0
-            && onWall.DebugSnapshot.stateVelocityCount == 0, "纯墙不建立绑定，也不登记移速或持续速度");
+        Check(onWall.EnvironmentContext.DebugSourceCount == 0 && PhysicsEditorEntityObservation.GetSnapshot(onWall).movementModifierCount == 0
+            && PhysicsEditorEntityObservation.GetSnapshot(onWall).stateVelocityCount == 0, "纯墙不建立绑定，也不登记移速或持续速度");
         Near(onWall.Frame.slowingMultiplier, 1f, "纯墙无地面响应时脚下采样阻力为默认");
         Near(onWall.Frame.jumpHeightOffset, 0f, "纯墙无地面响应时脚下采样起跳为默认");
         Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(wall.GetComponent<Collider2D>()), wall),
@@ -293,13 +293,13 @@ public static class EnvironmentIntegrationChecks
         EnvironmentCheckBody body = Body(position + Vector3.up * 3);
 
         body.RefreshSupport(collider);
-        Check(body.DebugSnapshot.movementModifierCount == 1 && body.EnvironmentContext.DebugSourceCount == 1,
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 1 && body.EnvironmentContext.DebugSourceCount == 1,
             "脚下登记同宿主的移速修饰");
         Near(body.Frame.slowingMultiplier, contact.SlowingEffect, "脚下采样同宿主的地面阻力");
         Near(body.Frame.jumpHeightOffset, contact.JumpHeightNum, "脚下采样同宿主的起跳加成");
 
         body.RefreshSupport(null);
-        Check(body.EnvironmentContext.DebugSourceCount == 0 && body.DebugSnapshot.movementModifierCount == 0,
+        Check(body.EnvironmentContext.DebugSourceCount == 0 && PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 0,
             "只查询侧面墙滑时不登记移速");
         Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider), contact),
             "侧面命中可解析墙滑能力");
@@ -309,7 +309,7 @@ public static class EnvironmentIntegrationChecks
         Refresh(body);
         var speeds = (Dictionary<EnvironmentRegistration, float>)typeof(BasicEntity)
             .GetField("phyStateDic", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(body);
-        Check(body.DebugSnapshot.movementModifierCount == 1
+        Check(PhysicsEditorEntityObservation.GetSnapshot(body).movementModifierCount == 1
             && speeds.TryGetValue(contact.EnvironmentRegistration, out float offset)
             && Mathf.Abs(offset - contact.MovementSpeedOffset) < .0001f,
             "区域登记移速修饰，不登记墙滑乘数");

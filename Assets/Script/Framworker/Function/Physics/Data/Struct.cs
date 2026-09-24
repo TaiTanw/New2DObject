@@ -258,42 +258,19 @@ namespace PhyData
     #endregion
 
     /// <summary>
-    /// 实体本帧的未约束运动快照。BasicEntity 在相位 3 生成一次，预测与相位 5 提交复用。
+    /// 实体本帧的未约束运动快照。
+    /// BasicEntity 在相位 3 生成一次，预测与相位 5 提交复用。
     /// 使用只读值字段避免后续相位改写其中的分量；每帧整体替换，不保存跨帧惯性。
     /// 与 EntitySolutionResult 分工：本结构保存基础运动，后者保存相位 4 新产生的接触纠偏。
-    /// 当前运行时只需 plannedWorldDelta；其余处理阶段的副本只用于编辑器解释数据来源。
     /// </summary>
     public readonly struct EntityMotionFrame
     {
         /// <summary>motionDelta + platformDelta；预测与提交的共同基础，不含接触/静墙/引擎修正。</summary>
         public readonly Vector2 plannedWorldDelta;
 
-#if UNITY_EDITOR
-        // [EditorOnly] 以下是运动构建过程的观测副本；命名以 debug 开头，正式构建不保存这些字段。
-        /// <summary>[EditorOnly] 速度结算后的原始合量；尚未经过地面位移处理，不是最终实际速度。</summary>
-        public readonly Vector2 debugFreeVelocity;
-        /// <summary>[EditorOnly] 原始速度乘 dt，用于核对地面处理前后的差异。</summary>
-        public readonly Vector2 debugIntegratedVelocityDelta;
-        /// <summary>[EditorOnly] 当前地面规则处理后的实体位移副本，不含平台补偿及接触纠偏。</summary>
-        public readonly Vector2 debugMotionDelta;
-        /// <summary>[EditorOnly] 本帧着地平台带动位移的副本；离地时为零。</summary>
-        public readonly Vector2 debugPlatformDelta;
-#endif
-
-        public EntityMotionFrame(
-            Vector2 freeVelocity,
-            Vector2 integratedVelocityDelta,
-            Vector2 motionDelta,
-            Vector2 platformDelta)
+        public EntityMotionFrame(Vector2 motionDelta, Vector2 platformDelta)
         {
             plannedWorldDelta = motionDelta + platformDelta;
-#if UNITY_EDITOR
-            // [EditorOnly] 单向复制已经算好的值，显示用途不得反向改变 plannedWorldDelta。
-            debugFreeVelocity = freeVelocity;
-            debugIntegratedVelocityDelta = integratedVelocityDelta;
-            debugMotionDelta = motionDelta;
-            debugPlatformDelta = platformDelta;
-#endif
         }
     }
 
@@ -329,75 +306,4 @@ namespace PhyData
         public Vector2 displacementOffset;
     }
 
-#if UNITY_EDITOR
-    /// <summary>
-    /// [EditorOnly] 仅供编辑器调试窗口读取的实体物理快照。
-    /// 快照不参与解算，也不向运行时逻辑回写数据。
-    /// 类型名称已含 Debug，内部字段保留物理含义，无需逐个重复 debug 前缀。
-    /// </summary>
-    public struct EntityPhysicsDebugSnapshot
-    {
-        public int fixedTick;
-        public string entityName;
-        public RigidbodyType2D bodyType;
-        public Vector2 actualPosition;
-        public float rotation;
-        public float angularVelocity;
-
-        public Vector2 planarVelocity;
-        public Vector2 predictedCenter;
-        public Vector2 predictedExtents;
-
-        public Vector2 integratedVelocityDelta;
-        public Vector2 motionDelta;
-        public Vector2 platformDelta;
-        /// <summary>复制运行时运动快照的共同基础位移，只用于观察预测与提交的数据流。</summary>
-        public Vector2 plannedWorldDelta;
-        public Vector2 solverOffset;
-        public Vector2 unconstrainedDelta;
-        public Vector2 requestedDelta;
-        public Vector2 requestedTarget;
-        public Vector2 engineCorrection;
-        public bool staticWallClamped;
-
-        public bool isGrounded;
-        public bool isTopBlocked;
-        public bool isOnLeftWall;
-        public bool isOnRightWall;
-        public Vector2 groundNormal;
-        public int environmentSourceCount;
-        public int movementModifierCount;
-        public int stateVelocityCount;
-        public int dynamicForceCount;
-        public float environmentSlowingMultiplier;
-        public float environmentJumpHeightOffset;
-    }
-
-    /// <summary>
-    /// [EditorOnly] 仅供编辑器展示的预测接触对快照；类型内字段沿用物理含义命名。
-    /// </summary>
-    public struct ContactPairDebugSnapshot
-    {
-        public BasicEntity entityA;
-        public BasicEntity entityB;
-        public Vector2 predictedCenterA;
-        public Vector2 predictedCenterB;
-        public bool separateOnX;
-        public Vector2 normalA;
-        /// <summary>预测框原始重叠深度。</summary>
-        public float depth;
-        /// <summary>扣除 slop 后实际分配给双方的修正深度。</summary>
-        public float correctionDepth;
-        /// <summary>双方沿 X 轴的相对闭合速度；Y 轴接触为 0。</summary>
-        public float closingSpeed;
-        public bool aAppliedForce;
-        public bool bAppliedForce;
-        public float targetSpeedAToB;
-        public float targetSpeedBToA;
-        public float weightA;
-        public float weightB;
-        public Vector2 offsetA;
-        public Vector2 offsetB;
-    }
-#endif
 }

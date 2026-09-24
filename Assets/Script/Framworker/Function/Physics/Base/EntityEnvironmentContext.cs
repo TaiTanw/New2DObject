@@ -127,7 +127,7 @@ public sealed class EntityEnvironmentContext
         IEnvironmentSource groundSource = EnvironmentCapabilities.FindHost(ground);
         CollectSources(groundSource, regionOverlaps);
 
-        // 核对管线：完整事实收齐后才决定进出，接入方式转换不会中途撤销效果。
+        // 核对关系：完整事实收齐后才决定进出，接入方式转换不会中途撤销效果。
         SynchronizeSources();
         // 采样：复用脚下宿主，区域命中不提供脚下参数。
         SampleGroundFrame(groundSource);

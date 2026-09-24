@@ -12,25 +12,6 @@ using System.Runtime.InteropServices;
 /// </summary>
 public abstract class BasePhysicsEntity : BasicEntity
 {
-    /// <summary>
-    /// 编辑器画图显示碰撞检测范围
-    /// </summary>
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (groundV == null) return;
-        if (leftV == null) return;
-        if (rightV == null) return;
-        // 设置颜色：绿色半透明，便于观察
-        Gizmos.color = new UnityEngine.Color(0, 1, 0, 0.5f);
-
-        // 绘制检测区域的线框矩形（位置、大小、旋转）
-        Gizmos.DrawWireCube(groundV.position, cPhysics.boxCastH);
-        Gizmos.DrawWireCube(leftV.position, cPhysics.boxCastV);
-        Gizmos.DrawWireCube(rightV.position, cPhysics.boxCastV);
-    }
-#endif
-
     #region 运行时数据
     //只读数据包装
     ReadOnly_GeometryPhysicsData readOnly_GeometryPhysicsData;
