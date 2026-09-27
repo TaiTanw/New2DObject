@@ -210,14 +210,14 @@ public static class PhysicsEditorEntityObservation
         Vector2 unconstrainedDelta,
         Vector2 requestedDelta,
         Vector2 requestedTarget,
-        bool staticWallClamped)
+        bool horizontalEnvironmentBlocked)
     {
         if (!records.TryGetValue(entity, out EntityRecord record)) return;
         record.snapshot.solverOffset = solverOffset;
         record.snapshot.unconstrainedDelta = unconstrainedDelta;
         record.snapshot.requestedDelta = requestedDelta;
         record.snapshot.requestedTarget = requestedTarget;
-        record.snapshot.staticWallClamped = staticWallClamped;
+        record.snapshot.horizontalEnvironmentBlocked = horizontalEnvironmentBlocked;
         record.snapshot.phase = 5;
         record.hasRequestedTarget = true;
         record.requestedTarget = requestedTarget;
@@ -247,6 +247,22 @@ public static class PhysicsEditorEntityObservation
         snapshot.isOnLeftWall = entity.DebugIsOnLeftWall;
         snapshot.isOnRightWall = entity.DebugIsOnRightWall;
         snapshot.groundNormal = entity.DebugGroundNormal;
+        snapshot.groundCollider = entity.DebugGroundCollider;
+        snapshot.leftWallCollider = entity.DebugLeftWallCollider;
+        snapshot.rightWallCollider = entity.DebugRightWallCollider;
+        snapshot.candidateCenter = entity.DebugCandidateCenter;
+        snapshot.candidatePathCount = entity.DebugCandidatePathCount;
+        snapshot.candidateFirstPathCollider = entity.DebugCandidateFirstPathCollider;
+        snapshot.candidateFirstPathNormal = entity.DebugCandidateFirstPathNormal;
+        snapshot.candidateFirstPathDistance = entity.DebugCandidateFirstPathDistance;
+        snapshot.candidateFirstPathZeroDistance = entity.DebugCandidateFirstPathZeroDistance;
+        snapshot.candidateOverlapCount = entity.DebugCandidateOverlapCount;
+        snapshot.candidateFirstOverlapCollider = entity.DebugCandidateFirstOverlapCollider;
+        snapshot.candidateOneWayCount = entity.DebugCandidateOneWayCount;
+        snapshot.candidateDownwardCount = entity.DebugCandidateDownwardCount;
+        snapshot.candidateFirstDownwardNormal = entity.DebugCandidateFirstDownwardNormal;
+        snapshot.candidateFirstDownwardGap = entity.DebugCandidateFirstDownwardGap;
+        snapshot.candidateFirstDownwardZeroDistance = entity.DebugCandidateFirstDownwardZeroDistance;
         snapshot.environmentSourceCount = entity.DebugEnvironmentSourceCount;
         snapshot.movementModifierCount = entity.DebugMovementModifierCount;
         snapshot.stateVelocityCount = entity.DebugStateVelocityCount;
@@ -287,12 +303,28 @@ public struct EntityPhysicsDebugSnapshot
     public Vector2 requestedDelta;
     public Vector2 requestedTarget;
     public Vector2 engineCorrection;
-    public bool staticWallClamped;
+    public bool horizontalEnvironmentBlocked;
     public bool isGrounded;
     public bool isTopBlocked;
     public bool isOnLeftWall;
     public bool isOnRightWall;
     public Vector2 groundNormal;
+    public Collider2D groundCollider;
+    public Collider2D leftWallCollider;
+    public Collider2D rightWallCollider;
+    public Vector2 candidateCenter;
+    public int candidatePathCount;
+    public Collider2D candidateFirstPathCollider;
+    public Vector2 candidateFirstPathNormal;
+    public float candidateFirstPathDistance;
+    public bool candidateFirstPathZeroDistance;
+    public int candidateOverlapCount;
+    public Collider2D candidateFirstOverlapCollider;
+    public int candidateOneWayCount;
+    public int candidateDownwardCount;
+    public Vector2 candidateFirstDownwardNormal;
+    public float candidateFirstDownwardGap;
+    public bool candidateFirstDownwardZeroDistance;
     public int environmentSourceCount;
     public int movementModifierCount;
     public int stateVelocityCount;

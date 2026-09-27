@@ -342,10 +342,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e5a69c10bb792b4591723c2dd52d2e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speedChangeNum: 0
-  phySpeed: {x: 0, y: 0}
-  slowingEffect: 1
-  jumpHeightNum: 0
   canClimb: 0
   wallJumpDistance: 0
   wallJumpHeight: 0
@@ -1178,13 +1174,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 989045966}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.1331213, w: 0.9910998}
-  m_LocalPosition: {x: 79.1, y: 18.8, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0.6039038, w: 0.7970572}
+  m_LocalPosition: {x: 43.63, y: 27.84, z: 0}
   m_LocalScale: {x: 84.19155, y: 1.1104691, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 15.3}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 74.3}
 --- !u!1 &1179171560
 GameObject:
   m_ObjectHideFlags: 0

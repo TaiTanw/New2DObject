@@ -267,52 +267,77 @@ namespace PhyData
     #endregion
 
     /// <summary>
-    /// 实体本帧的未约束运动快照。
-    /// BasicEntity 在相位 3 生成一次，预测与相位 5 提交复用。
-    /// 使用只读值字段避免后续相位改写其中的分量；每帧整体替换，不保存跨帧惯性。
-    /// 与 EntitySolutionResult 分工：本结构保存基础运动，后者保存相位 4 新产生的接触纠偏。
+    /// 相位 3 输出的只读运动快照，每帧整体替换；预测和接触解算读取同一份基础运动。
+    /// freeVelocity 是速度更新后的世界合速度，motionVelocity/motionDelta 是支撑处理后的自身运动；
+    /// 平台携带另存 platformDelta，合成 plannedWorldDelta 供预测使用，不作为自身接触施力速度。
+    /// 速度单位为世界单位/秒，位移单位为世界单位。相位 4 的约束结果另存 EntitySolutionResult，
+    /// 这份快照不保存接触纠偏、最终请求或 Unity 实际落点，也不持有跨帧累计速度。
     /// </summary>
     public readonly struct EntityMotionFrame
     {
-        /// <summary>motionDelta + platformDelta；预测与提交的共同基础，不含接触/静墙/引擎修正。</summary>
-        public readonly Vector2 plannedWorldDelta;
+        public readonly Vector2 freeVelocity; // 自由合速度（支撑处理前）
+        public readonly Vector2 motionVelocity; // 自身运动速度（支撑处理后）
+        public readonly Vector2 motionDelta; // 自身基础位移
+        public readonly Vector2 platformDelta; // 支撑平台携带位移（离地为零）
+        public readonly Vector2 plannedWorldDelta; // 预测基础位移＝自身＋平台
 
-        public EntityMotionFrame(Vector2 motionDelta, Vector2 platformDelta)
+        /// <summary>保存各运动分量，并将自身位移与平台位移合成为预测基础；不在这里施加碰撞约束。</summary>
+        public EntityMotionFrame(Vector2 freeVelocity, Vector2 motionVelocity, Vector2 motionDelta, Vector2 platformDelta)
         {
+            this.freeVelocity = freeVelocity;
+            this.motionVelocity = motionVelocity;
+            this.motionDelta = motionDelta;
+            this.platformDelta = platformDelta;
             plannedWorldDelta = motionDelta + platformDelta;
         }
     }
 
     /// <summary>
-    /// 提供给管理器的预测 AABB 样本；几何来自 Collider，平移来自 EntityMotionFrame。
-    /// 不持有完整运动状态，接触速度读取仍沿用现有 BasicEntity.GetPlanarVelocity 接口。
+    /// 相位 3 上报给 PhysicsSolverMgr 的预测 AABB：用本帧基础位移平移当前碰撞框。
+    /// 携带产生该终点的运动快照，使相位 4 的接触读速与预测同帧；实体引用用于写回纠偏。
+    /// point 还不包含接触偏置或环境裁剪；回算请求终点时，要减去基础位移再加 RequestedWorldDelta。
     /// </summary>
     public struct PhysicalBoundingBox
     {
-        /// <summary>
-        /// 世界预测中心：本帧 Collider 中心 + plannedWorldDelta；已包含地面处理和平台补偿。
-        /// </summary>
-        public Vector2 point;
-        /// <summary>
-        /// 长宽的一半（x,y）
-        /// </summary>
-        public Vector2 size;
-        /// <summary>
-        /// 此投射对应的物理引用
-        /// </summary>
-        public BasicEntity myPhyBox;
+        public Vector2 point; // 世界预测中心
+        public Vector2 size; // AABB 半宽、半高
+        public EntityMotionFrame motionFrame; // 同帧基础运动
+        public BasicEntity myPhyBox; // 所属实体
     }
 
     /// <summary>
-    /// 实体接触解算结果。相位 4 写入，相位 5 在同一物理帧消费；跨帧速度由动态力容器维护。
-    /// 本阶段结构不变：只承载接触纠偏，不重复保存 EntityMotionFrame 的基础运动。
+    /// 每个实体持有的相位 4 查询工作区，由 ProbeCandidateEnvironment 清空、复用和填充。
+    /// 候选终点＝基础预测终点＋实体间偏置；分别保存移动路径、终点重叠、脚下与抬升净空的命中。
+    /// 原始法线和距离交给环境判定方法解释；单向组件字典只记录身份，不直接表示可通行。
+    /// 接触回算改变偏置后会重查本工作区；它不是帧初着地事实，也不保存最终请求或跨帧状态。
+    /// </summary>
+    internal sealed class EntityCandidateGeometry
+    {
+        internal Vector2 candidateCenter; // 世界候选中心
+        internal Vector2 candidateDelta; // 当前中心至候选中心的位移
+        internal float downwardCastLift; // 向下回扫的起点抬高量
+        internal readonly List<RaycastHit2D> pathHits = new List<RaycastHit2D>(); // 候选移动路径命中
+        internal readonly List<RaycastHit2D> downwardHits = new List<RaycastHit2D>(); // 候选终点脚下命中
+        internal readonly List<RaycastHit2D> liftHits = new List<RaycastHit2D>(); // 额外抬升路径命中
+        internal readonly List<RaycastHit2D> allowedDownwardHits = new List<RaycastHit2D>(); // X 受限后的脚下命中
+        internal readonly List<Collider2D> endpointOverlaps = new List<Collider2D>(); // 候选终点重叠体
+        // 单向碰撞体 → 有效平台效应器
+        internal readonly Dictionary<Collider2D, PlatformEffector2D> oneWayEffectors =
+            new Dictionary<Collider2D, PlatformEffector2D>();
+    }
+
+    /// <summary>
+    /// 相位 4 写给本实体的解算结果：接触偏置与环境限制在这里合成为 requestedWorldDelta。
+    /// 接触回算期间可以重写，最终相位 5 只提交请求位移一次；阻挡方向供接触施力及速度清理读取。
+    /// 基础运动仍在 EntityMotionFrame，累计速度仍在 EntityEffectState；请求不等于 Unity 实际落点。
     /// </summary>
     public struct EntitySolutionResult
     {
-        /// <summary>
-        /// 位移偏置（本帧 DisplacementCorrection 加到 motionFrame.plannedWorldDelta）
-        /// </summary>
-        public Vector2 displacementOffset;
+        public Vector2 displacementOffset; // 实体间纠偏位移
+        public Vector2 environmentOffset; // 环境附加修正（当前只用坡面 Y）
+        public float allowedHorizontalDelta; // 环境允许的水平位移
+        public Vector2 requestedWorldDelta; // 本帧请求位移
+        public float blockedHorizontalDirection; // X 阻挡方向：-1 左、1 右、0 无
     }
 
 }

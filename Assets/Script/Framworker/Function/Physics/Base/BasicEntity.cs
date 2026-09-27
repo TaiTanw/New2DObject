@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 角色与箱子共用的物理执行主体：按相位读取环境、计算速度、预测并提交位移。
-/// 环境关系由 EntityEnvironmentContext 管理；效果数值与累计速度由 EntityEffectState 持有。
-/// 职能：实体物理相位编排、预测和位移提交；环境及接触效果经窄口转发。
+/// 角色与箱子共用的物理执行主体，负责自身的物理相位及候选环境判定。
+/// 阅读主线：相位 1 几何 → 2 环境 → 3 速度/预测 → 4 管理器接触解算与本实体环境约束 → 5 提交。
+/// 环境关系由 EntityEnvironmentContext 管理，累计速度由 EntityEffectState 持有；
+/// 本类保存同帧运动快照、候选查询缓存和解算结果，最终只调用一次 MovePosition。
 /// </summary>
 public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForce, IEnvironmentReceiver
 {
@@ -73,18 +74,21 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     protected float self_resistanceCoefficient = 3;
 
     /// <summary>
-    /// 本帧未约束运动快照：相位 3 在速度结算后整体替换，预测和相位 5 提交共同读取。
+    /// 本帧未约束运动快照：相位 3 在速度结算后整体替换，预测和相位 4 请求位移共同读取。
     /// 已包含现有地面运动规则与平台补偿；不保存接触偏置，也不承担跨帧速度累计。
     /// </summary>
     private EntityMotionFrame motionFrame;
 
     /// <summary>
-    /// 实体解算结果：相位 4 累加 displacementOffset，相位 5 在同一物理帧消费。
+    /// 实体解算结果：相位 4 合成请求位移；相位 5 只提交。
     /// </summary>
     protected EntitySolutionResult entitySolutionResult;
+    private readonly EntityCandidateGeometry candidateGeometry = new EntityCandidateGeometry(); // 候选环境查询缓存
 
     // 相位 1 overlap 工作缓存；有效 Trigger 再写入 nowGemetry.regionOverlaps。
     private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
+    private readonly List<RaycastHit2D> groundProbeHits = new List<RaycastHit2D>(); // 脚下查询命中缓存
+    private const float GroundProbeDistance = 0.02f; // 脚下允许的微小间隙
 
 #if UNITY_EDITOR
     // [EditorOnly] 只读输出口；编辑器侧负责采样、缓存、快照组装与跨帧差值计算。
@@ -98,6 +102,25 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     public bool DebugIsOnLeftWall => nowGemetry != null && nowGemetry.onLeftWall;
     public bool DebugIsOnRightWall => nowGemetry != null && nowGemetry.onRightWall;
     public Vector2 DebugGroundNormal => nowGemetry != null ? nowGemetry.groundNormal : Vector2.zero;
+    public Collider2D DebugGroundCollider => nowGemetry?.groundCollider;
+    public Collider2D DebugLeftWallCollider => nowGemetry?.leftWallCollider;
+    public Collider2D DebugRightWallCollider => nowGemetry?.rightWallCollider;
+    public Vector2 DebugCandidateCenter => candidateGeometry.candidateCenter;
+    public int DebugCandidatePathCount => candidateGeometry.pathHits.Count;
+    public Collider2D DebugCandidateFirstPathCollider => candidateGeometry.pathHits.Count > 0 ? candidateGeometry.pathHits[0].collider : null;
+    public Vector2 DebugCandidateFirstPathNormal => candidateGeometry.pathHits.Count > 0 ? candidateGeometry.pathHits[0].normal : Vector2.zero;
+    public float DebugCandidateFirstPathDistance => candidateGeometry.pathHits.Count > 0 ? candidateGeometry.pathHits[0].distance : 0f;
+    public bool DebugCandidateFirstPathZeroDistance => candidateGeometry.pathHits.Count > 0 &&
+        candidateGeometry.pathHits[0].distance <= 0f;
+    public int DebugCandidateOverlapCount => candidateGeometry.endpointOverlaps.Count;
+    public Collider2D DebugCandidateFirstOverlapCollider => candidateGeometry.endpointOverlaps.Count > 0 ? candidateGeometry.endpointOverlaps[0] : null;
+    public int DebugCandidateOneWayCount => candidateGeometry.oneWayEffectors.Count;
+    public int DebugCandidateDownwardCount => candidateGeometry.downwardHits.Count;
+    public Vector2 DebugCandidateFirstDownwardNormal => candidateGeometry.downwardHits.Count > 0 ? candidateGeometry.downwardHits[0].normal : Vector2.zero;
+    public float DebugCandidateFirstDownwardGap => candidateGeometry.downwardHits.Count > 0
+        ? candidateGeometry.downwardHits[0].distance - candidateGeometry.downwardCastLift : 0f;
+    public bool DebugCandidateFirstDownwardZeroDistance => candidateGeometry.downwardHits.Count > 0 &&
+        candidateGeometry.downwardHits[0].distance <= 0f;
     public int DebugEnvironmentSourceCount => environmentContext?.DebugSourceCount ?? 0;
     public int DebugMovementModifierCount => effectState.DebugMovementModifierCount;
     public int DebugStateVelocityCount => effectState.DebugStateVelocityCount;
@@ -133,9 +156,14 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     /// </summary>
     public float EnvImpact => envImpact;
 
+    // F_6.2_7-1：供相位 4 接触对回算读取的本帧最终请求位移。
+    internal Vector2 RequestedWorldDelta => entitySolutionResult.requestedWorldDelta;
+    // 本帧静态环境阻挡的水平进入方向；0 表示未阻挡。
+    internal float BlockedHorizontalDirection => entitySolutionResult.blockedHorizontalDirection;
+
     /// <summary>
     /// 当前平面速度（主动 + 被动；动态接触力在相位 3 从容器累计到被动速度）
-    /// 保留现有接触施力的读口；该值尚未经过地面位移处理，不等于最终世界位移除以 dt。
+    /// 相位 3 构建运动快照的自由速度读口；该值尚未经过地面位移处理，不等于最终世界位移除以 dt。
     /// </summary>
     public Vector2 GetPlanarVelocity()
     {
@@ -145,11 +173,310 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     }
 
     /// <summary>
-    /// 累加本帧位移偏置（由 PhysicsSolverMgr 接触对写入）
+    /// 相位 4 接触对的纠偏写入口：首轮预测解算与受阻反馈都累加到同一份偏置。
+    /// 只写结果，不移动刚体；环境查询和最终合成会读取累加后的值。
     /// </summary>
     public void AccumulateDisplacementOffset(Vector2 offset)
     {
         entitySolutionResult.displacementOffset += offset;
+    }
+
+    /// <summary>
+    /// 实体自身解算数据刷新入口（相位4中）
+    /// 相位 4 将预测终点与当前接触偏置组成候选终点，重建路径、终点重叠及脚下命中。
+    /// 排除实体碰撞体后，调用 ResolveCandidateEnvironment 得到环境允许的 X 和额外坡面 Y。
+    /// 接触回算后可再次调用；复用列表但重置上轮查询，不改帧初着地事实，也不提交移动。
+    /// </summary>
+    internal void ProbeCandidateEnvironment(PhysicalBoundingBox prediction)
+    {
+        entitySolutionResult.environmentOffset = Vector2.zero;
+        entitySolutionResult.allowedHorizontalDelta = prediction.motionFrame.plannedWorldDelta.x +
+            entitySolutionResult.displacementOffset.x;
+        candidateGeometry.pathHits.Clear();
+        candidateGeometry.downwardHits.Clear();
+        candidateGeometry.liftHits.Clear();
+        candidateGeometry.allowedDownwardHits.Clear();
+        candidateGeometry.endpointOverlaps.Clear();
+        candidateGeometry.oneWayEffectors.Clear();
+        candidateGeometry.candidateCenter = Vector2.zero;
+        candidateGeometry.candidateDelta = Vector2.zero;
+        candidateGeometry.downwardCastLift = 0f;
+        // 安全：无碰撞体或查询层配置时，本帧没有可用的候选环境事实。
+        if (boxCollider == null || !boxCollider.enabled || cPhysics == null) return;
+
+        Bounds bounds = boxCollider.bounds;
+        candidateGeometry.candidateCenter = prediction.point + entitySolutionResult.displacementOffset;
+        candidateGeometry.candidateDelta = candidateGeometry.candidateCenter - (Vector2)bounds.center;
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask((int)cPhysics.groundLayer | (int)cPhysics.wallLayer);
+        PhysicsScene2D scene = Physics2D.defaultPhysicsScene;
+        float distance = candidateGeometry.candidateDelta.magnitude;
+        // 零位移无需路径扫掠；终点重叠和脚下查询仍须执行。
+        if (distance > 0f)
+            scene.BoxCast(bounds.center, bounds.size, 0f, candidateGeometry.candidateDelta / distance,
+                distance, filter, candidateGeometry.pathHits);
+        scene.OverlapBox(candidateGeometry.candidateCenter, bounds.size, 0f, filter,
+            candidateGeometry.endpointOverlaps);
+        filter.SetLayerMask(cPhysics.groundLayer);
+        // 从候选框上方回扫到脚下，距离减去 lift 才是候选底部的原始有符号间隙。
+        // 回扫可能先命中天花板或单向平台，不能直接把首个结果当作支撑。
+        candidateGeometry.downwardCastLift = bounds.size.y + Mathf.Abs(candidateGeometry.candidateDelta.y) + 0.01f;
+        scene.BoxCast(candidateGeometry.candidateCenter + Vector2.up * candidateGeometry.downwardCastLift,
+            bounds.size, 0f, Vector2.down, candidateGeometry.downwardCastLift + 0.05f,
+            filter, candidateGeometry.downwardHits);
+
+        // 三类命中都只保留环境 Collider；实体间接触由 PhysicsSolverMgr 单独解算。
+        for (int i = candidateGeometry.pathHits.Count - 1; i >= 0; i--)
+        {
+            Collider2D hit = candidateGeometry.pathHits[i].collider;
+            if (hit == null || hit.attachedRigidbody == rb || EnvironmentCapabilities.FindEntity(hit) != null)
+                candidateGeometry.pathHits.RemoveAt(i);
+            else
+                RecordOneWayEffector(hit);
+        }
+        for (int i = candidateGeometry.endpointOverlaps.Count - 1; i >= 0; i--)
+        {
+            Collider2D hit = candidateGeometry.endpointOverlaps[i];
+            if (hit == null || hit.attachedRigidbody == rb || EnvironmentCapabilities.FindEntity(hit) != null)
+                candidateGeometry.endpointOverlaps.RemoveAt(i);
+            else
+                RecordOneWayEffector(hit);
+        }
+        for (int i = candidateGeometry.downwardHits.Count - 1; i >= 0; i--)
+        {
+            Collider2D hit = candidateGeometry.downwardHits[i].collider;
+            if (hit == null || hit.attachedRigidbody == rb || EnvironmentCapabilities.FindEntity(hit) != null)
+                candidateGeometry.downwardHits.RemoveAt(i);
+            else
+                RecordOneWayEffector(hit);
+        }
+        ResolveCandidateEnvironment(bounds, scene);
+    }
+
+    /// <summary>
+    /// [F_6.2_5] 先确定可爬坡面，再用其它路径命中缩短允许的水平位移。
+    /// X 被限制时重查受限终点的坡面 Y，避免沿用完整路程的抬升量。
+    /// 已有向上位移的顶面限制在 FinalizeRequestedDisplacement 中处理。
+    /// </summary>
+    private void ResolveCandidateEnvironment(Bounds bounds, PhysicsScene2D scene)
+    {
+        float dx = candidateGeometry.candidateDelta.x;
+        if (Mathf.Abs(dx) <= 0.0001f) return;
+        float minUp = Mathf.Cos(Mathf.Clamp(cPhysics.maxClimbAngle, 0f, 89f) * Mathf.Deg2Rad);
+        float currentBottom = bounds.min.y;
+        entitySolutionResult.environmentOffset.y = FindSlopeRise(bounds, scene,
+            candidateGeometry.candidateCenter, dx, candidateGeometry.downwardHits, minUp,
+            out Collider2D climbSurface);
+
+        float pathLength = candidateGeometry.candidateDelta.magnitude;
+        foreach (RaycastHit2D hit in candidateGeometry.pathHits)
+        {
+            if (hit.collider == null || hit.collider == climbSurface ||
+                IsOneWayPassThrough(hit, currentBottom)) continue;
+            // 起点重叠法线可能为零；终点仍重叠非支撑面时保守阻止水平穿入。单独处理“起点已接触，而且终点仍重叠”的情况
+            if (hit.distance <= 0f && candidateGeometry.endpointOverlaps.Contains(hit.collider) &&
+                hit.normal.y < minUp)
+            {
+                // F_6.2_6 墙角回归：零距离表示已经接触；只有法线明确反对本帧 X 时才阻止进入。
+                // 法线为零或正在离开墙角时，不能凭“仍有重叠”锁死两个方向。
+                //当确实向墙挤入时需要置零水平偏置
+                if (hit.normal.x * dx < -0.0001f)
+                    entitySolutionResult.allowedHorizontalDelta = 0f;
+                continue;
+            }
+            if (hit.normal.x * dx >= -0.0001f) continue;
+            // 起点零距离的法线不用于坡角；非可通行障碍按零余量处理。
+            float allowed = Mathf.Max(0f, hit.distance - 0.001f) * Mathf.Abs(dx) / pathLength;
+            entitySolutionResult.allowedHorizontalDelta = Mathf.Sign(dx) *
+                Mathf.Min(Mathf.Abs(entitySolutionResult.allowedHorizontalDelta), allowed);
+        }
+
+        // F_6.2_6-2：障碍缩短 X 后，只在允许的终点重查坡面 Y。
+        float allowedX = entitySolutionResult.allowedHorizontalDelta;
+        if (Mathf.Abs(allowedX - dx) <= 0.0001f) return;
+        entitySolutionResult.environmentOffset.y = 0f;
+        if (Mathf.Abs(allowedX) <= 0.0001f) return;
+        Vector2 allowedCenter = candidateGeometry.candidateCenter + Vector2.right * (allowedX - dx);
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask(cPhysics.groundLayer);
+        scene.BoxCast(allowedCenter + Vector2.up * candidateGeometry.downwardCastLift,
+            bounds.size, 0f, Vector2.down, candidateGeometry.downwardCastLift + 0.05f,
+            filter, candidateGeometry.allowedDownwardHits);
+        entitySolutionResult.environmentOffset.y = FindSlopeRise(bounds, scene,
+            allowedCenter, allowedX, candidateGeometry.allowedDownwardHits, minUp, out _);
+    }
+
+    /// <summary>
+    /// 计算坡面抬升偏移
+    /// </summary>
+    private float FindSlopeRise(Bounds bounds, PhysicsScene2D scene, Vector2 center, float dx,
+        List<RaycastHit2D> hits, float minUp, out Collider2D support)
+    {
+        support = null;
+        float rise = 0f;
+        foreach (RaycastHit2D hit in hits)
+        {
+            Collider2D surface = hit.collider;
+            if (surface == null || surface.attachedRigidbody == rb ||
+                EnvironmentCapabilities.FindEntity(surface) != null) continue;
+            RecordOneWayEffector(surface);
+            if (hit.normal.y < minUp || hit.normal.x * dx >= 0f ||
+                IsOneWayPassThrough(hit, bounds.min.y)) continue;
+            float needed = candidateGeometry.downwardCastLift - hit.distance;
+            float slopeRise = Mathf.Abs(dx * hit.normal.x / hit.normal.y);
+            // 只接受确实穿入、未超过本次爬坡高度且比已有结果更高的支撑。
+            if (needed <= 0f || needed > slopeRise + 0.01f || needed <= rise) continue;
+            support = surface;
+            rise = needed;
+        }
+        if (support == null || HasLiftObstacle(bounds, scene, center, support, rise))
+        {
+            support = null;
+            return 0f;
+        }
+        return rise;
+    }
+
+    /// <summary>
+    /// 在候选终点向上扫掠额外抬升量，检查这次抬升是否碰到其它有效环境障碍。
+    /// 忽略本次爬坡支撑、自身及其它实体；单向平台按通行方向处理，避免把坡面自身当作顶障碍。
+    /// true表示有上升阻挡
+    /// </summary>
+    private bool HasLiftObstacle(Bounds bounds, PhysicsScene2D scene, Vector2 center, Collider2D support, float rise)
+    {
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask((int)cPhysics.groundLayer | (int)cPhysics.wallLayer);
+        candidateGeometry.liftHits.Clear();
+        scene.BoxCast(center, bounds.size, 0f, Vector2.up,
+            rise, filter, candidateGeometry.liftHits);
+        foreach (RaycastHit2D hit in candidateGeometry.liftHits)
+        {
+            if (hit.collider == null || hit.collider == support || hit.collider.attachedRigidbody == rb ||
+                EnvironmentCapabilities.FindEntity(hit.collider) != null) continue;
+            RecordOneWayEffector(hit.collider);
+            if (!IsOneWayPassThrough(hit, bounds.min.y)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 判断本次命中是否应穿过单向平台。非单向碰撞体返回 false，继续参与普通环境判定。
+    /// 单向面结合有效承托角、本帧上行方向、当前底部高度及原脚下支撑身份判断。
+    /// </summary>
+    private bool IsOneWayPassThrough(RaycastHit2D hit, float currentBottom)
+    {
+        if (!candidateGeometry.oneWayEffectors.TryGetValue(hit.collider, out PlatformEffector2D effector))
+            return false;
+        // 单向面仅从有效上侧承托；从下向上经过时不由坡面额外抬升。
+        if (Vector2.Angle(effector.transform.up, hit.normal) > effector.surfaceArc * 0.5f)
+            return true;
+        return nowGemetry.groundCollider != hit.collider &&
+            (candidateGeometry.candidateDelta.y > 0f || currentBottom < hit.point.y - 0.01f);
+    }
+
+    /// <summary>
+    /// 缓存有效单向效应器的身份；是否阻挡交给 IsOneWayPassThrough 按本次运动解释。
+    /// </summary>
+    private void RecordOneWayEffector(Collider2D hit)
+    {
+        // 只有碰撞体实际使用的、已启用的单向组件才进入缓存。
+        if (hit.usedByEffector && hit.TryGetComponent(out PlatformEffector2D effector) &&
+            effector.isActiveAndEnabled && effector.useOneWay)
+            candidateGeometry.oneWayEffectors[hit] = effector;
+    }
+
+    /// <summary>
+    /// 相位 1 共用脚下查询：覆盖实体碰撞框前缘，在多个命中中选法线最朝上的有效支撑。
+    /// 排除自身并要求法线向上分量大于 0.7，允许 GroundProbeDistance 内的微小贴地间隙。
+    /// 只返回几何命中；着地字段与脚下能力分别由子类 GeometricQuery 和相位 2 更新。
+    /// </summary>
+    protected RaycastHit2D FindGroundHit(Vector2 center, Vector2 size, float angle,
+        Vector2 direction, ContactFilter2D filter)
+    {
+        groundProbeHits.Clear();
+        // F_6.2_6-6：上坡抬升按完整碰撞框前缘计算；着地探针也覆盖该前缘，避免箱体被抬起后中心脚探针悬空。
+        if (boxCollider != null && boxCollider.enabled)
+            size.x = Mathf.Max(size.x, boxCollider.bounds.size.x);
+        Physics2D.defaultPhysicsScene.BoxCast(center, size, angle, direction, GroundProbeDistance,
+            filter, groundProbeHits);
+        RaycastHit2D support = default;
+        float bestUp = 0.7f;
+        foreach (RaycastHit2D hit in groundProbeHits)
+        {
+            if (hit.collider == null || hit.collider.attachedRigidbody == rb) continue;
+            float up = Vector2.Dot(hit.normal, Vector2.up);
+            if (up <= bestUp) continue;
+            support = hit;
+            bestUp = up;
+        }
+        return support;
+    }
+
+    /// <summary>
+    /// 相位 4 合成请求：基础位移＋接触偏置＋环境修正，并采用环境允许的水平位移。
+    /// 水平移动被接触纠偏或障碍缩短时，只同步缩短自身沿坡 Y；独立竖直速度、接触 Y、平台位移保留。
+    /// 随后用已有路径命中限制撞顶的向上运动，记录最终静态水平阻挡方向。
+    /// 本方法不清理累计速度、不写刚体；管理器回算完毕后清理速度，相位 5 才提交。
+    /// </summary>
+    internal void FinalizeRequestedDisplacement()
+    {
+        // F_6.2_6-3：允许的 X 替代候选 X；已有实体间 Y 偏置独立相加。
+        Vector2 candidateDelta = motionFrame.plannedWorldDelta + entitySolutionResult.displacementOffset;
+        float allowedX = entitySolutionResult.allowedHorizontalDelta;
+        // F_6.2_7-6：接触纠偏和静态裁剪都会缩短沿坡 X，Y 必须相对原自身运动同步缩短。
+        // 不能只比较候选 X：接触回算已改小它时，该比较会留下完整上坡 Y，反复把推动者抬离支撑。
+        float motionX = motionFrame.motionDelta.x;
+        //计算实体移动可取比例
+        float retained = Mathf.Abs(motionX) > 0.0001f
+            ? Mathf.Clamp01((allowedX - motionFrame.platformDelta.x) / motionX) : 1f;
+        //计算斜坡Y
+        float groundSlopeY = nowGemetry.isGrounded
+            ? motionFrame.motionDelta.y - playerPhysicsData.verticalSpeed * Time.fixedDeltaTime : 0f;
+        //计算全位移请求
+        //Y:角色沿坡位移-被舍弃的上升+实体位移偏置
+        entitySolutionResult.requestedWorldDelta = new Vector2(allowedX,
+            candidateDelta.y - groundSlopeY * (1f - retained) + entitySolutionResult.environmentOffset.y);
+
+        // F_6.2_6-7：候选路径已扫到顶面障碍时，按首个可达比例限制整段上升与同行 X。
+        // 实体间 Y 偏置也属于候选路径；原先 dx=0 时环境分支直接返回，导致它穿入平台再被引擎挤回。
+        float pathLength = candidateGeometry.candidateDelta.magnitude;
+        if (candidateGeometry.candidateDelta.y > 0.0001f &&
+            entitySolutionResult.requestedWorldDelta.y > 0f && pathLength > 0f)
+        {
+            float reachable = 1f;
+            foreach (RaycastHit2D hit in candidateGeometry.pathHits)
+            {
+                if (hit.collider == null || hit.collider == nowGemetry.groundCollider ||
+                    hit.normal.y >= -0.7f || IsOneWayPassThrough(hit, boxCollider.bounds.min.y)) continue;
+                float fraction = Mathf.Clamp01(Mathf.Max(0f, hit.distance - 0.001f) / pathLength);
+                reachable = Mathf.Min(reachable, fraction);
+            }
+            entitySolutionResult.requestedWorldDelta *= reachable;
+        }
+
+        // F_6.2_6-4：记录最终 X 阻挡方向；F_6.2_7-4 在接触对回算完毕后清理累计速度。
+        bool finalBlocked = Mathf.Abs(entitySolutionResult.requestedWorldDelta.x) + 0.0001f <
+            Mathf.Abs(candidateDelta.x);
+        entitySolutionResult.blockedHorizontalDirection = finalBlocked ? Mathf.Sign(candidateDelta.x) : 0f;
+    }
+
+    /// <summary>
+    /// F_6.2_7-4：所有接触回算结束后，按最终静态阻挡清理朝障碍的瞬时速度来源。
+    /// 使用净被动速度判断整体清理；旧接触退出时还会通过 ClearBlockedContactSpeed 按来源清理。
+    /// </summary>
+    internal void ClearTransientSpeedForFinalBlock()
+    {
+        if (playerPhysicsData.phyHSpeed * entitySolutionResult.blockedHorizontalDirection > 0f)
+            effectState.ClearTransientSpeedAtWall();
+    }
+
+    /// <summary>
+    /// 旧接触力退出时的来源级清理入口：只清掉该来源朝最终静态障碍的累计速度。
+    /// 其它来源抵消了净被动速度时，这条失效接触的残留也不会在松开后重新释放。
+    /// </summary>
+    internal void ClearBlockedContactSpeed(IDynamicAddForce source)
+    {
+        effectState.ClearBlockedContactSpeed(source, entitySolutionResult.blockedHorizontalDirection);
     }
 
     /// <summary>
@@ -301,7 +628,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         //速度计算 → 构建本帧运动快照 → PositionPrediction 上报预测框
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(SpeedCalculation, 3);
         // 相位 4：PhysicsSolverMgr.ContactForSolution（管理器注册）
-        //最终位移（复用本帧运动快照，叠加相位 4 的 displacementOffset）
+        // 相位 5：只提交相位 4 合成的 requestedWorldDelta。
         MonoPublicMgr.Instance.AddPhysicalTimingUpdate(DisplacementCorrection, 5);
     }
 
@@ -362,7 +689,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     }
 
     /// <summary>
-    /// 速度计算
+    /// 相位 3 更新主动与被动速度，再构造一份基础运动快照并上报预测框。
+    /// 上一帧登记的接触力在这里积分；本帧相位 4 再决定下一帧仍有效的接触力。
     /// </summary>
     void SpeedCalculation()
     {
@@ -371,7 +699,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         //竖直速度计算
         VerticalSpeedCalculation();
         // 上一帧接触动态力已由上面的速度计算入账。在这里读取相位 2 环境帧的平台位移并构建一次运动快照，
-        // 相位 4 仍只累计偏置及刷新下帧动态力，相位 5 不再重算基础位移。
+        // 相位 4 以快照为基础求接触偏置和环境可行请求，相位 5 不再重算基础位移。
         Vector2 platformDelta = EnvironmentFrame.platformDelta;
         motionFrame = BuildMotionFrame(
 #if UNITY_EDITOR
@@ -387,9 +715,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
     }
 
     /// <summary>
-    /// 把速度、几何和平台的本帧采样转换为未约束运动快照。
-    /// 沿用原有位移公式；编辑器宏下旁路输出已计算分量，不改变快照结果或写入 Unity 世界。
-    /// fixedDeltaTime 显式传入，确保各分量使用同一物理步长。
+    /// 将相位 3 的速度与帧初支撑转换成基础运动：空中按世界速度积分，着地按地面切线处理自身运动。
+    /// 平台位移独立相加；自身接触读速与自身预测位移使用同一公式和步长。
+    /// 仍保留旧着地规则：竖直分量只使用 verticalSpeed，phyVSpeed 的支撑语义留待后续建模。
+    /// 此处没有接触或障碍约束；编辑器报告只复制结果，不参与计算。
     /// </summary>
     private static EntityMotionFrame BuildMotionFrame(
 #if UNITY_EDITOR
@@ -403,15 +732,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         float fixedDeltaTime)
     {
         Vector2 integratedVelocityDelta = freeVelocity * fixedDeltaTime;
+        Vector2 motionVelocity = freeVelocity;
         Vector2 moveDelta = integratedVelocityDelta;
         if (isGrounded)
         {
-            // TODO（竖直环境速度语义，另案核对）：保留旧着地分支的提交规则。
-            // freeVelocity.y 包含 verticalSpeed + phyVSpeed，但这里重建位移时只保留 verticalSpeed，
-            // 因此着地时 phyVSpeed 不进入 motionDelta；verticalSpeed 本身还含重力/跳跃，并非纯主动速度。
-            // 平台的 platformDelta.y 会单独相加，它与 phyVSpeed 是不同来源，不能互相替代。
-            // 本次仅让预测与提交共同遵循现状，不在提取函数时补加或清零 phyVSpeed。
-            // 后续应分别验证正/负竖直环境速度、起跳首帧及移动平台后，再确定地面处理规则。
+            // TODO（后续竖直环境速度建模）：freeVelocity.y 含 phyVSpeed，但旧着地分支只保留 verticalSpeed。
+            // verticalSpeed 本身含重力/跳跃；平台 Y 独立相加，不能用于替代被省略的 phyVSpeed。
             moveDelta = new Vector2(0, verticalSpeed * fixedDeltaTime);
             float moveAmount = freeVelocity.x * fixedDeltaTime;
             Vector2 tangent = new Vector2(groundNormal.y, -groundNormal.x);
@@ -419,31 +745,37 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
                 tangent *= -1;
 
             // 沿用原规则：总水平速度的大小作为沿地面切线的运动速度。
-            moveDelta += tangent.normalized * Mathf.Abs(moveAmount);
+            Vector2 tangentDirection = tangent.normalized;
+            motionVelocity = new Vector2(0f, verticalSpeed) + tangentDirection * Mathf.Abs(freeVelocity.x);
+            moveDelta += tangentDirection * Mathf.Abs(moveAmount);
         }
 
         Vector2 appliedPlatformDelta = isGrounded ? platformDelta : Vector2.zero;
+        EntityMotionFrame frame = new EntityMotionFrame(freeVelocity, motionVelocity, moveDelta, appliedPlatformDelta);
 #if UNITY_EDITOR
         PhysicsEditorObservationBridge.ReportMotionBuilt(
             entity,
-            freeVelocity,
+            frame.freeVelocity,
             integratedVelocityDelta,
-            moveDelta,
-            appliedPlatformDelta,
-            moveDelta + appliedPlatformDelta);
+            frame.motionDelta,
+            frame.platformDelta,
+            frame.plannedWorldDelta);
 #endif
-        return new EntityMotionFrame(moveDelta, appliedPlatformDelta);
+        return frame;
     }
 
     /// <summary>
     /// 位置预测：按本帧运动快照投射 AABB 到管理器，不再单独使用速度乘 dt。
-    /// 预测形状包含地面运动和平台补偿，但尚不包含相位 4 偏置、相位 5 静墙裁剪或 Unity 修正。
+    /// 预测形状包含地面运动和平台补偿，但尚不包含相位 4 偏置、环境约束或 Unity 修正。
     /// </summary>
     void PositionPrediction()
     {
         // 相位 4 会重新累加本帧偏置，先清零避免无接触时沿用旧结果。
         // 接触速度不再写入解算结果，而由实体数值状态在下一帧相位 3 跨帧累计。
         entitySolutionResult.displacementOffset = Vector2.zero;
+        entitySolutionResult.environmentOffset = Vector2.zero;
+        entitySolutionResult.requestedWorldDelta = motionFrame.plannedWorldDelta;
+        entitySolutionResult.blockedHorizontalDirection = 0f;
 
         if (boxCollider == null || rb == null)
             return;
@@ -451,6 +783,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
         PhysicalBoundingBox box = new PhysicalBoundingBox();
         box.point = (Vector2)boxCollider.bounds.center + motionFrame.plannedWorldDelta;
         box.size = boxCollider.bounds.extents; // 半长宽，与解算器 v3=a.size+b.size 一致
+        box.motionFrame = motionFrame;
         box.myPhyBox = this;
 #if UNITY_EDITOR
         PhysicsEditorObservationBridge.ReportPredictionBuilt(this, box.point, box.size);
@@ -522,57 +855,22 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IDynamicAddForc
 
     /// <summary>
     /// 位移应用
-    /// 消费相位 3 的基础运动快照及相位 4 的接触结果，再执行原有静墙裁剪与一次 MovePosition。
-    /// 基础位移已包含平台补偿，此处不再读地面/平台重算，避免预测与提交采用两套位移。
+    /// 只提交相位 4 求出的请求位移；基础位移已经包含平台携带。
     /// </summary>
     void DisplacementCorrection()
     {
-        Vector2 solverOffset = entitySolutionResult.displacementOffset;
-        Vector2 wordDelta = motionFrame.plannedWorldDelta + solverOffset;
 #if UNITY_EDITOR
-        Vector2 debugUnconstrainedDelta = wordDelta;
-        bool debugStaticWallClamped = false;
-#endif
-        //静态墙裁剪：可推实体走接触对偏置，不得再整轴置零（否则推箱抖动）
-        //无脚本的墙层碰撞体同样视为静墙
-        bool staticLeft = nowGemetry.onLeftWall && EnvironmentCapabilities.FindEntity(nowGemetry.leftWallCollider) == null;
-        bool staticRight = nowGemetry.onRightWall && EnvironmentCapabilities.FindEntity(nowGemetry.rightWallCollider) == null;
-        if (wordDelta.x < 0 && staticLeft)
-        {
-#if UNITY_EDITOR
-            debugStaticWallClamped = true;
-#endif
-            //横向速度制0
-            wordDelta.x = 0;
-            //碰墙后需要清空时间力，但状态力生命周期严格由施力物体控制，此处若清空状态力会导致问题,而附加力则清空速度但不移除受力影响
-            if (playerPhysicsData.phyHSpeed < 0)//只有当被动速度也趋向于挤压
-            {
-                effectState.ClearTransientSpeedAtWall();
-            }
-        }
-        else if (wordDelta.x > 0 && staticRight)
-        {
-#if UNITY_EDITOR
-            debugStaticWallClamped = true;
-#endif
-            wordDelta.x = 0;
-            if (playerPhysicsData.phyHSpeed > 0)
-            {
-                effectState.ClearTransientSpeedAtWall();
-            }
-        }
-#if UNITY_EDITOR
-        Vector2 debugRequestedTarget = rb.position + wordDelta;
+        Vector2 debugUnconstrainedDelta = motionFrame.plannedWorldDelta + entitySolutionResult.displacementOffset;
         PhysicsEditorObservationBridge.ReportMovementRequested(
             this,
-            solverOffset,
+            entitySolutionResult.displacementOffset,
             debugUnconstrainedDelta,
-            wordDelta,
-            debugRequestedTarget,
-            debugStaticWallClamped);
+            entitySolutionResult.requestedWorldDelta,
+            rb.position + entitySolutionResult.requestedWorldDelta,
+            entitySolutionResult.blockedHorizontalDirection != 0f);
 #endif
-        // 相位 5 的最后一步：所有状态更新和观测采样完成后，仅提交一次位移。
-        rb.MovePosition(rb.position + wordDelta);
+        // F_6.2_6-5：相位 5 只提交一次，不再按帧初贴墙标志裁剪。
+        rb.MovePosition(rb.position + entitySolutionResult.requestedWorldDelta);
     }
 
     protected virtual void OnDisable()

@@ -115,11 +115,11 @@ public class PlayerDataWindow : EditorWindow
         // 来自实体相位 3 的运动快照；窗口只展示，不通过各分量另算一份运行时输入。
         DrawVector("预测/提交共用基础位移", snapshot.plannedWorldDelta);
         DrawVector("接触对偏置", snapshot.solverOffset);
-        DrawVector("静墙裁剪前位移", snapshot.unconstrainedDelta);
+        DrawVector("环境约束前位移", snapshot.unconstrainedDelta);
         DrawVector("最终请求位移", snapshot.requestedDelta);
         DrawVector("MovePosition 目标", snapshot.requestedTarget);
         DrawVector("引擎修正量", snapshot.engineCorrection);
-        EditorGUILayout.Toggle("发生静墙整轴裁剪", snapshot.staticWallClamped);
+        EditorGUILayout.Toggle("环境阻挡 X", snapshot.horizontalEnvironmentBlocked);
 
         EditorGUILayout.Space();
         GUILayout.Label("预测 AABB", EditorStyles.boldLabel);
@@ -136,6 +136,24 @@ public class PlayerDataWindow : EditorWindow
         EditorGUILayout.Toggle("左墙", snapshot.isOnLeftWall);
         EditorGUILayout.Toggle("右墙", snapshot.isOnRightWall);
         DrawVector("地面法线", snapshot.groundNormal);
+        EditorGUILayout.ObjectField("脚下 Collider", snapshot.groundCollider, typeof(Collider2D), true);
+        EditorGUILayout.ObjectField("左墙 Collider", snapshot.leftWallCollider, typeof(Collider2D), true);
+        EditorGUILayout.ObjectField("右墙 Collider", snapshot.rightWallCollider, typeof(Collider2D), true);
+        EditorGUILayout.Space();
+        GUILayout.Label("相位 4 候选环境（原始命中）", EditorStyles.boldLabel);
+        DrawVector("候选中心", snapshot.candidateCenter);
+        EditorGUILayout.IntField("路径命中数", snapshot.candidatePathCount);
+        EditorGUILayout.ObjectField("首个路径 Collider", snapshot.candidateFirstPathCollider, typeof(Collider2D), true);
+        DrawVector("首个路径法线", snapshot.candidateFirstPathNormal);
+        EditorGUILayout.FloatField("首个路径距离", snapshot.candidateFirstPathDistance);
+        EditorGUILayout.Toggle("首个路径零距离", snapshot.candidateFirstPathZeroDistance);
+        EditorGUILayout.IntField("终点重叠数", snapshot.candidateOverlapCount);
+        EditorGUILayout.ObjectField("首个终点 Collider", snapshot.candidateFirstOverlapCollider, typeof(Collider2D), true);
+        EditorGUILayout.IntField("单向平台数", snapshot.candidateOneWayCount);
+        EditorGUILayout.IntField("向下命中数", snapshot.candidateDownwardCount);
+        DrawVector("首个向下命中法线", snapshot.candidateFirstDownwardNormal);
+        EditorGUILayout.FloatField("首个向下命中间隙", snapshot.candidateFirstDownwardGap);
+        EditorGUILayout.Toggle("首个向下命中零距离", snapshot.candidateFirstDownwardZeroDistance);
     }
 
     static void DrawEnvironment(EntityPhysicsDebugSnapshot snapshot)
@@ -184,7 +202,7 @@ public class PlayerDataWindow : EditorWindow
             EditorGUILayout.LabelField("挤出轴", pair.separateOnX ? "X" : "Y");
             EditorGUILayout.LabelField("原始重叠深度", pair.depth.ToString("F5"));
             EditorGUILayout.LabelField("实际修正深度", pair.correctionDepth.ToString("F5"));
-            EditorGUILayout.LabelField("相对闭合速度", pair.closingSpeed.ToString("F5"));
+            EditorGUILayout.LabelField("自身运动相对闭合速度", pair.closingSpeed.ToString("F5"));
             EditorGUILayout.LabelField(
                 "本方 / 对方施力",
                 $"{ownAppliedForce} / {otherAppliedForce}");

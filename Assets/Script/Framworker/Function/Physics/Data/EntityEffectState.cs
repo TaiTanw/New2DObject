@@ -188,6 +188,20 @@ internal sealed class EntityEffectState
         ChangeDynamicType(source, E_PhyForceType.fadeAway);
     }
 
+    /// <summary>
+    /// F_6.2_7-4：旧接触退出时，只清除指定来源朝最终静态障碍的累计速度。
+    /// 判断该来源自身的 speedStacking，不依赖其它来源合成后的净被动速度；保留其余来源。
+    /// 这里只清速度，退出类型仍由随后 RemoveDynamicForce 切换为 fadeAway。
+    /// </summary>
+    public void ClearBlockedContactSpeed(IDynamicAddForce source, float blockedDirection)
+    {
+        // 无静态阻挡、来源不存在或累计速度不朝障碍时，不需要清理这条来源。
+        if (blockedDirection == 0f || !dynamicForces.TryGetValue(source, out ForceData data) ||
+            data.speedStacking * blockedDirection <= 0f) return;
+        data.speedStacking = 0f;
+        dynamicForces[source] = data;
+    }
+
     public void UpdatePassiveSpeed(PlayerPhysicsData movement, float envImpact, float resistance)
     {
         Vector2 speed = Vector2.zero;

@@ -210,7 +210,7 @@ BoxCollider2D:
   m_GameObject: {fileID: 6468672424472279989}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 6200000, guid: 83f6636a912834c48b8a8983318b0be6, type: 2}
+  m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -293,7 +293,7 @@ MonoBehaviour:
   gravity: -35
   airResistance: 1
   envImpact: 1
-  speed: 8
+  speed: 15
   upSpeed: 15
 --- !u!1 &7743792163046834635
 GameObject:

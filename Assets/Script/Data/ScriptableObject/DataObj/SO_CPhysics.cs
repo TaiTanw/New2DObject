@@ -15,6 +15,8 @@ public class SO_CPhysics : ScriptableObject
     /// 墙体检测层级
     /// </summary>
     public LayerMask wallLayer;
+    /// <summary>相位 4 允许沿坡抬升的最大坡面倾角（度）。</summary>
+    [Range(0f, 89f)] public float maxClimbAngle = 45f;
     /// <summary>
     /// 底盒地面检测高度
     /// </summary>

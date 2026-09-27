@@ -51,6 +51,10 @@ public static class EnvironmentIntegrationChecks
             CheckPlatformDisplacement();
             CheckContactRoles();
             CheckTriggerContactFilter();
+            CheckSlopeFootprintSupport();
+            CheckSlopeSideSupport();
+            CheckIceSideContactFeedback();
+            CheckSlopeCeilingConstraint();
             CheckWallSlideBehavior();
             Directory.CreateDirectory(".utmp/EnvironmentValidation");
             File.WriteAllLines(".utmp/EnvironmentValidation/checks.txt", passed);
@@ -379,6 +383,31 @@ public static class EnvironmentIntegrationChecks
             Check(box.Ground == ground && box.Grounded, "箱体脚下过滤 Trigger 后命中实心表面");
             Check(box.Left == wall && box.OnLeft, "箱体侧面过滤 Trigger 后命中实心墙");
             Check(box.Top, "箱体顶头过滤 Trigger 后仍发现实心表面");
+            // 墙与地面同层、同时落入脚下探针：首个侧面命中不能抹掉支撑。
+            Vector3 corner = origin + Vector3.right * 120f;
+            Solid(corner + new Vector3(.22f, .5f, 0), new Vector2(.2f, 1f));
+            Collider2D cornerFloor = Solid(corner + new Vector3(0, -.5f, 0), Vector2.one);
+            Transform cornerProbe = NewObject("corner ground probe", corner + new Vector3(0, .04f, 0)).transform;
+            Physics2D.SyncTransforms();
+            character.Apply(config, cornerProbe, leftProbe, rightProbe);
+            character.Query();
+            Check(character.Ground == cornerFloor && character.Grounded, "墙角角色保留有效地面");
+            box.Apply(config, cornerProbe, leftProbe, rightProbe, upProbe);
+            box.Query();
+            Check(box.Ground == cornerFloor && box.Grounded, "墙角箱体保留有效地面");
+            cornerProbe.position += Vector3.up * .035f;
+            Physics2D.SyncTransforms();
+            character.Query();
+            box.Query();
+            Check(character.Ground == cornerFloor && box.Ground == cornerFloor,
+                "墙角微小离地间隙仍保持支撑");
+            // 已有轻微交叠时，离开墙角的 X 不能被零距离命中反向锁住。
+            Solid(origin + new Vector3(.55f, 20f, 0), new Vector2(.2f, 2f));
+            Physics2D.SyncTransforms();
+            Check(character.CandidateAllowedX(-.02f) < 0f, "墙角允许向外退出");
+            Check(character.DebugCandidatePathCount > 0 && character.DebugCandidateFirstPathZeroDistance &&
+                character.DebugCandidateOverlapCount > 0, "墙角确有零距离路径及终点重叠");
+            Check(character.CandidateAllowedX(.02f) <= 0f, "墙角仍阻止向内穿入");
             ceiling.gameObject.SetActive(false);
             Physics2D.SyncTransforms();
             box.Query();
@@ -388,6 +417,188 @@ public static class EnvironmentIntegrationChecks
         {
             Object.DestroyImmediate(config);
         }
+    }
+
+    // F_6.2_6-6：箱体前缘贴坡而中心脚探针悬空时，着地事实须与完整箱体的坡面接触一致。
+    private static void CheckSlopeFootprintSupport()
+    {
+        Vector3 origin = NextPosition();
+        SO_CPhysics config = ScriptableObject.CreateInstance<SO_CPhysics>();
+        config.hideFlags = HideFlags.DontSave;
+        config.groundLayer = 1 << 6;
+        config.wallLayer = 1 << 6;
+        config.boxCastH = new Vector2(.75f, .1f);
+        config.boxCastV = new Vector2(.02f, 1.6f);
+        try
+        {
+            float slope = 30f * Mathf.Deg2Rad;
+            float halfWidth = .76f;
+            Collider2D ground = Solid(origin + Vector3.down *
+                (Mathf.Tan(slope) * halfWidth + .1f / Mathf.Cos(slope)), new Vector2(6f, .2f));
+            ground.transform.rotation = Quaternion.Euler(0f, 0f, 30f);
+            Transform foot = NewObject("slope foot", origin + Vector3.down * .057f).transform;
+            Transform side = NewObject("slope side", origin + Vector3.right * 10f).transform;
+            EnvironmentCheckBox box = ProbeBox(origin + Vector3.up * .77f, config, foot, side, side, side);
+            box.GetComponent<BoxCollider2D>().size = new Vector2(1.52f, 1.54f);
+            Physics2D.SyncTransforms();
+            box.Query();
+            Check(box.Grounded && box.Ground == ground && box.DebugGroundNormal.y < .99f,
+                "箱体前缘贴坡时仍得到真实坡面支撑法线");
+            for (int step = 0; step < 6; step++)
+            {
+                Vector3 alongSlope = new Vector3(.1f, Mathf.Tan(slope) * .1f, 0f);
+                box.transform.position += alongSlope;
+                foot.position += alongSlope;
+                Physics2D.SyncTransforms();
+                box.Query();
+                Check(box.Grounded && box.Ground == ground && box.DebugGroundNormal.y < .99f,
+                    $"箱体沿坡第 {step + 1} 段持续保留真实支撑");
+            }
+        }
+        finally { Object.DestroyImmediate(config); }
+    }
+
+    // F_6.2_6-8：左上坡前缘碰到冰面右侧时，脚下不能把冰面的侧面当成顶面支撑。
+    private static void CheckSlopeSideSupport()
+    {
+        Vector3 origin = NextPosition();
+        SO_CPhysics config = ScriptableObject.CreateInstance<SO_CPhysics>();
+        config.hideFlags = HideFlags.DontSave;
+        config.groundLayer = 1 << 6;
+        config.wallLayer = 1 << 6;
+        config.maxClimbAngle = 45f;
+        config.boxCastH = new Vector2(.75f, .1f);
+        config.boxCastV = new Vector2(.02f, 1.6f);
+        try
+        {
+            float slope = 30f * Mathf.Deg2Rad;
+            Collider2D ground = Solid(origin + Vector3.down *
+                (Mathf.Tan(slope) * .76f + .1f / Mathf.Cos(slope)), new Vector2(6f, .2f));
+            ground.transform.rotation = Quaternion.Euler(0f, 0f, -30f);
+            Collider2D iceSide = Solid(origin + new Vector3(-2.758f, .165f, 0f),
+                new Vector2(4f, .37f));
+            Transform foot = NewObject("ice side foot", origin + Vector3.down * .057f).transform;
+            Transform side = NewObject("ice side probe", origin + Vector3.right * 10f).transform;
+            EnvironmentCheckBox box = ProbeBox(origin + Vector3.up * .77f, config, foot, side, side, side);
+            box.GetComponent<BoxCollider2D>().size = new Vector2(1.52f, 1.54f);
+            Physics2D.SyncTransforms();
+            box.Query();
+            Check(box.Grounded && box.Ground == ground && box.DebugGroundNormal.x > .2f,
+                $"冰面侧面接触不替换坡面支撑 [{box.Ground?.name} / {iceSide.name} / {box.DebugGroundNormal}]");
+            Vector2 request = box.CandidateRequest(new Vector2(-.08f, Mathf.Tan(slope) * .08f));
+            Check(Mathf.Abs(request.x) < .01f && Mathf.Abs(request.y) < .01f,
+                $"冰面侧挡使单个箱体的沿坡请求停止 [{request}]");
+        }
+        finally { Object.DestroyImmediate(config); }
+    }
+
+    // F_6.2_7-5：冰面侧挡裁掉箱体位移后，接触对须把推动者退到不重叠处，且不登记无效施力。
+    private static void CheckIceSideContactFeedback()
+    {
+        Vector3 origin = NextPosition();
+        SO_CPhysics boxConfig = ScriptableObject.CreateInstance<SO_CPhysics>();
+        SO_CPhysics pusherConfig = ScriptableObject.CreateInstance<SO_CPhysics>();
+        boxConfig.hideFlags = pusherConfig.hideFlags = HideFlags.DontSave;
+        boxConfig.groundLayer = boxConfig.wallLayer = 1 << 6;
+        boxConfig.maxClimbAngle = 45f;
+        boxConfig.boxCastH = new Vector2(.75f, .1f);
+        boxConfig.boxCastV = new Vector2(.02f, 1.6f);
+        // 推动者在此反例中无局部静态阻挡，隔离接触对反馈本身。
+        pusherConfig.groundLayer = pusherConfig.wallLayer = 0;
+        try
+        {
+            float slope = 30f * Mathf.Deg2Rad;
+            Collider2D ground = Solid(origin + Vector3.down *
+                (Mathf.Tan(slope) * .76f + .1f / Mathf.Cos(slope)), new Vector2(6f, .2f));
+            ground.transform.rotation = Quaternion.Euler(0f, 0f, -30f);
+            Collider2D iceSide = Solid(origin + new Vector3(-2.758f, .165f, 0f),
+                new Vector2(4f, .37f));
+            Transform foot = NewObject("feedback foot", origin + Vector3.down * .057f).transform;
+            Transform side = NewObject("feedback side", origin + Vector3.right * 10f).transform;
+            EnvironmentCheckBox box = ProbeBox(origin + Vector3.up * .77f, boxConfig, foot, side, side, side);
+            box.GetComponent<BoxCollider2D>().size = new Vector2(1.52f, 1.54f);
+            EnvironmentCheckBox pusher = ProbeBox(origin + new Vector3(1.255f, .77f, 0f),
+                pusherConfig, side, side, side, side);
+            Physics2D.SyncTransforms();
+            box.Query();
+            Check(box.Grounded && box.Ground == ground, "受阻接触对仍保留坡面支撑");
+            var solver = new PhysicsSolverMgr();
+            solver.AddPhyBoX(box.Prediction(new Vector2(-.08f, Mathf.Tan(slope) * .08f), -4f));
+            solver.AddPhyBoX(pusher.Prediction(new Vector2(-.14f, 0f), -7f));
+            typeof(PhysicsSolverMgr).GetMethod("ContactForSolution", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(solver, null);
+            float overlap = box.GetComponent<BoxCollider2D>().bounds.extents.x +
+                pusher.GetComponent<BoxCollider2D>().bounds.extents.x -
+                Mathf.Abs((box.transform.position.x + box.Request.x) -
+                    (pusher.transform.position.x + pusher.Request.x));
+            Check(Mathf.Abs(box.Request.x) < .01f && box.BlockedDirection < 0f,
+                $"冰面侧挡继续约束箱体 [{box.Request}]");
+            Check(overlap <= .003f, $"回算后推动者与被挡箱体不再深度重叠 [{overlap}]");
+            Check(box.DebugDynamicForceCount == 0, "被冰面挡住时不登记不可行接触力");
+            iceSide.enabled = false;
+            Physics2D.SyncTransforms();
+            solver.AddPhyBoX(box.Prediction(new Vector2(-.08f, Mathf.Tan(slope) * .08f), -4f));
+            solver.AddPhyBoX(pusher.Prediction(new Vector2(-.14f, 0f), -7f));
+            typeof(PhysicsSolverMgr).GetMethod("ContactForSolution", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(solver, null);
+            Check(box.DebugDynamicForceCount > 0, "无冰面侧挡时仍可登记推箱接触力");
+            // 其它来源可抵消净被动速度；仍须清除这条已不可行的接触来源。
+            box.SetContactStack(pusher, -2f);
+            iceSide.enabled = true;
+            Physics2D.SyncTransforms();
+            solver.AddPhyBoX(box.Prediction(new Vector2(-.08f, Mathf.Tan(slope) * .08f), -4f));
+            solver.AddPhyBoX(pusher.Prediction(new Vector2(-.14f, 0f), -7f));
+            typeof(PhysicsSolverMgr).GetMethod("ContactForSolution", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(solver, null);
+            ForceData stopped = box.ContactForce(pusher);
+            Check(stopped.type == E_PhyForceType.fadeAway && Mathf.Abs(stopped.speedStacking) < .0001f,
+                "原有推箱力遇冰面侧挡后退出并清空朝障碍累计速度");
+        }
+        finally
+        {
+            Object.DestroyImmediate(boxConfig);
+            Object.DestroyImmediate(pusherConfig);
+        }
+    }
+
+    // F_6.2_6-7：沿坡的基础 Y 若撞上坡顶平台底面，不能仍把该段上升交给引擎反复挤回。
+    private static void CheckSlopeCeilingConstraint()
+    {
+        Vector3 origin = NextPosition();
+        SO_CPhysics config = ScriptableObject.CreateInstance<SO_CPhysics>();
+        config.hideFlags = HideFlags.DontSave;
+        config.groundLayer = 1 << 6;
+        config.wallLayer = 1 << 6;
+        config.maxClimbAngle = 45f;
+        config.boxCastH = new Vector2(.75f, .1f);
+        config.boxCastV = new Vector2(.02f, 1.6f);
+        try
+        {
+            float slope = 30f * Mathf.Deg2Rad;
+            Collider2D ground = Solid(origin + Vector3.down *
+                (Mathf.Tan(slope) * .76f + .1f / Mathf.Cos(slope)), new Vector2(6f, .2f));
+            ground.transform.rotation = Quaternion.Euler(0f, 0f, 30f);
+            Collider2D platform = Solid(origin + Vector3.up * 1.65f, new Vector2(4f, .2f));
+            Transform foot = NewObject("blocked slope foot", origin + Vector3.down * .057f).transform;
+            Transform side = NewObject("blocked slope side", origin + Vector3.right * 10f).transform;
+            EnvironmentCheckBox box = ProbeBox(origin + Vector3.up * .77f, config, foot, side, side, side);
+            box.GetComponent<BoxCollider2D>().size = new Vector2(1.52f, 1.54f);
+            Physics2D.SyncTransforms();
+            box.Query();
+            Check(box.Grounded && box.Ground == ground, "坡顶平台下方仍由坡面提供支撑");
+            Vector2 verticalOffsetRequest = box.CandidateRequest(Vector2.zero, Vector2.up * .1f);
+            Check(verticalOffsetRequest.y < .02f,
+                $"坡顶平台底面限制实体间向上挤出 [{verticalOffsetRequest}]");
+            Vector2 requested = box.CandidateRequest(new Vector2(.3f, Mathf.Tan(slope) * .3f));
+            Check(requested.x < .04f && requested.y < .03f,
+                $"坡顶平台底面阻止沿坡上升 [{requested} / {platform.name}]");
+            platform.transform.position = origin + new Vector3(2.8f, 1.8f, 0f);
+            Physics2D.SyncTransforms();
+            requested = box.CandidateRequest(new Vector2(.3f, Mathf.Tan(slope) * .3f));
+            Check(requested.x < .27f && requested.y < .16f,
+                $"坡顶平台边缘限制进入后的上升 [{requested}]");
+        }
+        finally { Object.DestroyImmediate(config); }
     }
 
     // 调用真实贴墙状态和角色限速，不使用把 VerticalTransmission 盖空的接触夹具。
@@ -757,6 +968,21 @@ public sealed class EnvironmentCheckCharacter : BasePhysicsEntity
     public bool Grounded => nowGemetry.isGrounded;
     public Collider2D Left => nowGemetry.leftWallCollider;
     public bool OnLeft => nowGemetry.onLeftWall;
+    public float CandidateAllowedX(float x)
+    {
+        var bounds = boxCollider.bounds;
+        var frame = new EntityMotionFrame(Vector2.zero, Vector2.zero, new Vector2(x, 0f), Vector2.zero);
+        var sample = new PhysicalBoundingBox
+        {
+            point = (Vector2)bounds.center + frame.plannedWorldDelta,
+            size = bounds.extents,
+            motionFrame = frame,
+            myPhyBox = this
+        };
+        typeof(BasicEntity).GetMethod("ProbeCandidateEnvironment", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(this, new object[] { sample });
+        return entitySolutionResult.allowedHorizontalDelta;
+    }
 }
 
 public sealed class EnvironmentCheckBox : PhysicalBox
@@ -795,6 +1021,56 @@ public sealed class EnvironmentCheckBox : PhysicalBox
     public Collider2D Left => nowGemetry.leftWallCollider;
     public bool OnLeft => nowGemetry.onLeftWall;
     public bool Top => nowGemetry.istop;
+    public Vector2 Request => entitySolutionResult.requestedWorldDelta;
+    public float BlockedDirection => entitySolutionResult.blockedHorizontalDirection;
+    public ForceData ContactForce(BasicEntity source)
+    {
+        var forces = (Dictionary<IDynamicAddForce, ForceData>)EnvironmentIntegrationChecks.EffectField(this, "dynamicForces");
+        return forces[source];
+    }
+    public void SetContactStack(BasicEntity source, float speed)
+    {
+        var forces = (Dictionary<IDynamicAddForce, ForceData>)EnvironmentIntegrationChecks.EffectField(this, "dynamicForces");
+        ForceData data = forces[source];
+        data.speedStacking = speed;
+        forces[source] = data;
+    }
+    public PhysicalBoundingBox Prediction(Vector2 baseDelta, float horizontalSpeed)
+    {
+        EntityMotionFrame frame = new EntityMotionFrame(Vector2.zero,
+            new Vector2(horizontalSpeed, 0f), baseDelta, Vector2.zero);
+        typeof(BasicEntity).GetField("motionFrame", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(this, frame);
+        entitySolutionResult = default;
+        Bounds bounds = boxCollider.bounds;
+        return new PhysicalBoundingBox
+        {
+            point = (Vector2)bounds.center + frame.plannedWorldDelta,
+            size = bounds.extents,
+            motionFrame = frame,
+            myPhyBox = this
+        };
+    }
+    public Vector2 CandidateRequest(Vector2 baseDelta, Vector2 offset = default)
+    {
+        EntityMotionFrame frame = new EntityMotionFrame(Vector2.zero, Vector2.zero, baseDelta, Vector2.zero);
+        typeof(BasicEntity).GetField("motionFrame", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(this, frame);
+        entitySolutionResult.displacementOffset = offset;
+        Bounds bounds = boxCollider.bounds;
+        var sample = new PhysicalBoundingBox
+        {
+            point = (Vector2)bounds.center + frame.plannedWorldDelta,
+            size = bounds.extents,
+            motionFrame = frame,
+            myPhyBox = this
+        };
+        typeof(BasicEntity).GetMethod("ProbeCandidateEnvironment", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(this, new object[] { sample });
+        typeof(BasicEntity).GetMethod("FinalizeRequestedDisplacement", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(this, null);
+        return entitySolutionResult.requestedWorldDelta;
+    }
 }
 
 public sealed class EnvironmentCheckSlide : BasicPhysicalObject, IWallSlideSurface

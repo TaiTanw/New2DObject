@@ -19,8 +19,8 @@ public class PhysicalBox : BasicEntity
         float a = Vector2.SignedAngle(Vector2.up, transform.up);
         ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
         contactFilter.SetLayerMask(cPhysics.groundLayer);
-        RaycastHit2D hit = Physics2D.defaultPhysicsScene.BoxCast(groundV.position, cPhysics.boxCastH, a,
-            -transform.up, 0f, contactFilter);
+        RaycastHit2D hit = FindGroundHit(groundV.position, cPhysics.boxCastH, a,
+            -transform.up, contactFilter);
         // 顶头与脚下同属接触查询，沿用同一层掩码和 Trigger 过滤。
         RaycastHit2D topHit = Physics2D.defaultPhysicsScene.BoxCast(upV.position, cPhysics.boxCastH, a,
             transform.up, 0f, contactFilter);

@@ -22,7 +22,7 @@ public static class PhysicsEditorObservationBridge
         Vector2 unconstrainedDelta,
         Vector2 requestedDelta,
         Vector2 requestedTarget,
-        bool staticWallClamped);
+        bool horizontalEnvironmentBlocked);
     public delegate void ContactPairObserver(
         BasicEntity entityA,
         BasicEntity entityB,
@@ -173,12 +173,12 @@ public static class PhysicsEditorObservationBridge
         Vector2 unconstrainedDelta,
         Vector2 requestedDelta,
         Vector2 requestedTarget,
-        bool staticWallClamped)
+        bool horizontalEnvironmentBlocked)
     {
         MovementRequestedObserver[] observers = movementObservers;
         for (int i = 0; i < observers.Length; i++)
         {
-            try { observers[i](entity, solverOffset, unconstrainedDelta, requestedDelta, requestedTarget, staticWallClamped); }
+            try { observers[i](entity, solverOffset, unconstrainedDelta, requestedDelta, requestedTarget, horizontalEnvironmentBlocked); }
             catch (Exception error) { Debug.LogException(error); }
         }
     }

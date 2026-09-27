@@ -44,8 +44,8 @@ public abstract class BasePhysicsEntity : BasicEntity
         ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
         contactFilter.SetLayerMask(cPhysics.groundLayer);
         // 地面检测（只做检测，不做响应）
-        RaycastHit2D hit = Physics2D.defaultPhysicsScene.BoxCast(groundV.position, cPhysics.boxCastH, 0,
-            Vector2.down, 0f, contactFilter);
+        RaycastHit2D hit = FindGroundHit(groundV.position, cPhysics.boxCastH, 0f,
+            Vector2.down, contactFilter);
         //缓存贴地法线
         nowGemetry.groundNormal = hit.normal;
         bool onGroundNow = false;
