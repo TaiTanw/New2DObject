@@ -21,6 +21,7 @@ public sealed class EntityEnvironmentContext
         public bool hasMovement;
         public bool hasStateVelocity;
         public IDynamicEnvironmentForce dynamicForce;
+        public int parameterVersion;
     }
 
     // 写入端指向实体自身。通过既有窄口更新数值，不直接接管实体的字典。
@@ -44,9 +45,10 @@ public sealed class EntityEnvironmentContext
     /// 瞬时物理快照
     /// </summary>
     public EntityEnvironmentFrame Frame { get; private set; } = EntityEnvironmentFrame.Empty;
+    public EntityWaterFrame WaterFrame { get; private set; }
 
 #if UNITY_EDITOR
-    /// <summary>[EditorOnly] 绑定来源数，不包含已退出、仍在实体中衰减的动态速度。</summary>
+    /// <summary>[EditorOnly] 当前有效的环境来源数，不另存已退出接触力。</summary>
     public int DebugSourceCount => bindings.Count;
 #endif
 
@@ -59,11 +61,24 @@ public sealed class EntityEnvironmentContext
         // 生命周期保护：禁用或已销毁的双方不能新建关系。
         if (!IsActive || !source.IsActive) return;
         // 接入逻辑：持续命中的来源不重复登记，保留实体已积累的运动状态。
-        if (bindings.ContainsKey(source)) return;
+        if (bindings.TryGetValue(source, out Binding existing))
+        {
+            // 同来源仅在真正改值后的正常相位重写参数；不退源、不清刚体真实动量。
+            if (source.Source is IEnvironmentParameterSource parameters
+                && existing.parameterVersion != parameters.EnvironmentParameterVersion)
+            {
+                RegisterEffects(source, existing);
+                // 最后一个持续项被抽走后不留下空绑定；表面／水事实仍独立采样。
+                if (!existing.hasMovement && !existing.hasStateVelocity && existing.dynamicForce == null)
+                    Detach(source);
+            }
+            return;
+        }
         // 能力选择：三类持续能力都缺席时不建绑定；零值仍是有效能力，表面采样独立进行。
         IEnvironmentSource provider = source.Source;
-        if (!(provider is IMovementSpeedModifier) && !(provider is IStateVelocitySource)
-            && !(provider is IDynamicEnvironmentForce)) return;
+        if (!EnvironmentCapabilities.TryGetMovement(provider, out _)
+            && !EnvironmentCapabilities.TryGetStateVelocity(provider, out _)
+            && EnvironmentCapabilities.ResolveDynamicForce(provider) == null) return;
         //首次接入
         var binding = new Binding();
         bindings.Add(source, binding);
@@ -73,30 +88,39 @@ public sealed class EntityEnvironmentContext
     }
 
     /// <summary>
-    /// [ENV-04] 首次接入时按能力写入实体的三类原有容器，并在 Binding 上留下撤销凭据。
+    /// [ENV-04] 首次接入或来源配置改值后，按能力写入原有参数容器，Binding 保留撤销凭据。
     /// 冰面的动态参数去 ENV-05；下一物理速度阶段如何消费这些容器去 ENV-06。
     /// </summary>
     private void RegisterEffects(EnvironmentRegistration source, Binding binding)
     {
         IEnvironmentSource provider = source.Source;
-        // 能力选择：有移速修饰就登记，即使值为零也有效；缺席由“没实现接口”表示。
-        if (provider is IMovementSpeedModifier movement)
+        // 同源只撤销已经缺席的单项，其余来源关系和刚体真实动量保持。
+        bool hasMovement = EnvironmentCapabilities.TryGetMovement(provider, out float movement);
+        if (hasMovement)
         {
-            receiver.StatePowerRegistration(source, movement.MovementSpeedOffset);
-            binding.hasMovement = true;
+            receiver.StatePowerRegistration(source, movement);
         }
+        else if (binding.hasMovement) receiver.StatePowerCancellation(source);
+        binding.hasMovement = hasMovement;
         // 能力选择：持续速度独立于移速修饰，以 Registration 为稳定来源键。
-        if (provider is IStateVelocitySource velocity)
+        bool hasVelocity = EnvironmentCapabilities.TryGetStateVelocity(provider, out Vector2 velocity);
+        if (hasVelocity)
         {
-            receiver.AddSpeedStatus(source, velocity.StateVelocity);
-            binding.hasStateVelocity = true;
+            receiver.AddSpeedStatus(source, velocity);
         }
+        else if (binding.hasStateVelocity) receiver.RemoveSpeedStatus(source);
+        binding.hasStateVelocity = hasVelocity;
         // 能力选择：仅动态施力需要具体组件按受力者产生参数；动态键仍是该组件接口。
-        if (provider is IDynamicEnvironmentForce dynamicForce)
+        IDynamicEnvironmentForce dynamicForce = EnvironmentCapabilities.ResolveDynamicForce(provider);
+        if (binding.dynamicForce != null && binding.dynamicForce != dynamicForce)
+            receiver.RemoveForce(binding.dynamicForce);
+        if (dynamicForce != null)
         {
             receiver.AddForce(dynamicForce, dynamicForce.CreateEnvironmentForce(receiver));
-            binding.dynamicForce = dynamicForce;
         }
+        binding.dynamicForce = dynamicForce;
+        binding.parameterVersion = provider is IEnvironmentParameterSource parameters
+            ? parameters.EnvironmentParameterVersion : 0;
     }
 
     /// <summary>
@@ -112,7 +136,7 @@ public sealed class EntityEnvironmentContext
         // 按登记凭据撤销，而不是重新询问来源当前有什么能力。
         if (binding.hasMovement) receiver.StatePowerCancellation(source);
         if (binding.hasStateVelocity) receiver.RemoveSpeedStatus(source);
-        // RemoveForce 只停止控制并切到 fadeAway；取得的速度仍归实体，不在这里清零。
+        // RemoveForce 只撤销环境控制；取得的真实惯性仍在刚体中，不在这里清零。
         if (binding.dynamicForce != null) receiver.RemoveForce(binding.dynamicForce);
     }
 
@@ -121,7 +145,8 @@ public sealed class EntityEnvironmentContext
     /// 相位 2 一次核对脚下和区域：脚下仍按支撑 Collider，区域按实体本帧重叠到的 Trigger。
     /// [ENV-02] 职能：实体环境刷新入口；核对事实 → 核对管线 → 采样。
     /// </summary>
-    public void RefreshEnvironment(Collider2D ground, List<Collider2D> regionOverlaps)
+    public void RefreshEnvironment(Collider2D ground, List<Collider2D> regionOverlaps, Vector2? waterSamplePoint = null,
+        Bounds? waterBody = null)
     {
         // 核对事实：先收齐脚下与区域身份，同一来源只在完整集合中保留一次。
         IEnvironmentSource groundSource = EnvironmentCapabilities.FindHost(ground);
@@ -131,6 +156,39 @@ public sealed class EntityEnvironmentContext
         SynchronizeSources();
         // 采样：复用脚下宿主，区域命中不提供脚下参数。
         SampleGroundFrame(groundSource);
+        SampleWaterFrame(regionOverlaps, waterSamplePoint, waterBody);
+    }
+
+    private void SampleWaterFrame(List<Collider2D> regions, Vector2? point, Bounds? body)
+    {
+        bool submerged = false, swimming = false;
+        bool partial = false, surfaceSwimming = false;
+        float surfaceY = float.NegativeInfinity;
+        // 事实缺席：未提供角色采样点或区域命中时，不沿用上一帧水事实。
+        if (point.HasValue && regions != null)
+            foreach (Collider2D region in regions)
+            {
+                IEnvironmentSource source = EnvironmentCapabilities.FindHost(region);
+                // 实际逻辑：在同一有效水源内核对淹没和游泳，禁止跨来源拼接条件。
+                IWaterRegion water = EnvironmentCapabilities.ResolveWater(source);
+                if (water == null || !source.IsEnvironmentActive) continue;
+                // 上缘入水独立决定淹没，氧气不读取水面动作或按键。
+                if (water.ContainsWaterPoint(region, point.Value))
+                {
+                    submerged = true;
+                    swimming |= water.SwimmingEnabled;
+                }
+                // 水面事实：身体跨过同一水源的上边界，且下缘仍在其有效范围。
+                if (!body.HasValue || !water.TryGetSurfaceY(region, body.Value.center.x, out float height)
+                    || body.Value.max.y <= height || body.Value.min.y >= height
+                    || !water.ContainsWaterPoint(region, new Vector2(body.Value.center.x, body.Value.min.y))) continue;
+                partial = true;
+                // 多池重叠：优先选允许游泳的水面，再在同类中选最高者；不拼接其它来源的许可。
+                if ((water.SwimmingEnabled && !surfaceSwimming) ||
+                    (water.SwimmingEnabled == surfaceSwimming && height > surfaceY)) surfaceY = height;
+                surfaceSwimming |= water.SwimmingEnabled;
+            }
+        WaterFrame = new EntityWaterFrame(submerged, swimming, partial, surfaceSwimming, partial ? surfaceY : 0f);
     }
 
     /// <summary>核对事实：每次重建脚下与区域的完整来源集合，只收集身份，不登记或撤销效果。</summary>
@@ -173,7 +231,17 @@ public sealed class EntityEnvironmentContext
         // 能力仍从发现到的同一个环境来源读取；没有相应接口时采用中性采样值。
         IGroundResponse response = source as IGroundResponse;
         IPlatformMotion platform = source as IPlatformMotion;
-        Frame = new EntityEnvironmentFrame(response?.SlowingEffect ?? 1f, response?.JumpHeightNum ?? 0f,
+        float slowing = response?.SlowingEffect ?? 1f;
+        float jumpOffset = response?.JumpHeightNum ?? 0f;
+        // 新列表也可挂在普通唯一宿主上；只有当前脚下来源的项参与支撑采样。
+        if (source is BasicPhysicalObject host)
+        {
+            // 旧地面项一旦抽走就使用中性值，不从旧接口重新补回。
+            if (host is BaseGround || host.IsTriggerEnvironment) { slowing = 1f; jumpOffset = 0f; }
+            if (host.TryGetGroundSlowingMultiplier(out float configuredSlowing)) slowing = configuredSlowing;
+            if (host.TryGetGroundJumpMultiplier(out float configuredJump)) jumpOffset = configuredJump - 1f;
+        }
+        Frame = new EntityEnvironmentFrame(slowing, jumpOffset,
             platform?.Delta ?? Vector2.zero);
     }
 
@@ -186,5 +254,6 @@ public sealed class EntityEnvironmentContext
         removalBuffer.Clear();
         currentSources.Clear();
         Frame = EntityEnvironmentFrame.Empty;
+        WaterFrame = default;
     }
 }

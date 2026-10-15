@@ -66,6 +66,12 @@ public class InputControlMgr : BaseAutoMonoMgr<InputControlMgr>
         player1["Move"].canceled += ctx =>
             inputData.moveInput = 0;
 
+        player1["Vertical"].performed += ctx =>
+            inputData.verticalInput = ctx.ReadValue<float>();
+
+        player1["Vertical"].canceled += ctx =>
+            inputData.verticalInput = 0;
+
         player1["Jump"].started += ctx =>
         {
             inputData.jumpPressed = true;

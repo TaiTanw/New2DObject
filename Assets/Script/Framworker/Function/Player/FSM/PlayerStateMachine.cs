@@ -142,6 +142,8 @@ public class PlayerStateMachine
     {
         //传入执行，状态类负责实际功能
         onState.Update();
+        // 竖直方向只透传给执行层，地面、空中与贴墙的状态切换不读它。
+        nowMovement.verticalInput = input.verticalInput;
         //效果已经触发，则关闭，防止持续响应
         input.jumpPressed = false;//触发类型按键全部统一由状态机复原
         input.jumpRelease = false;

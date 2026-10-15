@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,13 +16,16 @@ public class MonoPublicMgr : BaseAutoMonoMgr<MonoPublicMgr>
 
     public static bool IsQuitting;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetQuitState() => IsQuitting = false;
+
     private void OnApplicationQuit()
     {
         IsQuitting = true;
     }
     public void Init()
     {
-
+        Physics2D.simulationMode = SimulationMode2D.Script;
     }
 
     public UnityAction[] actionsLen=new UnityAction[7];
@@ -80,6 +83,9 @@ public class MonoPublicMgr : BaseAutoMonoMgr<MonoPublicMgr>
         for (int i = 0; i < actionsLen.Length; i++)
         {
             actionsLen[i]?.Invoke();
+            // 平台/水的几何变化先同步，再采样；整个世界仅在相位 4 推进一次固定模拟。
+            if (i == 0) Physics2D.SyncTransforms();
+            if (i == 4) Physics2D.Simulate(Time.fixedDeltaTime);
 #if UNITY_EDITOR
             PhysicsEditorObservationBridge.CompletePhysicsPhase(i);
 #endif

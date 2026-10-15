@@ -1,6 +1,5 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using PhyData;
 
@@ -24,14 +23,11 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     private float jumpRelNum = 0.6f;
 
     public float speed = 15;    // 基础水平移速
-
     public float upSpeed = 15;//基础跳跃速度
     #endregion
 
 
     #region 控制流数据=================================================================
-    //角色状态机内部事件系统引用(一次性注册事件（因为生命周期和局部事件系统一致，所以暂时不用考虑注销物体（随物体删除一并销毁
-    //LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem;
     /// <summary>
     /// 角色可执行动作
     /// </summary>
@@ -41,18 +37,26 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     // 墙跳触发时的选侧：负数为左墙，正数为右墙。物理消费前不再跟随后续输入。
     float wallJumpSide;
     bool jump;
+    internal bool HasPendingJump => jump;
     //跳跃斩断按钮
     bool jumpReleaseSide;
     public float MovingDirection => playActionData.onMove;
 
     public float Mobility => speed;
+    protected override bool MotionExecutionReady => playActionData != null;
     #endregion
 
 
-    private void Start()
+    public void ClearPendingActions()
     {
-        //简单的位置设置，后续优化=======================================================================================================
-        transform.position = new Vector3(-3, -1, -1);
+        jump = wallJump = jumpReleaseSide = false;
+        wallJumpSide = 0f;
+    }
+
+    protected override void OnMotionRefresh(bool relocated)
+    {
+        base.OnMotionRefresh(relocated);
+        ClearPendingActions();
     }
 
     #region 瞬时触发事件
@@ -61,14 +65,11 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     /// </summary>
     void Jump()
     {
-        //print("物理跳跃触发");
         jump = true;
     }
 
     void JumpRelease()
     {
-        //print("跳跃斩断1111111111");
-
         jumpReleaseSide = true;
     }
     void WallJump()
@@ -81,20 +82,37 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     public void Init(ReadOnly_ActionData actionData, LocalEventSystem<PlayerStateMachine.E_playEvent> fsmEventSystem)
     {
         playActionData = actionData;
+        SynchronizeMotionParticipation();
         //注册事件
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump, Jump);
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jumpRelease, JumpRelease);
         fsmEventSystem.AddEventListener(PlayerStateMachine.E_playEvent.wallJump, WallJump);
     }
 
+    /// <summary>
+    /// 按住向下时，放开脚下或本步下落路径中命中的单向平台顶面。
+    /// </summary>
+    protected override bool WantsDropThroughCurrentOneWay(Collider2D support, Vector2 normal)
+    {
+        // 安全：动作数据还没注入时不能读上下输入。
+        if (playActionData == null) return false;
+        // 实际逻辑：负向超过一半才算按下。侧面和普通地面不放开。
+        return playActionData.verticalInput < -0.5f
+            && IsSolidOneWayTop(support, normal);
+    }
+
     protected override float HorizontalSpeedCalculation()
     {
+        // 安全：角色尚未组装动作时没有主动操作。
+        if (playActionData == null) return 0f;
+        // 实际逻辑：环境修饰在后面乘 nowPhyNum。
         return playActionData.onMove * speed;
     }
 
     protected override void PhyEventUpdate()
     {
-        //playActionData.onMove=1;
+        // 真正消费动作时才递增，碰撞顶起不触发跳跃起手。
+        if (jump || wallJump) playerPhysicsData.jumpSequence++;
         //普通跳跃
         if (jump)
         {
@@ -138,6 +156,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     protected override void VerticalTransmission()
     {
+        if (playActionData == null) return;
         // 只有逻辑处于贴墙状态且正在下落时，才应用墙滑限速。
         if (playActionData.NowState != PlayerStateMachine.E_playerState.onWallSliding
             || playerPhysicsData.verticalSpeed >= 0) return;

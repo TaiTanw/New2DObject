@@ -1,17 +1,26 @@
-﻿using PhyData;
+using PhyData;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PhysicalBox : BasicEntity
 {
+    /// <summary>最近一次相位 1 的箱底几何支撑事实。关系规则须另查参与资格，并在双方本步采样后消费。</summary>
+    public bool IsSupported => nowGemetry != null && nowGemetry.isGrounded;
+
     protected override void Awake()
     {
         base.Awake();
-        // 当前推箱解算只处理平移。冻结物理根节点旋转；表现子节点仍可独立旋转。
-        rb.freezeRotation = true;
-        rb.angularVelocity = 0f;
+        defaultPosition = rb.position;
     }
+
+    private Vector2 defaultPosition;
+
+    /// <summary>
+    /// 规则侧显式恢复默认：回到首次 Awake 记录的位置，清运动并重新采样。
+    /// 不做阻挡校验；调用时机由关卡刷新规则决定。暂停、再次启用都不改默认记录。
+    /// </summary>
+    public void RestoreDefault() => RefreshMotionState(defaultPosition);
 
     protected override void GeometricQuery()
     {
@@ -19,12 +28,12 @@ public class PhysicalBox : BasicEntity
         float a = Vector2.SignedAngle(Vector2.up, transform.up);
         ContactFilter2D contactFilter = new ContactFilter2D { useTriggers = false };
         contactFilter.SetLayerMask(cPhysics.groundLayer);
-        RaycastHit2D hit = FindGroundHit(groundV.position, cPhysics.boxCastH, a,
+        RaycastHit2D hit = FindGroundHit(ProbePosition(groundV), cPhysics.boxCastH, a,
             -transform.up, contactFilter);
         // 顶头与脚下同属接触查询，沿用同一层掩码和 Trigger 过滤。
-        RaycastHit2D topHit = Physics2D.defaultPhysicsScene.BoxCast(upV.position, cPhysics.boxCastH, a,
+        RaycastHit2D topHit = PhysicsWorld.BoxCast(ProbePosition(upV), cPhysics.boxCastH, a,
             transform.up, 0f, contactFilter);
-        nowGemetry.istop = topHit.collider != null;
+        nowGemetry.istop = topHit.collider != null && !IgnoresCollider(topHit.collider);
         //缓存真实命中法线；斜坡位移与着地判定必须使用表面信息
         nowGemetry.groundNormal = hit.normal;
         bool onGroundNow = false;
@@ -43,9 +52,9 @@ public class PhysicalBox : BasicEntity
         nowGemetry.groundCollider = onGroundNow ? hit.collider : null;
         // 左右墙只记几何接触。箱体没有贴墙下滑，不把侧面来源送进持续效果登记。
         contactFilter.SetLayerMask(cPhysics.wallLayer);
-        RaycastHit2D hit1 = Physics2D.defaultPhysicsScene.BoxCast(leftV.position, cPhysics.boxCastV, a,
+        RaycastHit2D hit1 = PhysicsWorld.BoxCast(ProbePosition(leftV), cPhysics.boxCastV, a,
             -transform.right, 0f, contactFilter);
-        RaycastHit2D hit2 = Physics2D.defaultPhysicsScene.BoxCast(rightV.position, cPhysics.boxCastV, a,
+        RaycastHit2D hit2 = PhysicsWorld.BoxCast(ProbePosition(rightV), cPhysics.boxCastV, a,
             transform.right, 0f, contactFilter);
         nowGemetry.onLeftWall = false;
         nowGemetry.leftWallCollider = null;
