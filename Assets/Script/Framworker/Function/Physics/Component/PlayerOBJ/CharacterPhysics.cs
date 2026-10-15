@@ -24,6 +24,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     public float speed = 15;    // 基础水平移速
     public float upSpeed = 15;//基础跳跃速度
+    [SerializeField, Min(0f)] private float fourWaySpeed = 6f; // 游泳四向主动速度
     #endregion
 
 
@@ -44,6 +45,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     public float Mobility => speed;
     protected override bool MotionExecutionReady => playActionData != null;
+    protected override bool UsesWorldAxisMovement => playActionData != null && playActionData.FourWay != FourWayMode.None;
     #endregion
 
 
@@ -105,12 +107,20 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     {
         // 安全：角色尚未组装动作时没有主动操作。
         if (playActionData == null) return 0f;
+        if (playActionData.FourWay != FourWayMode.None)
+            return playActionData.onMove * fourWaySpeed;
         // 实际逻辑：环境修饰在后面乘 nowPhyNum。
         return playActionData.onMove * speed;
     }
 
     protected override void PhyEventUpdate()
     {
+        // 四向行为不叠普通跳跃或墙跳；仅清待消费操作，不清环境累计速度。
+        if (playActionData != null && playActionData.FourWay != FourWayMode.None)
+        {
+            ClearPendingActions();
+            return;
+        }
         // 真正消费动作时才递增，碰撞顶起不触发跳跃起手。
         if (jump || wallJump) playerPhysicsData.jumpSequence++;
         //普通跳跃
@@ -157,6 +167,29 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     protected override void VerticalTransmission()
     {
         if (playActionData == null) return;
+        // 水面悬浮：零输入和向上输入只稳定碰撞框中心；下潜仍用游泳速度，不靠按键改事实。
+        if ((playActionData.isSurfaceSwimming || playActionData.FourWay == FourWayMode.Swimming)
+            && playActionData.verticalInput >= 0f && !EnvironmentContext.WaterFrame.submerged
+            && EnvironmentContext.WaterFrame.surfaceSwimmingAvailable)
+        {
+            float dt = Time.fixedDeltaTime;
+            // 安全：无有效步长时不能用高度差反推速度。
+            if (dt <= 0f) return;
+            float maxStep = Mathf.Max(0f, fourWaySpeed * (1f + playerPhysicsData.nowPhyNum)) * dt;
+            float heightDelta = EnvironmentContext.WaterFrame.surfaceY - PhysicsWorld.ReadAabb(boxCollider).center.y;
+            float targetDelta = Mathf.Clamp(heightDelta, -maxStep, maxStep);
+            float carriedY = nowGemetry.isGrounded ? EnvironmentFrame.platformDelta.y : 0f;
+            // 只在水面保持目标高度；水下仍完整保留被动水流，平台本步仍只合成一次。
+            playerPhysicsData.verticalSpeed = (targetDelta - carriedY) / dt - playerPhysicsData.phyVSpeed;
+            return;
+        }
+        // 四向行为覆盖本步主动竖直速度；被动水流仍由原 phyVSpeed 合入运动快照。
+        if (playActionData.FourWay != FourWayMode.None)
+        {
+            playerPhysicsData.verticalSpeed = playActionData.verticalInput * fourWaySpeed
+                * (1f + playerPhysicsData.nowPhyNum);
+            return;
+        }
         // 只有逻辑处于贴墙状态且正在下落时，才应用墙滑限速。
         if (playActionData.NowState != PlayerStateMachine.E_playerState.onWallSliding
             || playerPhysicsData.verticalSpeed >= 0) return;

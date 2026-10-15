@@ -16,6 +16,10 @@ public class PlayerInputData
     public bool jumpRelease;       //跳跃是否长按中
 }
 /// <summary>
+/// 四向移动原因；由水体事实解析，不由按键决定
+/// </summary>
+public enum FourWayMode { None, Swimming, SurfaceSwimming }
+/// <summary>
 /// 持续性动作执行数据（瞬时动作靠事件触发
 /// </summary>
 public class MovementData 
@@ -32,6 +36,10 @@ public class MovementData
     /// 当前状态
     /// </summary>
     public PlayerStateMachine.E_playerState nowState; 
+    /// <summary>
+    /// 水面跃出期间：等待物理消费冲量并上升，期间不被水面重新捕获
+    /// </summary>
+    public bool surfaceJumpInProgress;
 }
 
 /// <summary>
@@ -45,6 +53,11 @@ public class ReadOnly_ActionData
     public float onMove => _data.onMove;
     public float verticalInput => _data.verticalInput;
     public PlayerStateMachine.E_playerState NowState =>_data.nowState;
+    public bool isSurfaceSwimming => NowState == PlayerStateMachine.E_playerState.surfaceSwimming;
+    public bool isSwimming => NowState == PlayerStateMachine.E_playerState.swimming || isSurfaceSwimming;
+    public bool surfaceJumpInProgress => _data.surfaceJumpInProgress;
+    public FourWayMode FourWay => isSurfaceSwimming ? FourWayMode.SurfaceSwimming
+        : isSwimming ? FourWayMode.Swimming : FourWayMode.None;
 
 }
 
@@ -112,11 +125,23 @@ public class Player : MonoBehaviour
     {
         inputData=null;
     }
+    /// <summary>
+    /// 按本步水体事实选择四向原因：淹没游泳，半露出水面游泳
+    /// </summary>
+    FourWayMode ResolveFourWay()
+    {
+        EntityWaterFrame water = playPDate.EnvironmentContext.WaterFrame;
+        if (water.submerged && water.swimmingAvailable) return FourWayMode.Swimming;
+        if (!water.submerged && water.surfaceSwimmingAvailable) return FourWayMode.SurfaceSwimming;
+        return FourWayMode.None;
+    }
     //float time;
     void Update()
     {
         //逻辑状态机更新，接收输入信息发送动作数据
-        fsm.Update(inputData);
+        fsm.Update(inputData, ResolveFourWay(), playPDate.HasPendingJump, playPDate.GetPlanarVelocity().y);
+        // 入水后撤销等待物理消费的跳跃，避免入水又离水时补执行
+        if (_ActionData.FourWay != FourWayMode.None) playPDate.ClearPendingActions();
     }
 
 }

@@ -57,6 +57,7 @@ public static class EnvironmentIntegrationChecks
             CheckSlopeFootprintSupport();
             CheckSlopeSideSupport();
             CheckWallSlideBehavior();
+            CheckSwimBehavior();
             Directory.CreateDirectory(".utmp/EnvironmentValidation");
             File.WriteAllLines(".utmp/EnvironmentValidation/checks.txt", passed);
             Debug.Log($"Environment integration: {passed.Count} checks passed.");
@@ -604,6 +605,45 @@ public static class EnvironmentIntegrationChecks
     // F_6.2_6-7：沿坡的基础 Y 若撞上坡顶平台底面，不能仍把该段上升交给引擎反复挤回。
 
     // 调用真实贴墙状态和角色限速，不使用把 VerticalTransmission 盖空的接触夹具。
+    private static void CheckSwimBehavior()
+    {
+        var geometry = new GeometryPhysicsData();
+        var read = new ReadOnly_GeometryPhysicsData(geometry, new PhysicalFunctionData());
+        var input = new PlayerInputData { moveInput = 1f, verticalInput = 1f };
+        var action = new MovementData();
+        var view = new ReadOnly_ActionData(action);
+        var fsm = new PlayerStateMachine();
+        fsm.InitData(read, input, action);
+
+        fsm.Update(input, FourWayMode.Swimming);
+        Check(action.nowState == PlayerStateMachine.E_playerState.swimming && view.FourWay == FourWayMode.Swimming,
+            "淹没事实进入水下游泳");
+        Near(new Vector2(action.onMove, action.verticalInput).magnitude, 1f, "水下斜向方向归一化");
+
+        fsm.Update(input, FourWayMode.SurfaceSwimming);
+        Check(action.nowState == PlayerStateMachine.E_playerState.surfaceSwimming && action.verticalInput == 0f,
+            "水面游泳不输出上浮方向");
+
+        bool jumped = false;
+        fsm.EventSystem.AddEventListener(PlayerStateMachine.E_playEvent.jump, () => jumped = true);
+        input.jumpPressed = true;
+        fsm.Update(input, FourWayMode.SurfaceSwimming);
+        Check(jumped && action.nowState == PlayerStateMachine.E_playerState.inAir && action.surfaceJumpInProgress,
+            "水面按跳跃切空中并发出原跳跃事件");
+
+        geometry.isGrounded = true;
+        fsm.Update(input, FourWayMode.SurfaceSwimming, true, 0f);
+        Check(action.nowState == PlayerStateMachine.E_playerState.inAir, "冲量未消费时不被水面重新捕获，也不误判着地");
+
+        fsm.Update(input, FourWayMode.SurfaceSwimming, false, -1f);
+        Check(!action.surfaceJumpInProgress && action.nowState == PlayerStateMachine.E_playerState.surfaceSwimming,
+            "跃出下落后交回水面游泳");
+
+        fsm.Update(input, FourWayMode.None);
+        Check(action.nowState == PlayerStateMachine.E_playerState.isOnGround && view.FourWay == FourWayMode.None,
+            "离水按当前几何恢复着地");
+    }
+
     private static void CheckWallSlideBehavior()
     {
         Vector3 position = NextPosition();
