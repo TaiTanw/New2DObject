@@ -24,7 +24,8 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
 
     public float speed = 15;    // 基础水平移速
     public float upSpeed = 15;//基础跳跃速度
-    [SerializeField, Min(0f)] private float fourWaySpeed = 6f; // 游泳四向主动速度
+    [SerializeField, Min(0f)] private float fourWaySpeed = 6f; // 游泳与飞行共用的四向主动速度
+    [SerializeField, Min(0f)] private float walkingRestoreTolerance = 0.02f;
     #endregion
 
 
@@ -46,8 +47,29 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
     public float Mobility => speed;
     protected override bool MotionExecutionReady => playActionData != null;
     protected override bool UsesWorldAxisMovement => playActionData != null && playActionData.FourWay != FourWayMode.None;
+    private bool flying;
+    public bool IsFlying => flying;
+    protected override bool UsesCollisionFreeMovement => flying;
+    protected override Vector2 CollisionFreeVelocity => playActionData == null ? Vector2.zero
+        : Vector2.ClampMagnitude(new Vector2(playActionData.onMove, playActionData.verticalInput), 1f) * fourWaySpeed;
     #endregion
 
+
+    /// <summary>切换穿墙四向移动；继续由公共相位写速度和模拟，恢复实心前检查当前位置。</summary>
+    public bool TrySetFlying(bool enabled)
+    {
+        if (!IsMotionReady) return false;
+        if (flying == enabled) return true;
+        if (!enabled && TryFindWalkingRestoreBlocker(walkingRestoreTolerance, out _)) return false;
+        flying = enabled;
+        boxCollider.isTrigger = enabled;
+        EndOneWayDrops();
+        ClearPendingActions();
+        ClearExternalMotionEffects();
+        playphyFunData.canLeftWall = playphyFunData.canRightWall = null;
+        RefreshMotionState(releaseEnvironmentEffects: true);
+        return true;
+    }
 
     public void ClearPendingActions()
     {

@@ -2,19 +2,24 @@
 
 ## 范围
 
-本次只实现角色的待机、地面移动、上升、下落和贴墙动画。推箱动画不在当前范围内，也不会读取尚未完成的推箱接触事实。
+当前实现待机、行走起手/循环、上升、下落、贴墙、水下游泳和水面游泳。人物切片来自 GameEmergence 的实体人物资源，直接替换旧动画；未迁移精神体动画。疾跑、推拉、死亡和通关片段已随本体控制器迁入，当前不增加对应玩法或播放入口。
 
-Animator Controller 不需要建立 Transition 或参数连线。`PresentationLayer` 通过 `Animator.Play` 直接选择已经关联好切片的 Base Layer 状态：
+`PresentationLayer` 通过 `Animator.Play` 选择 Base Layer 主行为，无需参数连线。来源控制器保留 `move → move_loop` 的退出时间衔接，持续行走自动进入循环：
 
 | 表现语义 | Controller 状态 | 切片类型 |
 |---|---|---|
 | 待机 | `On` | 循环 |
-| 地面移动 | `move` | 循环 |
+| 地面移动起手 | `move` | 单次，结束后进入 `move_loop` |
+| 持续地面移动 | `move_loop` | 循环 |
 | 起跳/重新起跳 | `Jump_Up` | 触发动作，单次 |
 | 持续上升 | `OnAir` | 循环 |
 | 持续下落 | `OnAir_Down` | 循环 |
 | 落地收势 | `Jump_Down` | 触发动作，单次 |
 | 贴墙下滑 | `Wall` | 循环 |
+| 水下待机 / 划水 | `SwimIdle` / `Swim` | 循环 |
+| 水面待机 / 划水 | `SurfaceSwimIdle` / `SurfaceSwim` | 循环 |
+
+基本四向飞行复用本体 `On` 待机切片，不要求精神体的 `Flight` 状态。游泳和飞行优先于几何着地，进入时清理旧跳跃表现，向上游动不会误播起跳。
 
 其中 `On` 与 `OnAir` 是当前 Controller 已有的状态名，分别承载 `idle` 与 `OnAir_Up` 切片。
 
@@ -61,4 +66,4 @@ PresentationLayer
 
 ## 运行时校验
 
-初始化时会检查上述七个 Animator 状态。任一状态缺失时，组件会输出明确错误并停用自身，避免状态名变更后静默播放错误动画。
+初始化时检查上述十二个 Animator 状态。任一状态缺失时，组件会输出明确错误并停用自身，避免状态名变更后静默播放错误动画。

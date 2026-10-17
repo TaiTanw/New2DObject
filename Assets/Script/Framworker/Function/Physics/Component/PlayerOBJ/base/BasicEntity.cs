@@ -12,20 +12,47 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     // 子类只改开关。刚体、探针、几何事实和这一步的速度分量都在这里，后面的相位只读写它们。
 
     protected virtual IPhysicsWorldAccess2D PhysicsWorld => UnityPhysicsWorldAccess2D.Instance;
+    /// <summary>
+    /// 自身是否具备物理执行条件
+    /// </summary>
     protected virtual bool MotionExecutionReady => true;
+    /// <summary>
+    /// 实体自身物理更新开关
+    /// </summary>
     protected virtual bool MotionUpdatesEnabled => true;
     protected virtual bool UsesWorldAxisMovement => false;
     protected virtual bool HasHorizontalDrive => false;
+    /// <summary>
+    /// 是否启用无碰撞位移
+    /// </summary>
     protected virtual bool UsesCollisionFreeMovement => false;
     protected virtual Vector2 CollisionFreeVelocity => Vector2.zero;
+    /// <summary>
+    /// 实体自身是否受到暂停影响
+    /// </summary>
     protected virtual bool ParticipatesInWorldPause => true;
     private static readonly HashSet<BasicEntity> activeEntities = new HashSet<BasicEntity>();
+    /// <summary>
+    /// 世界是否暂停
+    /// </summary>
     private static bool worldPaused;
     public static bool IsWorldPaused => worldPaused;
+    /// <summary>
+    /// 外部注入实体自己的“参加运动”总开关
+    /// </summary>
     private bool motionParticipation = true;
+    /// <summary>
+    /// 自身是否具备移动条件
+    /// </summary>
     public bool IsMotionReady => rb != null && boxCollider != null && MotionExecutionReady;
+    /// <summary>
+    /// 规则层是否允许移动
+    /// </summary>
     public bool IsMotionPermitted => motionParticipation && MotionUpdatesEnabled
         && !(worldPaused && ParticipatesInWorldPause);
+    /// <summary>
+    /// 是否参与运动
+    /// </summary>
     public bool IsMotionParticipating => isActiveAndEnabled && IsMotionReady && IsMotionPermitted && boxCollider.enabled;
     public Bounds BodyBounds => boxCollider != null ? PhysicsWorld.ReadAabb(boxCollider) : default;
     // 显式安置／刷新事实，供表现丢弃旧位置边沿，不改变运动计算。
@@ -99,6 +126,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     private float activeHorizontalVelocity;
     private Vector2 requestOrigin;
     private float commandedVerticalSpeed;
+    /// <summary>
+    /// 是否有运动指令
+    /// </summary>
     private bool hasMotionCommand;
     private int displacementStep;
     private EntityDisplacementObservation lastDisplacementObservation;
@@ -106,6 +136,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
     private readonly List<RaycastHit2D> groundProbeHits = new List<RaycastHit2D>();
     private readonly List<RaycastHit2D> terrainHits = new List<RaycastHit2D>();
+    /// <summary>
+    /// 原生接触点集合
+    /// </summary>
     private readonly List<ContactPoint2D> nativeContacts = new List<ContactPoint2D>();
     private readonly List<Collider2D> walkingRestoreHits = new List<Collider2D>();
     protected const float GroundProbeDistance = 0.02f;
@@ -147,7 +180,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         activeEntities.Clear();
         worldPaused = false;
     }
-
+    /// <summary>
+    /// 同步运动参与状态（同步而非设置）
+    /// </summary>
     protected void SynchronizeMotionParticipation()
     {
         // 安全：规则注入可能早于 Awake。
@@ -162,7 +197,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             OnMotionSuspended();
         }
     }
-
+    /// <summary>
+    /// 当运动被暂停时触发
+    /// </summary>
     protected virtual void OnMotionSuspended() { }
     public Vector2 GetPlanarVelocity() => rb != null ? rb.velocity : Vector2.zero;
     /// <summary>显式安置时以刚体实际位置及碰撞框几何换算根坐标，不读取插值显示位置。</summary>
@@ -251,8 +288,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     #endregion
 
     #region 相位1：几何、接触与区域
-    // 读上一步模拟留下的接触，再用探针补脚下和墙。这里只记碰到了什么，不决定能墙滑或游泳。
-
+    /// <summary>
+    /// 主动感知环境
+    /// </summary>
     protected abstract void GeometricQuery();
     private void GeometricQueryPhase()
     {
@@ -262,7 +300,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         CollectRegionOverlapFacts();
     }
 
-    /// <summary>读取上一步原生接触；探针补微小间隙，接触不决定墙滑等能力。</summary>
+    /// <summary>读取unity引擎解算后解除几何信息：采样原生接触点</summary>
     private void SampleNativeContacts()
     {
         nativeContacts.Clear();
@@ -329,7 +367,11 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             || (other.excludeLayers.value & (1 << gameObject.layer)) != 0
             || PhysicsWorld.GetIgnoreCollision(boxCollider, other);
     }
-
+    /// <summary>
+    /// 判断此碰撞器是否为可下落平台
+    /// </summary>
+    /// <param name="collider"></param>
+    /// <returns></returns>
     private bool IsDroppingThrough(Collider2D collider)
     {
         if (oneWayDropColliders == null) return false;
@@ -532,6 +574,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         playerPhysicsData.horizontalSpeed = free.x;
         playerPhysicsData.verticalSpeed = free.y;
         // 实际逻辑：着地时丢掉碰撞挤出的向上速度。起跳在本步稍后写入，不在这里重复续上。
+        //没有明确的主动上升语义，那就不相信这种着地时的正 Y 残余
         if (nowGemetry.isGrounded && !UsesWorldAxisMovement && commandedVerticalSpeed <= 0f
             && playerPhysicsData.verticalSpeed > 0f)
             playerPhysicsData.verticalSpeed = 0f;

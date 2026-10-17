@@ -27,7 +27,8 @@ public class PlayerStateMachine
         inAir,
         onWallSliding,
         swimming,
-        surfaceSwimming
+        surfaceSwimming,
+        flying
     }
 
     LocalEventSystem<E_playEvent> eventSystem;
@@ -131,6 +132,7 @@ public class PlayerStateMachine
                 nowState=onWallSliding;
                 break;
             case E_playerState.swimming:
+            case E_playerState.flying:
                 nowState = fourWay;
                 break;
             case E_playerState.surfaceSwimming:
@@ -151,7 +153,7 @@ public class PlayerStateMachine
     /// </summary>
     /// <param name="playData">玩家当前状态</param>
     /// <param name="input">当前输入信息</param>
-    /// <param name="mode">本帧按水体事实解析的四向原因</param>
+    /// <param name="mode">本帧按飞行开关与水体事实解析的四向原因</param>
     /// <param name="jumpPending">物理层是否还有未消费的跳跃</param>
     /// <param name="totalVerticalSpeed">实体当前实际竖直速度</param>
     public void Update(PlayerInputData input, FourWayMode mode = FourWayMode.None,
@@ -162,7 +164,7 @@ public class PlayerStateMachine
         // 跃出边界：冲量消费前和上升阶段不被水面重新捕获；完整淹没立即交回游泳。
         if (nowMovement.surfaceJumpInProgress)
         {
-            if (mode == FourWayMode.Swimming || (!jumpPending && totalVerticalSpeed <= 0f))
+            if (mode == FourWayMode.Flying || mode == FourWayMode.Swimming || (!jumpPending && totalVerticalSpeed <= 0f))
                 nowMovement.surfaceJumpInProgress = false;
             else if (mode == FourWayMode.SurfaceSwimming) mode = FourWayMode.None;
         }
@@ -177,15 +179,17 @@ public class PlayerStateMachine
 
     private void SelectFourWayState(FourWayMode mode)
     {
-        // 已解析的四向原因优先于着地和墙滑。
+        // 飞行优先级由 Player 解析；四向行为高于地面与墙滑。
         if (mode != FourWayMode.None)
         {
-            E_playerState desired = mode == FourWayMode.SurfaceSwimming ? E_playerState.surfaceSwimming : E_playerState.swimming;
+            E_playerState desired = mode == FourWayMode.Flying ? E_playerState.flying
+                : mode == FourWayMode.SurfaceSwimming ? E_playerState.surfaceSwimming : E_playerState.swimming;
             if (nowMovement.nowState != desired) ChangeState(desired);
             return;
         }
-        // 离水按当前几何恢复，不恢复入水前的状态。
-        if (nowMovement.nowState == E_playerState.swimming || nowMovement.nowState == E_playerState.surfaceSwimming)
+        // 结束飞行或离水时按当前位置恢复普通行为。
+        if (nowMovement.nowState == E_playerState.flying || nowMovement.nowState == E_playerState.swimming
+            || nowMovement.nowState == E_playerState.surfaceSwimming)
             ChangeState(geometry.isGrounded ? E_playerState.isOnGround : E_playerState.inAir);
     }
 

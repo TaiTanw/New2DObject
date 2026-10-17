@@ -59,7 +59,7 @@ Transform:
   m_GameObject: {fileID: 5010558951558207905}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.19, y: -0.65, z: 0}
+  m_LocalPosition: {x: -0.03, y: -0.65, z: 0}
   m_LocalScale: {x: 1.051777, y: 1.1005071, z: 1.2236}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -106,7 +106,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -205356604, guid: 0b8e00c746e5cfd49899dd097f287948, type: 3}
+  m_Sprite: {fileID: -1767477884, guid: 879993fcef34b91419a4d50c9df6f124, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -133,7 +133,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -148,8 +148,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b0ed3bd44bd33747916d24c433cb535, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &6468672424472279989
 GameObject:
   m_ObjectHideFlags: 0
@@ -163,6 +163,7 @@ GameObject:
   - component: {fileID: 2481104452557541454}
   - component: {fileID: 3971303127042905834}
   - component: {fileID: 577239091719081582}
+  - component: {fileID: 7332045819531821091}
   m_Layer: 0
   m_Name: player20
   m_TagString: Untagged
@@ -199,8 +200,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9184abc4da8cc5f40b17872f45073f9d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!61 &2481104452557541454
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -283,8 +284,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d812e70637606044ba7463c199e5864, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   cPhysics: {fileID: 11400000, guid: 48a40a89a1b97e34cb422a1108be237f, type: 2}
   groundV: {fileID: 4291362845084649304}
   leftV: {fileID: 5839553184409024121}
@@ -357,3 +358,15 @@ Transform:
   m_Children: []
   m_Father: {fileID: 574536237119771430}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7332045819531821091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6468672424472279989}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 326f871a05dc47ef814633b227e2e73a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:

@@ -15,21 +15,29 @@ public class PresentationLayer : MonoBehaviour
     private const float VerticalSpeedDeadZone = 0.01f;
     private const float JumpImpulseEpsilon = 0.01f;
 
-    // Animator Controller 当前没有连线，所有状态都由这里使用完整路径直接播放。
+    // 主行为由完整路径直接选择；行走起手由 Controller 的退出时间衔接 move_loop。
     // “On” 是现有 Controller 中 idle 动画对应的状态名；“OnAir” 对应上升循环动画。
     private static readonly int IdleStateHash = Animator.StringToHash("Base Layer.On");
     private static readonly int MoveStateHash = Animator.StringToHash("Base Layer.move");
+    private static readonly int MoveLoopStateHash = Animator.StringToHash("Base Layer.move_loop");
     private static readonly int JumpTriggerStateHash = Animator.StringToHash("Base Layer.Jump_Up");
     private static readonly int AirUpStateHash = Animator.StringToHash("Base Layer.OnAir");
     private static readonly int LandingTriggerStateHash = Animator.StringToHash("Base Layer.Jump_Down");
     private static readonly int AirDownStateHash = Animator.StringToHash("Base Layer.OnAir_Down");
     private static readonly int WallStateHash = Animator.StringToHash("Base Layer.Wall");
+    private static readonly int SwimStateHash = Animator.StringToHash("Base Layer.Swim");
+    private static readonly int SwimIdleStateHash = Animator.StringToHash("Base Layer.SwimIdle");
+    private static readonly int SurfaceSwimStateHash = Animator.StringToHash("Base Layer.SurfaceSwim");
+    private static readonly int SurfaceSwimIdleStateHash = Animator.StringToHash("Base Layer.SurfaceSwimIdle");
 
     private enum MotionMode
     {
         Ground,
         Air,
-        Wall
+        Wall,
+        Swim,
+        SurfaceSwim,
+        Flight
     }
 
     private enum AirPhase
@@ -48,7 +56,11 @@ public class PresentationLayer : MonoBehaviour
         AirUp,
         LandingTrigger,
         AirDown,
-        Wall
+        Wall,
+        Swim,
+        SwimIdle,
+        SurfaceSwim,
+        SurfaceSwimIdle
     }
 
     /// <summary>
@@ -147,6 +159,20 @@ public class PresentationLayer : MonoBehaviour
 
         UpdateFacing();
 
+        // 水中升降和飞行不是跳跃；使用本体切片，不依赖精神体的 Flight 动画。
+        MotionMode behavior = ResolveMotionMode();
+        if (behavior == MotionMode.Swim || behavior == MotionMode.SurfaceSwim || behavior == MotionMode.Flight)
+        {
+            activeTrigger = TriggerAction.None;
+            ResetAirState();
+            previousMotionMode = behavior;
+            previousActiveVerticalSpeed = playerPhysicsData.verticalSpeed;
+            hasVerticalSpeedSample = false;
+            if (behavior == MotionMode.Flight) Play(AnimationState.Idle);
+            else UpdateSwimmingAnimation(behavior);
+            return;
+        }
+
         // 物理层将环境竖直影响单独保存在 phyVSpeed；升降表现必须使用两者之和，
         // 否则移动平台或力场造成的实际升降会与画面方向不一致。
         float activeVerticalSpeed = playerPhysicsData.verticalSpeed;
@@ -193,9 +219,7 @@ public class PresentationLayer : MonoBehaviour
         hasVerticalSpeedSample = true;
     }
 
-    /// <summary>
-    /// 保留既有翻转规则：角色朝向只跟随逻辑层已经过滤后的移动意图，零输入时保持最后朝向。
-    /// </summary>
+    /// <summary>只按动作意图更新朝向，零输入保持原朝向。</summary>
     private void UpdateFacing()
     {
         if (actionData.onMove > MoveInputDeadZone)
@@ -209,11 +233,27 @@ public class PresentationLayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 几何着地是物理事实，优先用于结束空中动画；逻辑地面状态同时覆盖首个物理快照尚未生成的初始化时段。
-    /// 贴墙由逻辑 FSM 判断，因为它还包含“持续朝墙输入”的行为条件；其余情况统一视为空中。
+    /// 根据主动输入选择水下或水面游泳切片，环境带动不算主动划水。
     /// </summary>
+
+    private void UpdateSwimmingAnimation(MotionMode mode)
+    {
+        // 水流或水面跟随不等于主动划水，只用经过状态机过滤的方向判断。
+        bool moving = Mathf.Abs(actionData.onMove) > MoveInputDeadZone
+            || Mathf.Abs(actionData.verticalInput) > MoveInputDeadZone;
+        if (mode == MotionMode.SurfaceSwim)
+            Play(moving ? AnimationState.SurfaceSwim : AnimationState.SurfaceSwimIdle);
+        else
+            Play(moving ? AnimationState.Swim : AnimationState.SwimIdle);
+    }
+
+    /// <summary>四向行为优先于着地几何；其余按地面、贴墙、空中选择。</summary>
     private MotionMode ResolveMotionMode()
     {
+        if (actionData.isFlying) return MotionMode.Flight;
+        if (actionData.isSurfaceSwimming) return MotionMode.SurfaceSwim;
+        if (actionData.isSwimming) return MotionMode.Swim;
+        if (actionData.surfaceJumpInProgress) return MotionMode.Air;
         if (geometryPhysicsData.isGrounded
             || actionData.NowState == PlayerStateMachine.E_playerState.isOnGround)
         {
@@ -233,10 +273,7 @@ public class PresentationLayer : MonoBehaviour
         ResetAirState();
 
         // 地面行走表达的是玩家行为意图；环境带动但没有输入时仍保持待机，避免把平台位移误画成主动行走。
-        AnimationState desiredState = Mathf.Abs(actionData.onMove) > MoveInputDeadZone
-            ? AnimationState.Move
-            : AnimationState.Idle;
-        Play(desiredState);
+        Play(Mathf.Abs(actionData.onMove) > MoveInputDeadZone ? AnimationState.Move : AnimationState.Idle);
     }
 
     private void UpdateWallAnimation()
@@ -404,6 +441,14 @@ public class PresentationLayer : MonoBehaviour
                 return AirDownStateHash;
             case AnimationState.Wall:
                 return WallStateHash;
+            case AnimationState.Swim:
+                return SwimStateHash;
+            case AnimationState.SwimIdle:
+                return SwimIdleStateHash;
+            case AnimationState.SurfaceSwim:
+                return SurfaceSwimStateHash;
+            case AnimationState.SurfaceSwimIdle:
+                return SurfaceSwimIdleStateHash;
             default:
                 return IdleStateHash;
         }
@@ -415,11 +460,16 @@ public class PresentationLayer : MonoBehaviour
         {
             IdleStateHash,
             MoveStateHash,
+            MoveLoopStateHash,
             JumpTriggerStateHash,
             AirUpStateHash,
             LandingTriggerStateHash,
             AirDownStateHash,
-            WallStateHash
+            WallStateHash,
+            SwimStateHash,
+            SwimIdleStateHash,
+            SurfaceSwimStateHash,
+            SurfaceSwimIdleStateHash
         };
 
         for (int i = 0; i < requiredStates.Length; i++)

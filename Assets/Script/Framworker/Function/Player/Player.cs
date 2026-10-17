@@ -16,9 +16,9 @@ public class PlayerInputData
     public bool jumpRelease;       //跳跃是否长按中
 }
 /// <summary>
-/// 四向移动原因；由水体事实解析，不由按键决定
+/// 四向移动原因；飞行由外部开关选择，游泳由水体事实解析
 /// </summary>
-public enum FourWayMode { None, Swimming, SurfaceSwimming }
+public enum FourWayMode { None, Swimming, SurfaceSwimming, Flying }
 /// <summary>
 /// 持续性动作执行数据（瞬时动作靠事件触发
 /// </summary>
@@ -55,8 +55,9 @@ public class ReadOnly_ActionData
     public PlayerStateMachine.E_playerState NowState =>_data.nowState;
     public bool isSurfaceSwimming => NowState == PlayerStateMachine.E_playerState.surfaceSwimming;
     public bool isSwimming => NowState == PlayerStateMachine.E_playerState.swimming || isSurfaceSwimming;
+    public bool isFlying => NowState == PlayerStateMachine.E_playerState.flying;
     public bool surfaceJumpInProgress => _data.surfaceJumpInProgress;
-    public FourWayMode FourWay => isSurfaceSwimming ? FourWayMode.SurfaceSwimming
+    public FourWayMode FourWay => isFlying ? FourWayMode.Flying : isSurfaceSwimming ? FourWayMode.SurfaceSwimming
         : isSwimming ? FourWayMode.Swimming : FourWayMode.None;
 
 }
@@ -91,6 +92,7 @@ public class Player : MonoBehaviour
     /// 表现层状态机
     /// </summary>
     PresentationLayer animatorFSM;
+    public bool IsFlying => playPDate != null && playPDate.IsFlying;
 
     void Awake()
     {
@@ -123,13 +125,24 @@ public class Player : MonoBehaviour
     }
     public void RemoveInput()
     {
-        inputData=null;
+        inputData = null;
     }
-    /// <summary>
-    /// 按本步水体事实选择四向原因：淹没游泳，半露出水面游泳
-    /// </summary>
+
+    /// <summary>基本运动模式开关；不携带身份、资源或关卡规则。深嵌入时拒绝恢复实心。</summary>
+    public bool TrySetFlying(bool enabled)
+    {
+        if (playPDate == null || fsm == null || inputData == null || !playPDate.IsMotionReady) return false;
+        if (IsFlying == enabled) return true;
+        if (!playPDate.TrySetFlying(enabled)) return false;
+        fsm.ResetMotionActions();
+        inputData.jumpPressed = inputData.jumpRelease = false;
+        fsm.Update(inputData, ResolveFourWay(), playPDate.HasPendingJump, playPDate.GetPlanarVelocity().y);
+        return true;
+    }
+    /// <summary>飞行优先；非飞行时按当前水体事实选择游泳。</summary>
     FourWayMode ResolveFourWay()
     {
+        if (IsFlying) return FourWayMode.Flying;
         EntityWaterFrame water = playPDate.EnvironmentContext.WaterFrame;
         if (water.submerged && water.swimmingAvailable) return FourWayMode.Swimming;
         if (!water.submerged && water.surfaceSwimmingAvailable) return FourWayMode.SurfaceSwimming;
