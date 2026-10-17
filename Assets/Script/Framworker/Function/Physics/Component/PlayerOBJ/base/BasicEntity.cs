@@ -571,7 +571,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         Vector2 actual = rb.velocity;
         Vector2 free = actual - acceptedPrescribedVelocity;
         if (HasHorizontalDrive) free.x -= activeHorizontalVelocity;
-        playerPhysicsData.horizontalSpeed = free.x;
+        float passiveVelocityX = free.x;
         playerPhysicsData.verticalSpeed = free.y;
         // 实际逻辑：着地时丢掉碰撞挤出的向上速度。起跳在本步稍后写入，不在这里重复续上。
         //没有明确的主动上升语义，那就不相信这种着地时的正 Y 残余
@@ -580,12 +580,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             playerPhysicsData.verticalSpeed = 0f;
         effectState.UpdateMovementModifier(playerPhysicsData);
         effectState.UpdatePassiveSpeed(playerPhysicsData);
-        float dynamicDelta = effectState.CalculateDynamicVelocityDelta(free.x, envImpact, dt);
-        // 没有环境控制时，真实被动惯性按表面阻力制动，主动命令另行处理。
-        if (!effectState.HasDynamicForces)
-            playerPhysicsData.horizontalSpeed = Mathf.MoveTowards(free.x, 0f,
-                self_resistanceCoefficient * Mathf.Max(0f, envImpact) * dt);
-        float passiveHorizontal = playerPhysicsData.horizontalSpeed + dynamicDelta;
+        float passiveDeltaX = effectState.CalculateDynamicVelocityDelta(
+            passiveVelocityX, envImpact, dt, self_resistanceCoefficient);
+        // 被动计算结果用本步局部量承载，物理数据不再充当制动工作区。
+        float plannedPassiveVelocityX = passiveVelocityX + passiveDeltaX;
         HActiveSpeedOperation();
         float slopeVertical = 0f;
         if (HasHorizontalDrive)
@@ -597,17 +595,17 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             target *= tangent.x;
             float acceleration = horizontalAcceleration * Mathf.Max(0f, EnvironmentFrame.slowingMultiplier);
             activeHorizontalVelocity = Mathf.MoveTowards(activeHorizontalVelocity, target, acceleration * dt);
-            playerPhysicsData.horizontalSpeed = passiveHorizontal + activeHorizontalVelocity;
+            playerPhysicsData.horizontalSpeed = plannedPassiveVelocityX + activeHorizontalVelocity;
             // 实际逻辑：下坡贴合按本步全部水平速度，含惯性、限时速度和状态速度；不能只算主动走路。
             // 上坡抬升仍由地形查询按实际间隙计算，避免多出来的向上速度被回读成跳跃。
-            float slopeCarryX = passiveHorizontal + activeHorizontalVelocity + playerPhysicsData.phyHSpeed;
+            float slopeCarryX = plannedPassiveVelocityX + activeHorizontalVelocity + playerPhysicsData.phyHSpeed;
             if (tangent.x > 0.001f)
             {
                 float along = slopeCarryX * tangent.y / tangent.x;
                 if (along < 0f) slopeVertical = along;
             }
         }
-        else playerPhysicsData.horizontalSpeed = passiveHorizontal;
+        else playerPhysicsData.horizontalSpeed = plannedPassiveVelocityX;
         VUnderForce();
         VActiveSpeedOperation();
         Vector2 own = new Vector2(playerPhysicsData.horizontalSpeed, playerPhysicsData.verticalSpeed);

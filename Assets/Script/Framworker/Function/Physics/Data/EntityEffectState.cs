@@ -12,7 +12,6 @@ internal sealed class EntityEffectState
     private readonly List<IDynamicAddForce> forceSources = new List<IDynamicAddForce>();
     private IForceAction receiver;
     private bool isRecalculate;
-    public bool HasDynamicForces => dynamicForces.Count > 0;
 #if UNITY_EDITOR
     public int DebugMovementModifierCount => movementModifiers.Count;
     public int DebugStateVelocityCount => stateVelocities.Count;
@@ -30,6 +29,10 @@ internal sealed class EntityEffectState
     }
     public void RegisterMovementModifier(EnvironmentRegistration source, float offset) { movementModifiers[source] = offset; isRecalculate = true; }
     public void RemoveMovementModifier(EnvironmentRegistration source) { movementModifiers.Remove(source); isRecalculate = true; }
+    /// <summary>
+    /// 处理主动速度修饰
+    /// </summary>
+    /// <param name="movement"></param>
     public void UpdateMovementModifier(PlayerPhysicsData movement)
     {
         if (!isRecalculate) return;
@@ -42,6 +45,10 @@ internal sealed class EntityEffectState
     public void RemoveStateVelocity(EnvironmentRegistration source) => stateVelocities.Remove(source);
     public void AddTimedSpeed(float duration, float speed, float envImpact) => timedSpeeds.Add(new SpeedStackData
         { responseTimer1 = Time.time + duration, hspeed = speed * envImpact });
+    /// <summary>
+    /// 更新被动速度
+    /// </summary>
+    /// <param name="movement"></param>
     public void UpdatePassiveSpeed(PlayerPhysicsData movement)
     {
         Vector2 speed = Vector2.zero;
@@ -69,10 +76,11 @@ internal sealed class EntityEffectState
     }
     public void RemoveDynamicForce(IDynamicAddForce source) => dynamicForces.Remove(source);
 
-    /// <summary>每个动态来源只改变本步真实速度；碰撞消掉的动量不在另一个容器积累。</summary>
-    public float CalculateDynamicVelocityDelta(float actual, float envImpact, float dt)
+    /// <summary>先处理动态来源，再施加自身阻力；返回本步被动水平速度增量，不保存跨帧动量。</summary>
+    /// <param name="selfResistance">已应用地面倍率的自身阻力，环境影响系数和步长在本方法中计算一次。</param>
+    public float CalculateDynamicVelocityDelta(float initialPassiveVelocityX, float envImpact, float dt, float selfResistance)
     {
-        float speed = actual;
+        float nextPassiveVelocityX = initialPassiveVelocityX;
         forceSources.Clear();
         forceSources.AddRange(dynamicForces.Keys);
         foreach (IDynamicAddForce source in forceSources)
@@ -80,15 +88,21 @@ internal sealed class EntityEffectState
             source.ForceCalculation(receiver);
             if (!dynamicForces.TryGetValue(source, out ForceData data)) continue;
             if (data.type == E_PhyForceType.controlRecovery)
-                speed = Mathf.MoveTowards(speed, 0f, Mathf.Max(0f, data.recoverySpeed * envImpact) * dt);
+                nextPassiveVelocityX = Mathf.MoveTowards(nextPassiveVelocityX, 0f,
+                    Mathf.Max(0f, data.recoverySpeed * envImpact) * dt);
             else if (data.type == E_PhyForceType.apply)
             {
                 float change = data.Force * envImpact * dt;
                 // 已超过该源限速时不骤然清掉其它原生动量；它仍能沿反方向减速。
-                if (change > 0f && speed < data.balanceSpeed) speed = Mathf.Min(data.balanceSpeed, speed + change);
-                else if (change < 0f && speed > -data.balanceSpeed) speed = Mathf.Max(-data.balanceSpeed, speed + change);
+                if (change > 0f && nextPassiveVelocityX < data.balanceSpeed)
+                    nextPassiveVelocityX = Mathf.Min(data.balanceSpeed, nextPassiveVelocityX + change);
+                else if (change < 0f && nextPassiveVelocityX > -data.balanceSpeed)
+                    nextPassiveVelocityX = Mathf.Max(-data.balanceSpeed, nextPassiveVelocityX + change);
             }
         }
-        return speed - actual;
+        // 自身制动始终存在；受控复原是来源提供的额外减速，施加阶段的上限不补偿这一步制动。
+        nextPassiveVelocityX = Mathf.MoveTowards(nextPassiveVelocityX, 0f,
+            Mathf.Max(0f, selfResistance) * Mathf.Max(0f, envImpact) * dt);
+        return nextPassiveVelocityX - initialPassiveVelocityX;
     }
 }
