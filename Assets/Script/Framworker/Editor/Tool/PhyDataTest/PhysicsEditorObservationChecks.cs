@@ -280,6 +280,6 @@ public sealed class PhysicsObservationCheckBody : BasicEntity
     }
     protected override bool HasHorizontalDrive => horizontalDrive;
     protected override void GeometricQuery() { }
-    protected override void HActiveSpeedOperation() => playerPhysicsData.horizontalSpeed = 2;
+    protected override float HActiveSpeedOperation() => 2f;
 }
 #endif

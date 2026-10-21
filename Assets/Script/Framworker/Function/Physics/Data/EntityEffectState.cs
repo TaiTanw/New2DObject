@@ -46,7 +46,7 @@ internal sealed class EntityEffectState
     public void AddTimedSpeed(float duration, float speed, float envImpact) => timedSpeeds.Add(new SpeedStackData
         { responseTimer1 = Time.time + duration, hspeed = speed * envImpact });
     /// <summary>
-    /// 更新被动速度
+    /// 更新速度附加命令
     /// </summary>
     /// <param name="movement"></param>
     public void UpdatePassiveSpeed(PlayerPhysicsData movement)
@@ -82,10 +82,13 @@ internal sealed class EntityEffectState
     {
         float nextPassiveVelocityX = initialPassiveVelocityX;
         forceSources.Clear();
+        //副本
         forceSources.AddRange(dynamicForces.Keys);
         foreach (IDynamicAddForce source in forceSources)
         {
+            //更新环境自身特殊动态力规则
             source.ForceCalculation(receiver);
+            //防止环境主动的更新对字典产生修改导致报错
             if (!dynamicForces.TryGetValue(source, out ForceData data)) continue;
             if (data.type == E_PhyForceType.controlRecovery)
                 nextPassiveVelocityX = Mathf.MoveTowards(nextPassiveVelocityX, 0f,

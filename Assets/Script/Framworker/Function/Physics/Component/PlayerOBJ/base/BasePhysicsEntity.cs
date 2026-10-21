@@ -185,12 +185,12 @@ public abstract class BasePhysicsEntity : BasicEntity
         playphyFunData.canLeftWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.leftWallCollider);
         playphyFunData.canRightWall = EnvironmentCapabilities.Find<IWallSlideSurface>(nowGemetry.rightWallCollider);
     }
-    protected override void HActiveSpeedOperation()
+    protected override float HActiveSpeedOperation()
     {
-        //处理基础移动（赋值操作，最先）//计算主动位移
-        playerPhysicsData.horizontalSpeed = HorizontalSpeedCalculation() * (1 + playerPhysicsData.nowPhyNum);
-        //统一事件触发（控制时序在物理检测和赋值操作之后
+        // 先计算目标，再在原位置消费动作事件；公共水平结果不参与本步计算。
+        float targetHorizontalSpeed = HorizontalSpeedCalculation() * (1 + playerPhysicsData.nowPhyNum);
         PhyEventUpdate();
+        return targetHorizontalSpeed;
     }
     protected override void VActiveSpeedOperation()
     {
@@ -198,9 +198,8 @@ public abstract class BasePhysicsEntity : BasicEntity
     }
     
     /// <summary>
-    /// 最先执行的水平速度赋值操作
+    /// 最先计算本步水平目标，移速修饰由调用方应用。
     /// </summary>
-    /// <param name="horizontalSpeed"></param>
     protected abstract float HorizontalSpeedCalculation();
 
     /// <summary>
