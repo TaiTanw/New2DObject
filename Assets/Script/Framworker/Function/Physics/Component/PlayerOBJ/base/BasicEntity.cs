@@ -31,15 +31,12 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     /// 实体自身是否受到暂停影响
     /// </summary>
     protected virtual bool ParticipatesInWorldPause => true;
+    /// <summary>启用中的实体。启用和停用时维护，暂停同步、恢复实心补查会读取。这是有效登记，容量不拿来缓存查询结果。</summary>
     private static readonly HashSet<BasicEntity> activeEntities = new HashSet<BasicEntity>();
-    /// <summary>
-    /// 世界是否暂停
-    /// </summary>
+    /// <summary>世界暂停。和实体自身许可分开，只影响能否参与原生模拟，本身不是速度。</summary>
     private static bool worldPaused;
     public static bool IsWorldPaused => worldPaused;
-    /// <summary>
-    /// 外部注入实体自己的“参加运动”总开关
-    /// </summary>
+    /// <summary>实体自身是否参加运动。由外部注入，和世界暂停分开。</summary>
     private bool motionParticipation = true;
     /// <summary>
     /// 自身是否具备移动条件
@@ -55,93 +52,102 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     /// </summary>
     public bool IsMotionParticipating => isActiveAndEnabled && IsMotionReady && IsMotionPermitted && boxCollider.enabled;
     public Bounds BodyBounds => boxCollider != null ? PhysicsWorld.ReadAabb(boxCollider) : default;
-    // 显式安置／刷新事实，供表现丢弃旧位置边沿，不改变运动计算。
+    /// <summary>显式刷新或安置时递增。表现用它丢掉旧位置边沿，运动计算不读它。</summary>
     public uint MotionRefreshVersion { get; private set; }
-    protected Rigidbody2D rb; //刚体
-    protected BoxCollider2D boxCollider;//碰撞器
+    /// <summary>刚体组件。跨步的实际位置和速度在刚体上；相位 3 写入速度，相位 5 回读位置和速度。</summary>
+    protected Rigidbody2D rb;
+    /// <summary>本实体碰撞框。几何查询、过滤和是否参与碰撞都用它。</summary>
+    protected BoxCollider2D boxCollider;
 
-    /// <summary>
-    /// 物理配置数据
-    /// </summary>
+    /// <summary>物理配置资源：查询尺寸、层、最大爬坡角。保存的是配置，不是本步运动结果。</summary>
     [SerializeField]
     protected SO_CPhysics cPhysics;
-    /// <summary>
-    /// 地面检测中心（外部拖拽关联
-    /// </summary>
+    /// <summary>脚下探针。查询时换算到刚体物理位置，避免显示插值把探针带走。</summary>
     [SerializeField]
     protected Transform groundV;
-    /// <summary>
-    /// 左墙检测
-    /// </summary>
+    /// <summary>左墙探针。查询时换算到刚体物理位置，避免显示插值把探针带走。</summary>
     [SerializeField]
     protected Transform leftV;
-    /// <summary>
-    /// 右墙检测
-    /// </summary>
+    /// <summary>右墙探针。查询时换算到刚体物理位置，避免显示插值把探针带走。</summary>
     [SerializeField]
     protected Transform rightV;
-    /// <summary>
-    /// 头顶检测
-    /// </summary>
+    /// <summary>头顶探针。查询时换算到刚体物理位置，避免显示插值把探针带走。</summary>
     [SerializeField]
     protected Transform upV;
 
-    public float gravity = -35f;    //重力速度
+    /// <summary>重力加速度。Awake 时乘一次 airResistance，之后由相位 3 加进竖直速度。</summary>
+    public float gravity = -35f;
 
-    public float airResistance = 1;//空气阻力（0-1范围，影响下落情况
-    /// <summary>
-    /// 受到环境影响程度（近似理解为质量的倒数
-    /// </summary>
+    /// <summary>只在 Awake 乘进 gravity。不参与每步水平制动。</summary>
+    public float airResistance = 1;
+    /// <summary>环境效果系数，供动态受力和限时命令使用。和 Unity 刚体质量无关。</summary>
     public float envImpact = 1;
 
-    /// <summary>
-    /// 当前几何检测数据
-    /// </summary>
+    /// <summary>几何事实对象，长期持有，内容按采样更新。相位 1 写入接触、法线、着地和区域；相位 2 消费。</summary>
     protected GeometryPhysicsData nowGemetry;
     /// <summary>
-    /// 当前移动属性
+    /// 速度的计算和输出，字段含义随阶段变化，整个对象不是一份不变的最终速度。
+    /// 相位 3：horizontalSpeed 先写主动目标，再改成被动水平加主动分量；无水平驱动时只留被动水平。
+    /// phyHSpeed 此时是状态速度 X 加有效限时速度，phyVSpeed 是状态速度 Y。
+    /// verticalSpeed 从分离出的竖直速度出发，再经过重力和竖直动作。
+    /// 相位 5：有水平驱动时 horizontalSpeed 改为实际接受的主动分量，否则为实际 X 减去已接受的附加 X。
+    /// phyHSpeed 改为实际 X 减去 horizontalSpeed，角色上会带上惯性等剩余量。
+    /// verticalSpeed 改为实际 Y 减去已接受的附加 Y；无上升命令且着地时，可丢掉碰撞挤出的正 Y。
+    /// phyVSpeed 改为实际接受的附加竖直分量。nowPhyNum 只保留最近的移速修饰汇总。
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
 
-    // 环境关系和效果数值分别由两个对象持有，不重复累计。
+    /// <summary>环境关系。bindings 跨帧记录来源和退出时要撤销的内容，不在这里积分速度。Frame、WaterFrame 是最近一次采样。</summary>
     private EntityEnvironmentContext environmentContext;
+    /// <summary>环境关系入口。首次读取时创建，来源核对和采样帧都从这里取。</summary>
     public EntityEnvironmentContext EnvironmentContext => environmentContext ??= new EntityEnvironmentContext(this, this);
+    /// <summary>最近一次环境采样。含地面阻力倍率、起跳加成和本步平台位移；状态速度与动态力参数在 effectState。</summary>
     protected EntityEnvironmentFrame EnvironmentFrame => EnvironmentContext.Frame;
 
-    // 数值状态与实体同生命周期；来源关系仍由 environmentContext 管理。
+    /// <summary>效果参数，与实体同生命周期。保存仍有效的移速修饰、状态速度、动态力参数，以及未到期的限时命令。动态力不存逐来源累计速度；来源关系仍由 environmentContext 管。</summary>
     private readonly EntityEffectState effectState = new EntityEffectState();
-    /// <summary>
-    /// 自身阻力系数
-    /// </summary>
+    /// <summary>自身制动系数。相位 1 采样基础值，相位 2 乘地面倍率，相位 3 用来把被动水平速度趋零一次。不是跨帧累计的阻力。</summary>
     protected float self_resistanceCoefficient = 3;
 
 
+    /// <summary>主动水平分量每秒最多改变多少。本步再乘地面阻力倍率。</summary>
     [SerializeField, Min(0f), Tooltip("主动水平驱动每秒可改变的速度，开发期可调")]
     private float horizontalAcceleration = 300f;
-    // 命令与实际接受的持续分量只用于避免流速/平台重复叠加，不独立积分动量。
+    /// <summary>本步交给模拟的速度。静墙、坡面、头顶和侧推都可以改它；相位 5 拿它和刚体实际速度比较。</summary>
     private Vector2 submittedVelocity;
+    /// <summary>相位 3 做完静墙、坡面、头顶之后的计划速度，侧推只读它。相位 4 改提交速度时不回写这份计划。</summary>
     private Vector2 plannedVelocity;
+    /// <summary>本步附加命令：状态速度、限时速度、平台携带、坡面贴合。地形处理和侧推可改；相位 5 用它估算实际接受了多少。</summary>
     private Vector2 prescribedVelocity;
+    /// <summary>模拟实际接受的附加分量。相位 5 按提交量和实际量分摊；下一步相位 3 从刚体速度里扣除，避免同一条附加命令再叠一次。分量归属记录，不是另一份总动量。</summary>
     private Vector2 acceptedPrescribedVelocity;
+    /// <summary>主动水平分量。相位 3 向目标趋近，地形、侧推和模拟回读可以把它改小。下一步从刚体速度里分离出来；解除驱动时清零，剩下的实际速度交回惯性。</summary>
     private float activeHorizontalVelocity;
+    /// <summary>相位 3 记下的模拟前刚体位置。相位 5 用它和实际位置做位移观测。</summary>
     private Vector2 requestOrigin;
+    /// <summary>本步自身竖直意图。地形把跳速收短后只向下改。上坡是否补抬升、着地后要不要丢掉挤出的正 Y，都看它。不是总速度缓存。</summary>
     private float commandedVerticalSpeed;
-    /// <summary>
-    /// 是否有运动指令
-    /// </summary>
+    /// <summary>本步已经写过运动命令。相位 4、5 靠它决定要不要处理；回读或停用后清除。</summary>
     private bool hasMotionCommand;
+    /// <summary>最近完成步的观测序号。和位移记录一起用，不是待执行的位移。</summary>
     private int displacementStep;
+    /// <summary>最近一次模拟完成的位移观测。查询原生接触前会看它是否有效。不能把它当成待恢复的动量。</summary>
     private EntityDisplacementObservation lastDisplacementObservation;
+    /// <summary>最近一次位移观测是否有效。没有完成过模拟时，原生接触查询也不把旧记录当结果。</summary>
     private bool hasDisplacementObservation;
+    /// <summary>区域查询的原始命中。每次查询前清空并复用容量；筛选后的本步区域事实写进 nowGemetry，这里不留跨帧惯性。</summary>
     private readonly List<Collider2D> regionOverlapHits = new List<Collider2D>();
+    /// <summary>脚下扫掠的命中工作区。每次查询前清空，再从中筛选支撑面。</summary>
     private readonly List<RaycastHit2D> groundProbeHits = new List<RaycastHit2D>();
+    /// <summary>墙、坡面、头顶多次扫掠共用的工作区。每次使用前清空并复用容量，旧条目不表示惯性。</summary>
     private readonly List<RaycastHit2D> terrainHits = new List<RaycastHit2D>();
-    /// <summary>
-    /// 原生接触点集合
-    /// </summary>
+    /// <summary>上一场 Unity 模拟留下的原生接触点。相位 1 读取，属于上一步，不是本步计划。</summary>
     private readonly List<ContactPoint2D> nativeContacts = new List<ContactPoint2D>();
+    /// <summary>从穿墙恢复实心时，检查当前位置是否已经深重叠。使用前清空。</summary>
     private readonly List<Collider2D> walkingRestoreHits = new List<Collider2D>();
+    /// <summary>脚下探针距离。常量，不参与跨帧状态。</summary>
     protected const float GroundProbeDistance = 0.02f;
+    /// <summary>子类尚未穿完的单向平台的只读视图。列表本身在子类，这里不另存一份；穿越状态要维护碰撞忽略，不是临时命中缓存。</summary>
     internal IReadOnlyList<Collider2D> oneWayDropColliders;
 
     #endregion
@@ -585,6 +591,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         // 被动计算结果用本步局部量承载，物理数据不再充当制动工作区。
         float plannedPassiveVelocityX = passiveVelocityX + passiveDeltaX;
         HActiveSpeedOperation();
+        //坡向垂直移动速度
         float slopeVertical = 0f;
         if (HasHorizontalDrive)
         {
@@ -608,6 +615,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         else playerPhysicsData.horizontalSpeed = plannedPassiveVelocityX;
         VUnderForce();
         VActiveSpeedOperation();
+        //自身速度
         Vector2 own = new Vector2(playerPhysicsData.horizontalSpeed, playerPhysicsData.verticalSpeed);
         prescribedVelocity = new Vector2(playerPhysicsData.phyHSpeed, playerPhysicsData.phyVSpeed)
             + (nowGemetry.isGrounded ? EnvironmentFrame.platformDelta / dt : Vector2.zero)
@@ -631,7 +639,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     {
         // 安全：没有地形配置或碰撞框时不能查询。
         if (cPhysics == null || boxCollider == null || dt <= 0f) return;
+        //得到最终速度命令对应的位移
         Vector2 delta = submittedVelocity * dt;
+        //过小则忽略
         if (delta.sqrMagnitude <= 1e-8f) return;
         Bounds bounds = PhysicsWorld.ReadAabb(boxCollider);
         float minUp = Mathf.Cos(Mathf.Clamp(cPhysics.maxClimbAngle, 0f, 89f) * Mathf.Deg2Rad);
@@ -765,7 +775,13 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         velocity.x = vx;
         rb.velocity = velocity;
     }
-
+    /// <summary>
+    /// 获取斜坡偏置
+    /// </summary>
+    /// <param name="bounds"></param>
+    /// <param name="delta"></param>
+    /// <param name="minUp"></param>
+    /// <returns></returns>
     float MeasureSlopeRise(Bounds bounds, Vector2 delta, float minUp)
     {
         // 实际逻辑：未着地或四向运动不把坡面抬升写进命令。
@@ -792,7 +808,15 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         if (support == null || LiftIsBlocked(center, bounds.size, support, rise, bounds.min.y)) return 0f;
         return rise;
     }
-
+    /// <summary>
+    /// 考虑斜坡抬升不嵌入天花板
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="size"></param>
+    /// <param name="support"></param>
+    /// <param name="rise"></param>
+    /// <param name="currentBottom"></param>
+    /// <returns></returns>
     bool LiftIsBlocked(Vector2 center, Vector2 size, Collider2D support, float rise, float currentBottom)
     {
         CastTerrain(center, size, Vector2.up, rise, TerrainMask());
@@ -836,7 +860,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         filter.SetLayerMask(mask);
         PhysicsWorld.BoxCast(origin, size, 0f, direction, distance, filter, terrainHits);
     }
-
+    /// <summary>
+    /// 获取地面层级
+    /// </summary>
+    /// <returns></returns>
     int TerrainMask() => (int)cPhysics.groundLayer | (int)cPhysics.wallLayer;
 
     bool IsStaticTerrain(Collider2D collider)
@@ -861,6 +888,9 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     protected virtual void HActiveSpeedOperation() { }
     /// <summary>撤销驱动归属但保留刚体速度；下一步把已获得的速度交回现有被动惯性与阻力。</summary>
     protected void ReleaseHorizontalDrive() => activeHorizontalVelocity = 0f;
+    /// <summary>
+    /// 更新重力
+    /// </summary>
     private void VUnderForce()
     {
         if (!nowGemetry.isGrounded) playerPhysicsData.verticalSpeed += gravity * Time.fixedDeltaTime;

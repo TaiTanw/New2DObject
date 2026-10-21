@@ -70,7 +70,7 @@ namespace PhyData
     public class PlayerPhysicsData
     {
         /// <summary>
-        /// 当前自身水平速度（主动位移
+        /// 当前自身水平速度（自身属性
         /// </summary>
         public float horizontalSpeed;
         /// <summary>
@@ -78,7 +78,7 @@ namespace PhyData
         /// </summary>
         public float verticalSpeed;
         /// <summary>
-        /// 水平物理影响速度（被动位移
+        /// 水平物理影响速度（附加命令
         /// </summary>
         public float phyHSpeed;
         /// <summary>
