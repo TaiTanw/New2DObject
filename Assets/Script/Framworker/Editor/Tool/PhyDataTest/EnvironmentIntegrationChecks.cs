@@ -983,8 +983,8 @@ public sealed class EnvironmentCheckCharacter : BasePhysicsEntity
     }
     protected override void OnEnable() { }
     protected override float HorizontalSpeedCalculation() => 0f;
-    protected override void PhyEventUpdate() { }
-    protected override void VerticalTransmission() { }
+    protected override void PhyEventUpdate(ref MotionStep step) { }
+    protected override void VerticalTransmission(ref MotionStep step) { }
     public void Apply(SO_CPhysics config, Transform ground, Transform left, Transform right)
     {
         // Edit Mode 添加组件时 Awake 可能尚未执行；查询前补齐几何容器。
@@ -1061,10 +1061,22 @@ public sealed class EnvironmentCheckSlider : CharacterPhysics
         playphyFunData = function;
         Init(action, events);
     }
-    public void FallAt(float vertical) => playerPhysicsData.verticalSpeed = vertical;
-    public void Limit() => VerticalTransmission();
-    public void ConsumeEvents() => PhyEventUpdate();
-    public float Vertical => playerPhysicsData.verticalSpeed;
+    // 独立规则夹具的候选值，不再借运行时公开速度输出模拟工作区。
+    private float candidateVertical;
+    public void FallAt(float vertical) => candidateVertical = vertical;
+    public void Limit()
+    {
+        var step = new MotionStep { OwnVelocity = Vector2.up * candidateVertical };
+        VerticalTransmission(ref step);
+        candidateVertical = step.OwnVelocity.y;
+    }
+    public void ConsumeEvents()
+    {
+        var step = new MotionStep { OwnVelocity = Vector2.up * candidateVertical };
+        PhyEventUpdate(ref step);
+        candidateVertical = step.OwnVelocity.y;
+    }
+    public float Vertical => candidateVertical;
     public void TouchBothWalls()
     {
         nowGemetry.onLeftWall = true;

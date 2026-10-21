@@ -90,13 +90,19 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     /// 普通运动相位 3：水平目标由钩子返回，自身水平合计使用局部量，不写 horizontalSpeed。
     /// 飞行分支仍直接发布四向速度；显式刷新会清零输出。
     /// phyHSpeed 此时是状态速度 X 加有效限时速度，phyVSpeed 是状态速度 Y。
-    /// verticalSpeed 从分离出的竖直速度出发，再经过重力和竖直动作。
+    /// 普通运动的自身候选速度由本步局部 MotionStep 承载；事件、重力和竖直动作通过它计算，不写 verticalSpeed。
     /// 相位 5：有水平驱动时 horizontalSpeed 改为实际接受的主动分量，否则为实际 X 减去已接受的附加 X。
     /// phyHSpeed 改为实际 X 减去 horizontalSpeed，角色上会带上惯性等剩余量。
     /// verticalSpeed 改为实际 Y 减去已接受的附加 Y；无上升命令且着地时，可丢掉碰撞挤出的正 Y。
     /// phyVSpeed 改为实际接受的附加竖直分量。nowPhyNum 只保留最近的移速修饰汇总。
     /// </summary>
     protected PlayerPhysicsData playerPhysicsData;
+
+    /// <summary>仅在本次速度计算内传递的工作值。OwnVelocity 始终表示自身候选速度，不含状态、限时、平台及坡面附加命令。</summary>
+    protected struct MotionStep
+    {
+        public Vector2 OwnVelocity;
+    }
 
     /// <summary>环境关系。bindings 跨帧记录来源和退出时要撤销的内容，不在这里积分速度。Frame、WaterFrame 是最近一次采样。</summary>
     private EntityEnvironmentContext environmentContext;
@@ -579,20 +585,21 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         Vector2 free = actual - acceptedPrescribedVelocity;
         if (HasHorizontalDrive) free.x -= activeHorizontalVelocity;
         float passiveVelocityX = free.x;
-        playerPhysicsData.verticalSpeed = free.y;
+        var step = new MotionStep { OwnVelocity = free };
         // 实际逻辑：着地时丢掉碰撞挤出的向上速度。起跳在本步稍后写入，不在这里重复续上。
         //没有明确的主动上升语义，那就不相信这种着地时的正 Y 残余
         if (nowGemetry.isGrounded && !UsesWorldAxisMovement && commandedVerticalSpeed <= 0f
-            && playerPhysicsData.verticalSpeed > 0f)
-            playerPhysicsData.verticalSpeed = 0f;
+            && step.OwnVelocity.y > 0f)
+            step.OwnVelocity.y = 0f;
         effectState.UpdateMovementModifier(playerPhysicsData);
         effectState.UpdatePassiveSpeed(playerPhysicsData);
         float passiveDeltaX = effectState.CalculateDynamicVelocityDelta(
             passiveVelocityX, envImpact, dt, self_resistanceCoefficient);
         // 被动计算结果用本步局部量承载，物理数据不再充当制动工作区。
         float plannedPassiveVelocityX = passiveVelocityX + passiveDeltaX;
+        step.OwnVelocity.x = plannedPassiveVelocityX;
         float targetHorizontalSpeed = HActiveSpeedOperation();
-        float plannedOwnVelocityX = plannedPassiveVelocityX;
+        PhyEventUpdate(ref step);
         //坡向垂直移动速度
         float slopeVertical = 0f;
         if (HasHorizontalDrive)
@@ -603,25 +610,23 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             targetHorizontalSpeed *= tangent.x;
             float acceleration = horizontalAcceleration * Mathf.Max(0f, EnvironmentFrame.slowingMultiplier);
             activeHorizontalVelocity = Mathf.MoveTowards(activeHorizontalVelocity, targetHorizontalSpeed, acceleration * dt);
-            plannedOwnVelocityX += activeHorizontalVelocity;
+            step.OwnVelocity.x += activeHorizontalVelocity;
             // 实际逻辑：下坡贴合按本步全部水平速度，含惯性、限时速度和状态速度；不能只算主动走路。
             // 上坡抬升仍由地形查询按实际间隙计算，避免多出来的向上速度被回读成跳跃。
-            float slopeCarryX = plannedOwnVelocityX + playerPhysicsData.phyHSpeed;
+            float slopeCarryX = step.OwnVelocity.x + playerPhysicsData.phyHSpeed;
             if (tangent.x > 0.001f)
             {
                 float along = slopeCarryX * tangent.y / tangent.x;
                 if (along < 0f) slopeVertical = along;
             }
         }
-        VUnderForce();
-        VActiveSpeedOperation();
-        //自身速度
-        Vector2 own = new Vector2(plannedOwnVelocityX, playerPhysicsData.verticalSpeed);
+        VUnderForce(ref step);
+        VActiveSpeedOperation(ref step);
         prescribedVelocity = new Vector2(playerPhysicsData.phyHSpeed, playerPhysicsData.phyVSpeed)
             + (nowGemetry.isGrounded ? EnvironmentFrame.platformDelta / dt : Vector2.zero)
             + new Vector2(0f, slopeVertical);
-        submittedVelocity = own + prescribedVelocity;
-        commandedVerticalSpeed = playerPhysicsData.verticalSpeed;
+        submittedVelocity = step.OwnVelocity + prescribedVelocity;
+        commandedVerticalSpeed = step.OwnVelocity.y;
         ClipStaticTerrain(dt, slopeVertical);
         // 实际逻辑：头顶或坡面把本步跳速收短后，下一步只续上收短后的速度。
         float writtenOwnY = submittedVelocity.y - prescribedVelocity.y;
@@ -885,19 +890,22 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             && (delta.y > 0f || currentBottom < hit.point.y - 0.01f);
     }
 
-    /// <summary>返回本步主动水平目标；按原调用位置执行子类动作钩子，不借用公开水平结果作为工作值。</summary>
+    /// <summary>返回本步主动水平目标，不借用公开水平结果作为工作值。</summary>
     protected virtual float HActiveSpeedOperation() => 0f;
+    /// <summary>在水平目标计算后、重力计算前消费动作事件；仅修改本步候选运动，公开速度结果留待模拟后回读。</summary>
+    protected virtual void PhyEventUpdate(ref MotionStep step) { }
     /// <summary>撤销驱动归属但保留刚体速度；下一步把已获得的速度交回现有被动惯性与阻力。</summary>
     protected void ReleaseHorizontalDrive() => activeHorizontalVelocity = 0f;
     /// <summary>
     /// 更新重力
     /// </summary>
-    private void VUnderForce()
+    private void VUnderForce(ref MotionStep step)
     {
-        if (!nowGemetry.isGrounded) playerPhysicsData.verticalSpeed += gravity * Time.fixedDeltaTime;
-        else if (playerPhysicsData.verticalSpeed < 0f) playerPhysicsData.verticalSpeed = 0f;
+        if (!nowGemetry.isGrounded) step.OwnVelocity.y += gravity * Time.fixedDeltaTime;
+        else if (step.OwnVelocity.y < 0f) step.OwnVelocity.y = 0f;
     }
-    protected virtual void VActiveSpeedOperation() { }
+    /// <summary>在重力之后应用子类的竖直规则，不改公开速度结果。</summary>
+    protected virtual void VActiveSpeedOperation(ref MotionStep step) { }
 
     #endregion
 

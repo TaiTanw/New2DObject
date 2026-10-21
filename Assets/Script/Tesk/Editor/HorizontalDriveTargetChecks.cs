@@ -195,7 +195,10 @@ public sealed class HorizontalDriveCheckBody : BasePhysicsEntity
     public float Target;
     public float OutputAtEvent;
     public float VerticalAtRule;
+    public float OutputVerticalAtEvent;
+    public float OutputVerticalAtRule;
     public float? EventVerticalSpeed;
+    public float? RuleVerticalSpeed;
     public int EventCalls;
     public PlayerPhysicsData Output => playerPhysicsData;
     protected override bool HasHorizontalDrive => DriveEnabled;
@@ -215,11 +218,17 @@ public sealed class HorizontalDriveCheckBody : BasePhysicsEntity
     }
     public void SetGroundNormal(Vector2 normal) { nowGemetry.isGrounded = true; nowGemetry.groundNormal = normal; }
     protected override float HorizontalSpeedCalculation() => Target;
-    protected override void PhyEventUpdate()
+    protected override void PhyEventUpdate(ref MotionStep step)
     {
         EventCalls++;
         OutputAtEvent = playerPhysicsData.horizontalSpeed;
-        if (EventVerticalSpeed.HasValue) playerPhysicsData.verticalSpeed = EventVerticalSpeed.Value;
+        OutputVerticalAtEvent = playerPhysicsData.verticalSpeed;
+        if (EventVerticalSpeed.HasValue) step.OwnVelocity.y = EventVerticalSpeed.Value;
     }
-    protected override void VerticalTransmission() => VerticalAtRule = playerPhysicsData.verticalSpeed;
+    protected override void VerticalTransmission(ref MotionStep step)
+    {
+        VerticalAtRule = step.OwnVelocity.y;
+        OutputVerticalAtRule = playerPhysicsData.verticalSpeed;
+        if (RuleVerticalSpeed.HasValue) step.OwnVelocity.y = RuleVerticalSpeed.Value;
+    }
 }

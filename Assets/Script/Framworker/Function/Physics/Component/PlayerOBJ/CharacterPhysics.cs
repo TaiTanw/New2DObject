@@ -135,7 +135,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         return playActionData.onMove * speed;
     }
 
-    protected override void PhyEventUpdate()
+    protected override void PhyEventUpdate(ref MotionStep step)
     {
         // 四向行为不叠普通跳跃或墙跳；仅清待消费操作，不清环境累计速度。
         if (playActionData != null && playActionData.FourWay != FourWayMode.None)
@@ -151,7 +151,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             //受到地面影响程度
             float data = 1f + EnvironmentFrame.jumpHeightOffset;
             //当前竖直速度等于跳跃速度
-            playerPhysicsData.verticalSpeed = upSpeed * data;
+            step.OwnVelocity.y = upSpeed * data;
             //数据消费
             jump = false;
         }
@@ -165,7 +165,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             jumpHeight = upSpeed;
             jumpForce = wallJumpV * speed;
 
-            playerPhysicsData.verticalSpeed = jumpHeight;
+            step.OwnVelocity.y = jumpHeight;
             // 离开触发时选定的墙：朝左贴墙向右跳，朝右贴墙向左跳。不读几何 onLeftWall。
             if (wallJumpSide < 0)
                 AddTimeSpeed(0.2f, jumpForce);
@@ -177,16 +177,16 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         }
         if (jumpReleaseSide)
         {
-            if (playerPhysicsData.verticalSpeed > 0)
+            if (step.OwnVelocity.y > 0)
             {
-                playerPhysicsData.verticalSpeed *= jumpRelNum;
+                step.OwnVelocity.y *= jumpRelNum;
             }
             //消费
             jumpReleaseSide = false;
         }
     }
 
-    protected override void VerticalTransmission()
+    protected override void VerticalTransmission(ref MotionStep step)
     {
         if (playActionData == null) return;
         // 水面悬浮：零输入和向上输入只稳定碰撞框中心；下潜仍用游泳速度，不靠按键改事实。
@@ -202,19 +202,19 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             float targetDelta = Mathf.Clamp(heightDelta, -maxStep, maxStep);
             float carriedY = nowGemetry.isGrounded ? EnvironmentFrame.platformDelta.y : 0f;
             // 只在水面保持目标高度；水下仍完整保留被动水流，平台本步仍只合成一次。
-            playerPhysicsData.verticalSpeed = (targetDelta - carriedY) / dt - playerPhysicsData.phyVSpeed;
+            step.OwnVelocity.y = (targetDelta - carriedY) / dt - playerPhysicsData.phyVSpeed;
             return;
         }
         // 四向行为覆盖本步主动竖直速度；被动水流仍由原 phyVSpeed 合入运动快照。
         if (playActionData.FourWay != FourWayMode.None)
         {
-            playerPhysicsData.verticalSpeed = playActionData.verticalInput * fourWaySpeed
+            step.OwnVelocity.y = playActionData.verticalInput * fourWaySpeed
                 * (1f + playerPhysicsData.nowPhyNum);
             return;
         }
         // 只有逻辑处于贴墙状态且正在下落时，才应用墙滑限速。
         if (playActionData.NowState != PlayerStateMachine.E_playerState.onWallSliding
-            || playerPhysicsData.verticalSpeed >= 0) return;
+            || step.OwnVelocity.y >= 0) return;
 
         // 按动作方向选取相位 2 解析的本帧能力；松手不选择任何一侧。
         IWallSlideSurface wall = playActionData.onMove < 0 ? playphyFunData.canLeftWall
@@ -222,7 +222,7 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
         // 安全：能力缺席、来源禁用或销毁时，不能读取乘数。
         if (!EnvironmentCapabilities.IsActive(wall)) return;
 
-        playerPhysicsData.verticalSpeed = Mathf.Max(playerPhysicsData.verticalSpeed,
+        step.OwnVelocity.y = Mathf.Max(step.OwnVelocity.y,
             -wallDownSpeed * wall.WallSlideMultiplier);
     }
 }

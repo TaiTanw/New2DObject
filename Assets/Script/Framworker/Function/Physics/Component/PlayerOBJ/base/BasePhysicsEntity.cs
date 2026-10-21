@@ -187,14 +187,12 @@ public abstract class BasePhysicsEntity : BasicEntity
     }
     protected override float HActiveSpeedOperation()
     {
-        // 先计算目标，再在原位置消费动作事件；公共水平结果不参与本步计算。
-        float targetHorizontalSpeed = HorizontalSpeedCalculation() * (1 + playerPhysicsData.nowPhyNum);
-        PhyEventUpdate();
-        return targetHorizontalSpeed;
+        // 仅返回目标；动作事件由基类紧接着调用，保持原来的计算先后关系。
+        return HorizontalSpeedCalculation() * (1 + playerPhysicsData.nowPhyNum);
     }
-    protected override void VActiveSpeedOperation()
+    protected override void VActiveSpeedOperation(ref MotionStep step)
     {
-        VerticalTransmission();
+        VerticalTransmission(ref step);
     }
     
     /// <summary>
@@ -203,15 +201,14 @@ public abstract class BasePhysicsEntity : BasicEntity
     protected abstract float HorizontalSpeedCalculation();
 
     /// <summary>
-    /// 统一消费物理事件更新逻辑
+    /// 在水平目标之后、重力之前，消费物理事件并修改本步自身候选速度。
     /// </summary>
-    protected abstract void PhyEventUpdate();
+    protected abstract override void PhyEventUpdate(ref MotionStep step);
     
     /// <summary>
-    /// 处理特殊行为的状态性垂直变速（例如贴墙下滑，攀岩
+    /// 重力计算后处理特殊行为的竖直变速（例如贴墙下滑、游泳）。
     /// </summary>
-    /// <param name="v"></param>
-    protected abstract void VerticalTransmission();
+    protected abstract void VerticalTransmission(ref MotionStep step);
 
 
 }
