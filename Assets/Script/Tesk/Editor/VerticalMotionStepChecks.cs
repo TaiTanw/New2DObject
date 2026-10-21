@@ -27,11 +27,12 @@ public static class VerticalMotionStepChecks
             singleton.SetValue(null, NewObject("vertical candidate scheduler", Vector3.zero).AddComponent<MonoPublicMgr>());
             Physics2D.simulationMode = SimulationMode2D.Script;
             CheckOutputAndHooks();
+            CheckStateVelocityIsolation();
             CheckGroundAndCeiling();
             CheckRealJumpEvents();
             CheckWallJumpTiming();
             CheckSwimmingAndSurface();
-            Debug.Log($"Vertical motion step: {passed.Count} checks passed.");
+            Debug.Log($"Motion step (own/state): {passed.Count} checks passed.");
         }
         finally
         {
@@ -126,6 +127,34 @@ public static class VerticalMotionStepChecks
         Complete(jumping);
     }
 
+    private static void CheckStateVelocityIsolation()
+    {
+        HorizontalDriveCheckBody body = Probe(23200f);
+        body.envImpact = .5f;
+        body.Output.phyHSpeed = 321f;
+        body.Output.phyVSpeed = -456f;
+        var source = NewObject("state command source", new Vector3(23200f, 19900f)).AddComponent<EnvironmentCheckContact>();
+        body.AddSpeedStatus(source.EnvironmentRegistration, new Vector2(2f, 3f));
+        body.AddTimeSpeed(10f, 4f);
+        Calculate(body);
+        Near(body.GetPlanarVelocity().x, 4f, "状态速度不乘环境系数，限时水平速度只在登记时乘一次");
+        Near(body.GetPlanarVelocity().y, 3f, "状态竖直命令不读取旧附加输出");
+        Near(body.Output.phyHSpeed, 321f, "相位 3 不覆盖公开附加水平结果");
+        Near(body.Output.phyVSpeed, -456f, "相位 3 不覆盖公开附加竖直结果");
+        Complete(body);
+        body.RemoveSpeedStatus(source.EnvironmentRegistration);
+        var timed = (List<SpeedStackData>)EnvironmentIntegrationChecks.EffectField(body, "timedSpeeds");
+        SpeedStackData expired = timed[0];
+        expired.responseTimer1 = Time.time - 1f;
+        timed[0] = expired;
+        Calculate(body);
+        Near(body.GetPlanarVelocity().magnitude, 0f, "撤销状态且限时命令到期后，不从旧公开输出续加速度");
+        Check(timed.Count == 0, "汇总仍移除过期限时命令");
+        Check(body.Output.phyHSpeed == 4f && body.Output.phyVSpeed == 3f, "退出来源的相位 3 仍保留上次发布结果");
+        Complete(body);
+        Check(body.Output.phyHSpeed == 0f && body.Output.phyVSpeed == 0f, "相位 5 发布撤销后的实际附加结果");
+    }
+
     private static void CheckRealJumpEvents()
     {
         CharacterPhysics body = Character(22600f, out var action, out var events);
@@ -159,13 +188,14 @@ public static class VerticalMotionStepChecks
         events.EventTigger(PlayerStateMachine.E_playEvent.wallJump);
         Calculate(body);
         Near(body.GetPlanarVelocity().y, body.upSpeed - 10f * Time.fixedDeltaTime, "真实墙跳仍先设置自身竖直候选再处理重力");
-        Near(Output(body).phyHSpeed, 0f, "墙跳限时速度注册仍晚于本步效果汇总");
+        Near(body.GetPlanarVelocity().x, Mathf.Min(body.speed, 300f * Time.fixedDeltaTime), "墙跳限时速度注册仍晚于本步效果汇总");
         Complete(body);
         Calculate(body);
-        Near(Output(body).phyHSpeed, -2f * body.speed, "墙跳限时水平命令仍于下一物理步汇总");
+        Near(Output(body).phyHSpeed, 0f, "下一步汇总限时命令时仍不提前写公开输出");
         float active = Mathf.Min(body.speed, 600f * Time.fixedDeltaTime);
         Near(body.GetPlanarVelocity().x, active - 2f * body.speed, "水平目标与墙跳附加量仍按原顺序合成");
         Complete(body);
+        Near(Output(body).phyHSpeed, -2f * body.speed, "相位 5 保留墙跳实际附加水平结果");
     }
 
     private static void CheckSwimmingAndSurface()
@@ -176,9 +206,11 @@ public static class VerticalMotionStepChecks
         var source = NewObject("swim state source", new Vector3(23000f, 19900f)).AddComponent<EnvironmentCheckContact>();
         body.AddSpeedStatus(source.EnvironmentRegistration, Vector2.up * 2f);
         Output(body).verticalSpeed = -900f;
+        Output(body).phyVSpeed = -456f;
         Calculate(body);
         Near(body.GetPlanarVelocity().y, 8f, "真实游泳候选覆盖重力，水流仍单独附加一次");
         Near(Output(body).verticalSpeed, -900f, "游泳规则不借公开竖直结果传递");
+        Near(Output(body).phyVSpeed, -456f, "游泳合成不改写公开附加竖直结果");
         Complete(body);
         Near(Output(body).verticalSpeed, 6f, "游泳回读后自身与附加竖直分量保持原语义");
         Near(Output(body).phyVSpeed, 2f, "回读保留实际接受的水流分量");
@@ -196,10 +228,12 @@ public static class VerticalMotionStepChecks
         typeof(EntityEnvironmentContext).GetField("<WaterFrame>k__BackingField", Hidden).SetValue(body.EnvironmentContext,
             new EntityWaterFrame(false, true, true, true, surface));
         float previousOutput = Output(body).verticalSpeed;
+        Output(body).phyVSpeed = 999f;
         Calculate(body);
         float targetSpeed = (surface - center) / Time.fixedDeltaTime;
         Near(body.GetPlanarVelocity().y, targetSpeed, "水面悬浮对水流与平台的补偿仍得到原目标总速度");
         Near(Output(body).verticalSpeed, previousOutput, "水面悬浮不提前发布自身候选值");
+        Near(Output(body).phyVSpeed, 999f, "水面补偿使用本步状态速度，不读取或覆盖旧附加输出");
         Complete(body);
         Near(Output(body).phyVSpeed, 2f + carriedY / Time.fixedDeltaTime, "平台与状态速度仍只并入附加命令一次");
     }

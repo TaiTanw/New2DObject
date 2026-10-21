@@ -86,10 +86,10 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     /// <summary>几何事实对象，长期持有，内容按采样更新。相位 1 写入接触、法线、着地和区域；相位 2 消费。</summary>
     protected GeometryPhysicsData nowGemetry;
     /// <summary>
-    /// 速度的计算和输出，字段含义随阶段变化，整个对象不是一份不变的最终速度。
+    /// 公开运动结果、移速修饰汇总与动作序号。普通运动的四个速度字段由相位 5 发布，不作为相位 3 的工作值。
     /// 普通运动相位 3：水平目标由钩子返回，自身水平合计使用局部量，不写 horizontalSpeed。
     /// 飞行分支仍直接发布四向速度；显式刷新会清零输出。
-    /// phyHSpeed 此时是状态速度 X 加有效限时速度，phyVSpeed 是状态速度 Y。
+    /// 状态／限时速度经返回值写入 step.StateVelocity，不借用 phyHSpeed / phyVSpeed；平台携带和坡面补偿另行合成。
     /// 普通运动的自身候选速度由本步局部 MotionStep 承载；事件、重力和竖直动作通过它计算，不写 verticalSpeed。
     /// 相位 5：有水平驱动时 horizontalSpeed 改为实际接受的主动分量，否则为实际 X 减去已接受的附加 X。
     /// phyHSpeed 改为实际 X 减去 horizontalSpeed，角色上会带上惯性等剩余量。
@@ -102,6 +102,8 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
     protected struct MotionStep
     {
         public Vector2 OwnVelocity;
+        /// <summary>本步状态速度加有效限时水平速度，不含平台携带和坡面补偿。</summary>
+        public Vector2 StateVelocity;
     }
 
     /// <summary>环境关系。bindings 跨帧记录来源和退出时要撤销的内容，不在这里积分速度。Frame、WaterFrame 是最近一次采样。</summary>
@@ -592,7 +594,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             && step.OwnVelocity.y > 0f)
             step.OwnVelocity.y = 0f;
         effectState.UpdateMovementModifier(playerPhysicsData);
-        effectState.UpdatePassiveSpeed(playerPhysicsData);
+        step.StateVelocity = effectState.CalculateStateVelocity();
         float passiveDeltaX = effectState.CalculateDynamicVelocityDelta(
             passiveVelocityX, envImpact, dt, self_resistanceCoefficient);
         // 被动计算结果用本步局部量承载，物理数据不再充当制动工作区。
@@ -613,7 +615,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
             step.OwnVelocity.x += activeHorizontalVelocity;
             // 实际逻辑：下坡贴合按本步全部水平速度，含惯性、限时速度和状态速度；不能只算主动走路。
             // 上坡抬升仍由地形查询按实际间隙计算，避免多出来的向上速度被回读成跳跃。
-            float slopeCarryX = step.OwnVelocity.x + playerPhysicsData.phyHSpeed;
+            float slopeCarryX = step.OwnVelocity.x + step.StateVelocity.x;
             if (tangent.x > 0.001f)
             {
                 float along = slopeCarryX * tangent.y / tangent.x;
@@ -622,7 +624,7 @@ public abstract class BasicEntity : MonoBehaviour, IForceAction, IEnvironmentRec
         }
         VUnderForce(ref step);
         VActiveSpeedOperation(ref step);
-        prescribedVelocity = new Vector2(playerPhysicsData.phyHSpeed, playerPhysicsData.phyVSpeed)
+        prescribedVelocity = step.StateVelocity
             + (nowGemetry.isGrounded ? EnvironmentFrame.platformDelta / dt : Vector2.zero)
             + new Vector2(0f, slopeVertical);
         submittedVelocity = step.OwnVelocity + prescribedVelocity;

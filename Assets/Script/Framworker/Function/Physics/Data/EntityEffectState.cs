@@ -46,10 +46,9 @@ internal sealed class EntityEffectState
     public void AddTimedSpeed(float duration, float speed, float envImpact) => timedSpeeds.Add(new SpeedStackData
         { responseTimer1 = Time.time + duration, hspeed = speed * envImpact });
     /// <summary>
-    /// 更新速度附加命令
+    /// 汇总本步状态速度和有效限时水平速度，移除已过期命令；不写公开物理结果。
     /// </summary>
-    /// <param name="movement"></param>
-    public void UpdatePassiveSpeed(PlayerPhysicsData movement)
+    public Vector2 CalculateStateVelocity()
     {
         Vector2 speed = Vector2.zero;
         foreach (Vector2 velocity in stateVelocities.Values) speed += velocity;
@@ -58,8 +57,7 @@ internal sealed class EntityEffectState
             if (timedSpeeds[i].responseTimer1 < Time.time) timedSpeeds.RemoveAt(i);
             else speed.x += timedSpeeds[i].hspeed;
         }
-        movement.phyHSpeed = speed.x;
-        movement.phyVSpeed = speed.y;
+        return speed;
     }
     public void AddDynamicForce(IDynamicAddForce source, ForceData force) => dynamicForces[source] = force;
     public void ChangeDynamicForce(IDynamicAddForce source, float force)

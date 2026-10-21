@@ -202,10 +202,10 @@ public class CharacterPhysics : BasePhysicsEntity, ICanMove
             float targetDelta = Mathf.Clamp(heightDelta, -maxStep, maxStep);
             float carriedY = nowGemetry.isGrounded ? EnvironmentFrame.platformDelta.y : 0f;
             // 只在水面保持目标高度；水下仍完整保留被动水流，平台本步仍只合成一次。
-            step.OwnVelocity.y = (targetDelta - carriedY) / dt - playerPhysicsData.phyVSpeed;
+            step.OwnVelocity.y = (targetDelta - carriedY) / dt - step.StateVelocity.y;
             return;
         }
-        // 四向行为覆盖本步主动竖直速度；被动水流仍由原 phyVSpeed 合入运动快照。
+        // 四向行为覆盖本步自身竖直候选；水流仍由本步 StateVelocity 单独合入附加命令。
         if (playActionData.FourWay != FourWayMode.None)
         {
             step.OwnVelocity.y = playActionData.verticalInput * fourWaySpeed

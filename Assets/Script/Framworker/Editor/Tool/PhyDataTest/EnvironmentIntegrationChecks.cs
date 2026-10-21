@@ -377,8 +377,8 @@ public static class EnvironmentIntegrationChecks
             PhysicsEditorEntityObservation.GetSnapshot(body).dynamicForceCount == 0, "同一宿主可单独提供持续速度能力");
         body.envImpact = .25f;
         body.RunForces();
-        Check(body.PassiveVelocity == platform.StateVelocity,
-            $"同一环境宿主提供的持续速度不乘质量影响系数 [{body.PassiveVelocity} / {platform.StateVelocity}]");
+        Check(body.SampledStateVelocity == platform.StateVelocity,
+            $"同一环境宿主提供的持续速度不乘质量影响系数 [{body.SampledStateVelocity} / {platform.StateVelocity}]");
         Check(ReferenceEquals(EnvironmentCapabilities.Find<IWallSlideSurface>(collider), platform),
             "同一环境宿主可以提供墙滑能力");
         var function = new PhysicalFunctionData { canLeftWall = platform, canRightWall = platform };
@@ -932,10 +932,11 @@ public sealed class EnvironmentCheckBody : BasicEntity, ICanMove
     public float MovingDirection => Direction;
     public float Mobility => 15;
     public EntityEnvironmentFrame Frame => EnvironmentFrame;
-    public Vector2 PassiveVelocity => new Vector2(playerPhysicsData.phyHSpeed, playerPhysicsData.phyVSpeed);
+    public Vector2 SampledStateVelocity { get; private set; }
     protected override void Awake() => InitializeForChecks();
     protected override void OnEnable() { }
     protected override void GeometricQuery() { }
+    protected override void VActiveSpeedOperation(ref MotionStep step) => SampledStateVelocity = step.StateVelocity;
     public void InitializeForChecks()
     {
         BindEffectReceiver();
